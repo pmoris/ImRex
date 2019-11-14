@@ -14,7 +14,7 @@ class ControlCDR3Source(DataSource):
         super().__init__()
         self.filepath = filepath
         print("Reading ref CDR3")
-        self.data = pandas.read_csv(self.filepath, sep=';')
+        self.data = pandas.read_csv(self.filepath, sep=";")
         print("Done reading")
 
     def __len__(self):
@@ -24,7 +24,7 @@ class ControlCDR3Source(DataSource):
 
         # lengths = defaultdict(int)
         for index, row in self.data.iterrows():
-            pep = row['CDR3_beta']
+            pep = row["CDR3_beta"]
             # lengths[len(pep)] += 1
             yield pep
 

@@ -23,18 +23,22 @@ def GroupedBatchGenerator(dataStream, featureBuilder, negRatio, batchSize, minAm
 
     peptides1Grouper = SizeGrouper(peptides1, containsLabel=False)
     peptides2Grouper = SizeGrouper(peptides2, containsLabel=False)
-    shapedBatchSampler = ShapedBatchSampler(peptides1Grouper, peptides2Grouper, checkStream=shapeGrouper)
+    shapedBatchSampler = ShapedBatchSampler(
+        peptides1Grouper, peptides2Grouper, checkStream=shapeGrouper
+    )
 
     negativeLabeler = Labeler(shapedBatchSampler, 0)
     negImageGen = ImageGenerator(negativeLabeler, featureBuilder)
 
-    negativeExtender = BatchExtender(batchSampler, negImageGen, 1-negRatio)
+    negativeExtender = BatchExtender(batchSampler, negImageGen, 1 - negRatio)
     batchGenerator = BatchGenerator(negativeExtender, batchSize)
 
     return batchGenerator
 
 
-def GroupedBatchGenerator2(dataStream, negStream, featureBuilder, negRatio, batchSize, minAmount):
+def GroupedBatchGenerator2(
+    dataStream, negStream, featureBuilder, negRatio, batchSize, minAmount
+):
     input1, input2 = Tee(dataStream)
 
     shapeGrouper = ShapeGrouper(input1)
@@ -48,12 +52,14 @@ def GroupedBatchGenerator2(dataStream, negStream, featureBuilder, negRatio, batc
 
     peptides1Grouper = SizeGrouper(negStream, containsLabel=False)
     peptides2Grouper = SizeGrouper(epitope, containsLabel=False)
-    shapedBatchSampler = ShapedBatchSampler(peptides1Grouper, peptides2Grouper, checkStream=shapeGrouper)
+    shapedBatchSampler = ShapedBatchSampler(
+        peptides1Grouper, peptides2Grouper, checkStream=shapeGrouper
+    )
 
     negativeLabeler = Labeler(shapedBatchSampler, 0)
     negImageGen = ImageGenerator(negativeLabeler, featureBuilder)
 
-    negativeExtender = BatchExtender(batchSampler, negImageGen, 1-negRatio)
+    negativeExtender = BatchExtender(batchSampler, negImageGen, 1 - negRatio)
     batchGenerator = BatchGenerator(negativeExtender, batchSize)
 
     return batchGenerator

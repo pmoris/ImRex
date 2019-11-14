@@ -2,10 +2,11 @@ import os
 import time
 
 
-
 class Model(object):
     def __init__(self, nameSuffix=""):
-        self.name = "{}-{}".format(self.__class__.__name__, time.strftime("%Y%m%d-%H%M%S"))
+        self.name = "{}-{}".format(
+            self.__class__.__name__, time.strftime("%Y%m%d-%H%M%S")
+        )
         if nameSuffix:
             self.name += " - " + str(nameSuffix)
 

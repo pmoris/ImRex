@@ -10,7 +10,7 @@ class Filter(Stream):
         self.hasLabel = hasLabel
 
     def __len__(self):
-        return None         # size not needed
+        return None  # size not needed
 
     def isValid(self, item):
         raise NotImplementedError

@@ -16,10 +16,11 @@ class DataSourceFeatureGenerated(GeneratedDataSource):
         isMatch = random.randint(0, 1)
         x1 = Peptide.random(LENGTH)
         if isMatch:
-            x2 = Peptide.generateMatch(x1, Hydrophobicity(), length=10, random_inverse=False)
+            x2 = Peptide.generateMatch(
+                x1, Hydrophobicity(), length=10, random_inverse=False
+            )
         else:
             x2 = Peptide.random(LENGTH)
 
         # return Hydrophobicity().image_matrix(x1, x2).reshape((LENGTH, LENGTH, 1)), isMatch
         return Hydrophobicity().tensor(x1, x2), isMatch
-

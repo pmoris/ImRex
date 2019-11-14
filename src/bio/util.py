@@ -28,6 +28,7 @@ def decorator(func):
     ```
 
     """
+
     def wrapper(*args, **kwargs):
         # If no parameters given (only function)
         if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
@@ -35,6 +36,7 @@ def decorator(func):
         # If parameters given
         def decorator(f):
             return func(f, *args, **kwargs)
+
         return decorator
 
     return wrapper
@@ -42,12 +44,15 @@ def decorator(func):
 
 def after(postprocess):
     """ Debug decorator. """
+
     def wrapper(f):
         def wrapped(*args, **kwargs):
             res = f(*args, **kwargs)
             postprocess(res)
             return res
+
         return wrapped
+
     return wrapper
 
 
@@ -55,12 +60,14 @@ def scale_matrix(matrix, oldlower, oldupper, upper=255.0):
     """ Scales matrix inplace to new bounds """
     # matrix = matrix.astype(float)
     lower = 0.0
-    matrix -= oldlower # - lower
-    matrix *= ((upper - lower) / (oldupper - oldlower))
+    matrix -= oldlower  # - lower
+    matrix *= (upper - lower) / (oldupper - oldlower)
     # matrix += lower
     return matrix
 
 
 def subdirs(directory):
-    return filter(lambda x: os.path.isdir(x), [os.path.join(directory, subdir) for subdir in os.listdir(directory)])
-
+    return filter(
+        lambda x: os.path.isdir(x),
+        [os.path.join(directory, subdir) for subdir in os.listdir(directory)],
+    )

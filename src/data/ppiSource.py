@@ -15,7 +15,7 @@ DICT_PATH = "../data/PPI_sequences.csv"
 @lru_cache()
 class SequencesMap(object):
     def __init__(self, dictPath=DICT_PATH):
-        data = pandas.read_csv(dictPath, sep=';')
+        data = pandas.read_csv(dictPath, sep=";")
         self.map = {row[0]: row[1] for index, row in data.iterrows()}
 
     def get(self, key):
@@ -31,7 +31,7 @@ class PpiSource(DataSource):
         super().__init__()
         self.filepath = filepath
         self.sequencesMap = sequencesMap
-        self.data = pandas.read_csv(self.filepath, sep=';')
+        self.data = pandas.read_csv(self.filepath, sep=";")
         self.label = label
 
     def __len__(self):

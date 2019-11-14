@@ -20,11 +20,13 @@ class BatchExtender(BatchStream):
 
         base = self.baseStream.getBatch(baseAmount)
 
-        shape = base[0][0].shape[:-1]         # first element = [X, y], we select shape of X (without channels)
+        shape = base[0][0].shape[
+            :-1
+        ]  # first element = [X, y], we select shape of X (without channels)
         ext = self.extendStream.getBatch(extendAmount, shape=shape)
 
         all = list()
         all.extend(base)
         all.extend(ext)
-        random.shuffle(all)     # shuffle in place
+        random.shuffle(all)  # shuffle in place
         return all

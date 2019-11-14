@@ -1,6 +1,7 @@
 """ Scenario for neural network. """
 import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
 import bacli
@@ -18,19 +19,20 @@ bacli.setDescription(__doc__)
 
 
 @bacli.command
-def run(batch_size: int=512,
-        val_split: float=None,
-        epochs: int=40,
-        neg_ratio: float=0.5,
-        min1: int = 10,
-        max1: int = 20,
-        min2: int = 8,
-        max2: int = 13,
-        name: str="",
-        nrFolds: int=3,
-        early_stop=False,
-        data_path='../data/vdjdb_TRB.csv'
-        ):
+def run(
+    batch_size: int = 512,
+    val_split: float = None,
+    epochs: int = 40,
+    neg_ratio: float = 0.5,
+    min1: int = 10,
+    max1: int = 20,
+    min2: int = 8,
+    max2: int = 13,
+    name: str = "",
+    nrFolds: int = 3,
+    early_stop=False,
+    data_path="../data/vdjdb_TRB.csv",
+):
 
     ppiSourcePos = VdjdbSource(data_path)
 
@@ -54,8 +56,11 @@ def run(batch_size: int=512,
         print("train set", len(train))
         print("val set", len(val))
 
-        trainStream = PPILitGenerator(train, neg_ratio, batch_size, pep1Range, pep2Range, symmetric=False)
-        valStream = PPILitGenerator(val, neg_ratio, batch_size, pep1Range, pep2Range, symmetric=False)
+        trainStream = PPILitGenerator(
+            train, neg_ratio, batch_size, pep1Range, pep2Range, symmetric=False
+        )
+        valStream = PPILitGenerator(
+            val, neg_ratio, batch_size, pep1Range, pep2Range, symmetric=False
+        )
 
         trainer.train(model, trainStream, valStream, iteration=index)
-

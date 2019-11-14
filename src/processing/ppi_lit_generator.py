@@ -16,7 +16,9 @@ from Bio.Alphabet import IUPAC
 AMINO_ACIDS = IUPAC.IUPACProtein.letters
 
 
-def PPILitGenerator(dataStream, negRatio, batchSize, pep1Range, pep2Range, swap=False, symmetric=True):
+def PPILitGenerator(
+    dataStream, negRatio, batchSize, pep1Range, pep2Range, swap=False, symmetric=True
+):
     width = pep1Range[1]
     height = pep2Range[1]
 
@@ -38,7 +40,9 @@ def PPILitGenerator(dataStream, negRatio, batchSize, pep1Range, pep2Range, swap=
     sampler1 = Sampler(peptides1, infinite=True)
     sampler2 = Sampler(peptides2, infinite=True)
     zipper = Zipper(sampler1, sampler2)
-    posFilter = PositiveFilter(zipper, positiveItems=input3, hasLabel=False, symmetric=symmetric)
+    posFilter = PositiveFilter(
+        zipper, positiveItems=input3, hasLabel=False, symmetric=symmetric
+    )
 
     negativeLabeler = Labeler(posFilter, 0)
 
@@ -48,13 +52,15 @@ def PPILitGenerator(dataStream, negRatio, batchSize, pep1Range, pep2Range, swap=
     negTokenizer = Tokenizer(negativeLabeler)
     negSequencePadder = SequencePadding(negTokenizer, width, height)
 
-    joiner = Joiner(posSequencePadder, negSequencePadder, 1-negRatio)
+    joiner = Joiner(posSequencePadder, negSequencePadder, 1 - negRatio)
     batchGenerator = BatchGenerator(joiner, batchSize, multipleInput=True)
 
     return batchGenerator
 
 
-def PPILitGenerator2(posStream, negStream, negRatio, batchSize, pep1Range, pep2Range, swap=False):
+def PPILitGenerator2(
+    posStream, negStream, negRatio, batchSize, pep1Range, pep2Range, swap=False
+):
     width = pep1Range[1]
     height = pep2Range[1]
 
@@ -72,7 +78,9 @@ def PPILitGenerator2(posStream, negStream, negRatio, batchSize, pep1Range, pep2R
     posSampler = Sampler(posSequencePadder)
 
     negSizeFilter = SizeFilter(negStream, pep1Range, pep2Range, hasLabel=True)
-    negFilter = PositiveFilter(negSizeFilter, positiveItems=posFiltered2, hasLabel=True, symmetric=True)
+    negFilter = PositiveFilter(
+        negSizeFilter, positiveItems=posFiltered2, hasLabel=True, symmetric=True
+    )
 
     if swap:
         negFilter = Swapper(negFilter)
@@ -81,7 +89,7 @@ def PPILitGenerator2(posStream, negStream, negRatio, batchSize, pep1Range, pep2R
     negSequencePadder = SequencePadding(negTokenizer, width, height)
     negSampler = Sampler(negSequencePadder)
 
-    joiner = Joiner(posSampler, negSampler, 1-negRatio)
+    joiner = Joiner(posSampler, negSampler, 1 - negRatio)
     batchGenerator = BatchGenerator(joiner, batchSize, multipleInput=True)
 
     return batchGenerator
@@ -100,7 +108,9 @@ class Tokenizer(TransformStream):
     def __init__(self, stream, state=None):
         super().__init__(stream)
         if state is None:
-            self.tokenizer = keras.preprocessing.text.Tokenizer(lower=True, char_level=True)
+            self.tokenizer = keras.preprocessing.text.Tokenizer(
+                lower=True, char_level=True
+            )
             self.tokenizer.fit_on_texts(AMINO_ACIDS)
         else:
             self.tokenizer = state

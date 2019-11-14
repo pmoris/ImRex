@@ -14,17 +14,17 @@ from bio.util import subdirs
 
 
 FILES = [
-    ('metrics.csv', 'epoch'),
-    ('roc.csv', "index"),
-    ('precision_recall.csv', "index"),
-    ('average_precision.csv', "index"),
-    ('auc.csv', "index"),
-    ('predictions.csv', None)
+    ("metrics.csv", "epoch"),
+    ("roc.csv", "index"),
+    ("precision_recall.csv", "index"),
+    ("average_precision.csv", "index"),
+    ("auc.csv", "index"),
+    ("predictions.csv", None),
 ]
 
 
 def rgb(r, g, b):
-    return r/255.0, g/255.0, b/255.0
+    return r / 255.0, g / 255.0, b / 255.0
 
 
 paletteG = partial(sns.light_palette, rgb(0, 61, 100), reverse=True, input="rgb")
@@ -32,15 +32,16 @@ gradientPalette = paletteG()
 cmap = paletteG(as_cmap=True)
 cmapI = paletteG(as_cmap=True, reverse=False)
 
-palette = sns.color_palette([
-    rgb(0, 61, 100),        # UA Blue
-    rgb(126, 0, 47),        # UA Red
-    rgb(255, 140, 0),       # Orange
-    rgb(153, 50, 204),      # Purple
-    rgb(60, 204, 50),       # Green
-    rgb(50, 201, 204),      # Cyan
-    rgb(244, 66, 143)       # Pink
-]
+palette = sns.color_palette(
+    [
+        rgb(0, 61, 100),  # UA Blue
+        rgb(126, 0, 47),  # UA Red
+        rgb(255, 140, 0),  # Orange
+        rgb(153, 50, 204),  # Purple
+        rgb(60, 204, 50),  # Green
+        rgb(50, 201, 204),  # Cyan
+        rgb(244, 66, 143),  # Pink
+    ]
 )
 
 sns.set_palette(palette)
@@ -71,7 +72,9 @@ def consolidateAll(directory, force=False):
 
 def consolidate(directory, file, col):
     dfs = list()
-    for subdir in filter(lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)):
+    for subdir in filter(
+        lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)
+    ):
         p = os.path.join(subdir, file)
         if not os.path.exists(p):
             print(f"{file} not found in one of the iterations, skipping.")
@@ -145,9 +148,24 @@ def concatenate(directory, file):
 
 
 def plotMetrics(directory):
-    metricsPath = os.path.join(directory, 'metrics.csv')
+    metricsPath = os.path.join(directory, "metrics.csv")
     metrics = pd.read_csv(metricsPath)
-    for metric in ["AUC", "acc", "balanced_accuracy", "loss", "mean_pred", "precision", "recall", "val_AUC", "val_acc", "val_balanced_accuracy", "val_loss", "val_mean_pred", "val_precision", "val_recall"]:
+    for metric in [
+        "AUC",
+        "acc",
+        "balanced_accuracy",
+        "loss",
+        "mean_pred",
+        "precision",
+        "recall",
+        "val_AUC",
+        "val_acc",
+        "val_balanced_accuracy",
+        "val_loss",
+        "val_mean_pred",
+        "val_precision",
+        "val_recall",
+    ]:
         std_metric = "std_" + metric
         plt.figure()
         sns_plot = sns.lineplot(x="epoch", y=metric, ci=None, hue="type", data=metrics)
@@ -156,9 +174,20 @@ def plotMetrics(directory):
         for tpe in metrics.type.unique():
             df = metrics[metrics.type == tpe]
             value = float(df.tail(1)[metric])
-            labels.append('{} (final = {:.2f})'.format(tpe, value))
+            labels.append("{} (final = {:.2f})".format(tpe, value))
 
-        if metric in ["AUC", "acc", "balanced_accuracy", "precision", "recall", "val_AUC", "val_acc", "val_balanced_accuracy", "val_precision", "val_recall"]:
+        if metric in [
+            "AUC",
+            "acc",
+            "balanced_accuracy",
+            "precision",
+            "recall",
+            "val_AUC",
+            "val_acc",
+            "val_balanced_accuracy",
+            "val_precision",
+            "val_recall",
+        ]:
             sns_plot.set_ylim(0.5, 1)
         elif metric in ["mean_pred", "val_mean_pred"]:
             sns_plot.set_ylim(0, 1)
@@ -167,21 +196,33 @@ def plotMetrics(directory):
         sns_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         handles, _ = sns_plot.get_legend_handles_labels()
-        sns_plot.legend(handles=handles[1:], labels=[l.capitalize() for l in labels], loc="upper left", title=None)
-        sns_plot.set_xlabel('Epoch')
+        sns_plot.legend(
+            handles=handles[1:],
+            labels=[l.capitalize() for l in labels],
+            loc="upper left",
+            title=None,
+        )
+        sns_plot.set_xlabel("Epoch")
         sns_plot.set_title(metric.capitalize())
 
         for tpe in metrics.type.unique():
             df = metrics[metrics.type == tpe]
-            sns_plot.fill_between(df.epoch, df[metric] - df[std_metric], df[metric] + df[std_metric], alpha=0.5)
-        sns_plot.get_figure().savefig(getOutputPath(directory, metric), bbox_inches='tight')
+            sns_plot.fill_between(
+                df.epoch,
+                df[metric] - df[std_metric],
+                df[metric] + df[std_metric],
+                alpha=0.5,
+            )
+        sns_plot.get_figure().savefig(
+            getOutputPath(directory, metric), bbox_inches="tight"
+        )
 
 
 def plotRoc(directory, ax=None):
-    rocPath = os.path.join(directory, 'roc.csv')
+    rocPath = os.path.join(directory, "roc.csv")
     roc = pd.read_csv(rocPath)
 
-    aucPath = os.path.join(directory, 'auc.csv')
+    aucPath = os.path.join(directory, "auc.csv")
     auc = pd.read_csv(aucPath)
 
     labels = list()
@@ -189,7 +230,7 @@ def plotRoc(directory, ax=None):
         df = auc[auc.type == tpe]
         auc_mean = float(df.auc)
         auc_std = float(df.std_auc)
-        labels.append('{} (AUC = {:.2f} ± {:.2f})'.format(tpe, auc_mean, auc_std))
+        labels.append("{} (AUC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std))
 
     save = False
     if ax is None:
@@ -201,27 +242,31 @@ def plotRoc(directory, ax=None):
 
     sns_plot.set_title("ROC")
     sns_plot.legend(labels, title=None, loc="lower right")
-    sns_plot.set_xlabel('False Positive Rate')
-    sns_plot.set_ylabel('True Positive Rate')
+    sns_plot.set_xlabel("False Positive Rate")
+    sns_plot.set_ylabel("True Positive Rate")
 
     for tpe in roc.type.unique():
         df = roc[roc.type == tpe]
-        sns_plot.fill_between(df.fpr, df.tpr - df.std_tpr, df.tpr + df.std_tpr, alpha=0.5)
+        sns_plot.fill_between(
+            df.fpr, df.tpr - df.std_tpr, df.tpr + df.std_tpr, alpha=0.5
+        )
 
-    sns_plot.plot([0, 1], [0, 1], 'k--')
+    sns_plot.plot([0, 1], [0, 1], "k--")
     if save:
-        sns_plot.get_figure().savefig(getOutputPath(directory, "roc"), bbox_inches='tight')
+        sns_plot.get_figure().savefig(
+            getOutputPath(directory, "roc"), bbox_inches="tight"
+        )
 
 
 def plotPrecisionRecall(directory, ax=None):
-    precisionRecallPath = os.path.join(directory, 'precision_recall.csv')
+    precisionRecallPath = os.path.join(directory, "precision_recall.csv")
     precisionRecall = pd.read_csv(precisionRecallPath)
 
     # Interpolation messes these up if the highest predictions are negative samples.
-    precisionRecall.at[0, 'recall'] = 0
-    precisionRecall.at[0, 'precision'] = 1
+    precisionRecall.at[0, "recall"] = 0
+    precisionRecall.at[0, "precision"] = 1
 
-    averagePrecisionPath = os.path.join(directory, 'average_precision.csv')
+    averagePrecisionPath = os.path.join(directory, "average_precision.csv")
     averagePrecision = pd.read_csv(averagePrecisionPath)
 
     labels = list()
@@ -229,7 +274,9 @@ def plotPrecisionRecall(directory, ax=None):
         df = averagePrecision[averagePrecision.type == tpe]
         prec_mean = float(df.average_precision)
         prec_std = float(df.std_average_precision)
-        labels.append('{} (Avg. Prec. = {:.2f} ± {:.2f})'.format(tpe, prec_mean, prec_std))
+        labels.append(
+            "{} (Avg. Prec. = {:.2f} ± {:.2f})".format(tpe, prec_mean, prec_std)
+        )
 
     save = False
     if ax is None:
@@ -238,40 +285,55 @@ def plotPrecisionRecall(directory, ax=None):
         save = True
 
     plt.figure(figsize=(6.4, 6.4))
-    sns_plot = sns.lineplot(x="recall", y="precision", ci=None, data=precisionRecall, hue="type", ax=ax)
+    sns_plot = sns.lineplot(
+        x="recall", y="precision", ci=None, data=precisionRecall, hue="type", ax=ax
+    )
 
     sns_plot.set_title("Precision - Recall")
-    sns_plot.legend(labels, title=None, loc='lower left')
-    sns_plot.set_xlabel('Recall')
-    sns_plot.set_ylabel('Precision')
+    sns_plot.legend(labels, title=None, loc="lower left")
+    sns_plot.set_xlabel("Recall")
+    sns_plot.set_ylabel("Precision")
     sns_plot.set_ylim(0, 1)
 
     for tpe in precisionRecall.type.unique():
         df = precisionRecall[precisionRecall.type == tpe]
-        sns_plot.fill_between(df.recall, df.precision - df.std_precision, df.precision + df.std_precision, alpha=0.5)
+        sns_plot.fill_between(
+            df.recall,
+            df.precision - df.std_precision,
+            df.precision + df.std_precision,
+            alpha=0.5,
+        )
 
     if save:
-        sns_plot.get_figure().savefig(getOutputPath(directory, "precision_recall"), bbox_inches='tight')
+        sns_plot.get_figure().savefig(
+            getOutputPath(directory, "precision_recall"), bbox_inches="tight"
+        )
 
 
 def plotPredictions(directory):
-    predictionsPath = os.path.join(directory, 'predictions.csv')
+    predictionsPath = os.path.join(directory, "predictions.csv")
     if not os.path.exists(predictionsPath):
         return
 
     predictions = pd.read_csv(predictionsPath)
     bins = np.linspace(0, 1, 41)
     plt.figure()
-    sns_plot = sns.distplot(predictions.y_pred[predictions.y_true == 0], bins=bins, kde=False)
-    sns_plot = sns.distplot(predictions.y_pred[predictions.y_true == 1], bins=bins, kde=False)
+    sns_plot = sns.distplot(
+        predictions.y_pred[predictions.y_true == 0], bins=bins, kde=False
+    )
+    sns_plot = sns.distplot(
+        predictions.y_pred[predictions.y_true == 1], bins=bins, kde=False
+    )
     sns_plot.set_xlim(0, 1)
     sns_plot.set_ylim(0, 18000)
     title = os.path.basename(os.path.normpath(directory))
     # title = "Predictions"
     sns_plot.set_title(title)
-    sns_plot.set_xlabel('Predicted probability')
+    sns_plot.set_xlabel("Predicted probability")
     sns_plot.legend(["Negative", "Positive"], title=None)
-    sns_plot.get_figure().savefig(getOutputPath(directory, "predictions"), bbox_inches='tight')
+    sns_plot.get_figure().savefig(
+        getOutputPath(directory, "predictions"), bbox_inches="tight"
+    )
 
 
 def plotConfusionMatrix(directory, ax=None):
@@ -281,7 +343,7 @@ def plotConfusionMatrix(directory, ax=None):
     source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html#sphx-glr-auto-examples-model-selection-plot-confusion-matrix-py
     """
 
-    predictionsPath = os.path.join(directory, 'predictions.csv')
+    predictionsPath = os.path.join(directory, "predictions.csv")
     if not os.path.exists(predictionsPath):
         return
 
@@ -307,44 +369,57 @@ def plotConfusionMatrix(directory, ax=None):
     # Test samples are sampled 5 times. Normalize numbers back to size of validation set
     cm //= 5
 
-    labels = [["True Negatives", "False Positives"], ["False Negatives", "True Positives"]]
+    labels = [
+        ["True Negatives", "False Positives"],
+        ["False Negatives", "True Positives"],
+    ]
 
     if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
 
-    im = ax.imshow(cm, interpolation='nearest', cmap=cmapI)
+    im = ax.imshow(cm, interpolation="nearest", cmap=cmapI)
     ax.figure.colorbar(im, ax=ax)
     # We want to show all ticks...
-    ax.set(xticks=np.arange(0, cm.shape[1], 1),
-           yticks=np.arange(0, cm.shape[0], 1),
-           # ... and label them with the respective list entries
-           xticklabels=classes, yticklabels=classes,
-           title="Confusion Matrix",
-           ylabel='Label',
-           xlabel='Prediction')
+    ax.set(
+        xticks=np.arange(0, cm.shape[1], 1),
+        yticks=np.arange(0, cm.shape[0], 1),
+        # ... and label them with the respective list entries
+        xticklabels=classes,
+        yticklabels=classes,
+        title="Confusion Matrix",
+        ylabel="Label",
+        xlabel="Prediction",
+    )
 
     # Minor ticks to plot grid
-    ax.set_xticks(np.arange(-.5, cm.shape[1], 1), minor=True)
-    ax.set_yticks(np.arange(-.5, cm.shape[0], 1), minor=True)
+    ax.set_xticks(np.arange(-0.5, cm.shape[1], 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, cm.shape[0], 1), minor=True)
 
     ax.grid(False)
-    ax.grid(which='minor')
+    ax.grid(which="minor")
 
     # Rotate the tick labels and set their alignment.
     # plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
     #          rotation_mode="anchor")
 
     # Loop over data dimensions and create text annotations.
-    fmt = '.2f' if normalize else 'd'
-    thresh = cm.max() / 2.
+    fmt = ".2f" if normalize else "d"
+    thresh = cm.max() / 2.0
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
-            ax.text(j, i, f"{labels[i][j]}\n{format(cm[i, j], fmt)}",
-                    ha="center", va="center",
-                    color="white" if cm[i, j] > thresh else "black")
+            ax.text(
+                j,
+                i,
+                f"{labels[i][j]}\n{format(cm[i, j], fmt)}",
+                ha="center",
+                va="center",
+                color="white" if cm[i, j] > thresh else "black",
+            )
 
     if save:
-        ax.get_figure().savefig(getOutputPath(directory, "confusion_matrix"), bbox_inches='tight')
+        ax.get_figure().savefig(
+            getOutputPath(directory, "confusion_matrix"), bbox_inches="tight"
+        )
 
 
 def plotAll(directory):
@@ -365,7 +440,9 @@ def plotCombinedFunction(directories, plotFunc, title):
     rows = math.ceil(len(directories) / 2)
     width = 6.4 * cols
     height = 6.4 * rows
-    f, axarr = plt.subplots(rows, cols, figsize=(width, height), sharey="none", sharex="none")
+    f, axarr = plt.subplots(
+        rows, cols, figsize=(width, height), sharey="none", sharex="none"
+    )
     f.suptitle(title, y=0.91, fontsize=20)
     for index, directory in enumerate(directories):
         ax = axarr[index // cols][index % cols]
@@ -374,4 +451,4 @@ def plotCombinedFunction(directories, plotFunc, title):
         subtitle = os.path.basename(os.path.normpath(directory))
         ax.set_title(subtitle)
 
-    f.savefig(getOutputPath("output", title), bbox_inches='tight')
+    f.savefig(getOutputPath("output", title), bbox_inches="tight")

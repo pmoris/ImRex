@@ -4,6 +4,7 @@ from .stream import TransformStream
 
 class Swapper(TransformStream):
     """ Swap two inputs. """
+
     def __init__(self, stream):
         super().__init__(stream)
 

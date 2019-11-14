@@ -11,7 +11,18 @@ from .tee import Tee
 from .inverse_map import NoOp
 
 
-def PaddedBatchGenerator(dataStream, featureBuilder, negRatio, batchSize, pep1Range, pep2Range, inverseMap=NoOp(), negativeStream=None, cacheImages=True, swap=False):
+def PaddedBatchGenerator(
+    dataStream,
+    featureBuilder,
+    negRatio,
+    batchSize,
+    pep1Range,
+    pep2Range,
+    inverseMap=NoOp(),
+    negativeStream=None,
+    cacheImages=True,
+    swap=False,
+):
     """ Standard PaddedBatchGenerator """
     width = pep1Range[1]
     height = pep2Range[1]
@@ -55,7 +66,7 @@ def PaddedBatchGenerator(dataStream, featureBuilder, negRatio, batchSize, pep1Ra
     negPadding = ImagePadding(negImageGen, width, height, padValue=0)
     negPadding = inverseMap.output(negPadding)
 
-    joiner = Joiner(posOut, negPadding, 1-negRatio)
+    joiner = Joiner(posOut, negPadding, 1 - negRatio)
     batchGenerator = BatchGenerator(joiner, batchSize)
 
     return batchGenerator
@@ -84,7 +95,16 @@ def PaddedBatchGenerator(dataStream, featureBuilder, negRatio, batchSize, pep1Ra
 #     return batchGenerator
 
 
-def PaddedBatchGenerator2(posStream, negStream, featureBuilder, negRatio, batchSize, pep1Range, pep2Range, swap=False):
+def PaddedBatchGenerator2(
+    posStream,
+    negStream,
+    featureBuilder,
+    negRatio,
+    batchSize,
+    pep1Range,
+    pep2Range,
+    swap=False,
+):
     width = pep1Range[1]
     height = pep2Range[1]
 
@@ -99,7 +119,9 @@ def PaddedBatchGenerator2(posStream, negStream, featureBuilder, negRatio, batchS
     posPadding = ImagePadding(posImages, width, height, padValue=0)
 
     negSizeFilter = SizeFilter(negStream, pep1Range, pep2Range, hasLabel=True)
-    negFilter = PositiveFilter(negSizeFilter, positiveItems=posFiltered2, hasLabel=True, symmetric=True)
+    negFilter = PositiveFilter(
+        negSizeFilter, positiveItems=posFiltered2, hasLabel=True, symmetric=True
+    )
     negSampler = Sampler(negFilter)
 
     if swap:
@@ -108,7 +130,7 @@ def PaddedBatchGenerator2(posStream, negStream, featureBuilder, negRatio, batchS
     negImages = ImageGenerator(negSampler, featureBuilder)
     negPadding = ImagePadding(negImages, width, height, padValue=0)
 
-    joiner = Joiner(posPadding, negPadding, 1-negRatio)
+    joiner = Joiner(posPadding, negPadding, 1 - negRatio)
     batchGenerator = BatchGenerator(joiner, batchSize, multipleInput=False)
 
     return batchGenerator

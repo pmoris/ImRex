@@ -12,7 +12,7 @@ def imageFromMatrix(matrix, mode="L", index=None):
         img = np.zeros_like(matrix, dtype=np.uint8)
         img = np.expand_dims(img, axis=-1)
         img = np.repeat(img, amtChannels, axis=2)
-        img[...,index] = matrix
+        img[..., index] = matrix
         return Image.fromarray(img, mode)
     else:
         raise RuntimeError("Unkown image mode")

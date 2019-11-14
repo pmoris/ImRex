@@ -10,11 +10,17 @@ def EpitopeStratifiedFoldSplitter(dataSource, nrFolds):
 
     folds = [list() for _ in range(nrFolds)]
     epitopeCounts = [0] * nrFolds
-    for epitope, values in sorted(epitopeSets.items(), key=lambda x:len(x[1]), reverse=True):
+    for epitope, values in sorted(
+        epitopeSets.items(), key=lambda x: len(x[1]), reverse=True
+    ):
 
         # add epitope to fold with least entries
         minAmount = len(min(folds, key=lambda x: len(x)))
-        candidates = [(index, f, epitopeCount) for index, (f, epitopeCount) in enumerate(zip(folds, epitopeCounts)) if len(f) == minAmount]
+        candidates = [
+            (index, f, epitopeCount)
+            for index, (f, epitopeCount) in enumerate(zip(folds, epitopeCounts))
+            if len(f) == minAmount
+        ]
 
         # select fold with least distinct epitopes if tie
         index, fold, epitopeCount = min(candidates, key=lambda x: x[2])
@@ -29,7 +35,9 @@ def EpitopeStratifiedFoldSplitter(dataSource, nrFolds):
 
     for epitopes in epitopeCounts:
         if epitopes < 2:
-            raise RuntimeError("Can't validate fold with one epitope. Need at least two for the generation of negative samples.")
+            raise RuntimeError(
+                "Can't validate fold with one epitope. Need at least two for the generation of negative samples."
+            )
 
     return folds
 
@@ -49,7 +57,7 @@ def RandomFoldSplitter(dataSource, nrFolds, shuffle=True):
 
 def FoldIterator(folds):
     for leaveOut in range(len(folds)):
-        train = flatten(folds[:leaveOut] + folds[leaveOut+1:])
+        train = flatten(folds[:leaveOut] + folds[leaveOut + 1 :])
         val = folds[leaveOut]
         yield DataStream(train), DataStream(val)
 

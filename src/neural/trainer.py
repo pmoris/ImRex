@@ -1,7 +1,12 @@
 import os
 import pandas
 from collections import defaultdict
-from sklearn.metrics import roc_curve, auc, precision_recall_curve, average_precision_score
+from sklearn.metrics import (
+    roc_curve,
+    auc,
+    precision_recall_curve,
+    average_precision_score,
+)
 import numpy as np
 import multiprocessing
 
@@ -33,8 +38,10 @@ def getOutputPath(baseName, fileName, iteration=None):
 def createCheckpointer(baseName, iteration):
     from keras.callbacks import ModelCheckpoint
 
-    outputPath = getOutputPath(baseName, baseName+".h5", iteration=iteration)
-    return ModelCheckpoint(outputPath, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+    outputPath = getOutputPath(baseName, baseName + ".h5", iteration=iteration)
+    return ModelCheckpoint(
+        outputPath, monitor="val_loss", verbose=1, save_best_only=True, mode="min"
+    )
 
 
 def createTensorboardCallback(modelName):
@@ -47,11 +54,13 @@ def createTensorboardCallback(modelName):
 
 def createEarlyStopping(patience=5):
     from keras.callbacks import EarlyStopping
+
     return EarlyStopping(patience=patience)
 
 
 def createCSVLogger(baseName, iteration):
     from keras.callbacks import CSVLogger
+
     outputPath = getOutputPath(baseName, "metrics.csv", iteration=iteration)
     return CSVLogger(outputPath)
 
@@ -59,11 +68,9 @@ def createCSVLogger(baseName, iteration):
 def createLRR():
     from keras.callbacks import ReduceLROnPlateau
 
-    return ReduceLROnPlateau(monitor='loss',
-                             patience=3,
-                             verbose=1,
-                             factor=0.5,
-                             min_lr=0.0001)
+    return ReduceLROnPlateau(
+        monitor="loss", patience=3, verbose=1, factor=0.5, min_lr=0.0001
+    )
 
 
 class MetricCallback(Callback):
@@ -77,7 +84,7 @@ class MetricCallback(Callback):
         xx = list()
         y_pred = list()
         y_true = list()
-        for i in range(len(self.valStream)*5):
+        for i in range(len(self.valStream) * 5):
             batch = self.valStream[i]
             x, y = batch
             pred = self.model.predict_on_batch(x)
@@ -106,16 +113,11 @@ class roc_callback(MetricCallback):
         tprI = np.interp(interval, fpr, tpr)
 
         outputPath = getOutputPath(self.baseName, "roc.csv", iteration=self.iteration)
-        df = pandas.DataFrame({
-            "fpr": interval,
-            "tpr": tprI
-        })
+        df = pandas.DataFrame({"fpr": interval, "tpr": tprI})
         df.to_csv(outputPath, index=False)
 
         outputPath = getOutputPath(self.baseName, "auc.csv", iteration=self.iteration)
-        df = pandas.DataFrame({
-            "auc": [aucValue],
-        })
+        df = pandas.DataFrame({"auc": [aucValue],})
         df.to_csv(outputPath, index=False)
 
         return
@@ -133,17 +135,16 @@ class precision_recall_callback(MetricCallback):
         interval = np.linspace(0, 1, 201)
         precisionI = np.interp(interval, recall[::-1], precision[::-1])
 
-        outputPath = getOutputPath(self.baseName, "precision_recall.csv", iteration=self.iteration)
-        df = pandas.DataFrame({
-            "recall": interval,
-            "precision": precisionI
-        })
+        outputPath = getOutputPath(
+            self.baseName, "precision_recall.csv", iteration=self.iteration
+        )
+        df = pandas.DataFrame({"recall": interval, "precision": precisionI})
         df.to_csv(outputPath, index=False)
 
-        outputPath = getOutputPath(self.baseName, "average_precision.csv", iteration=self.iteration)
-        df = pandas.DataFrame({
-            "average_precision": [ap],
-        })
+        outputPath = getOutputPath(
+            self.baseName, "average_precision.csv", iteration=self.iteration
+        )
+        df = pandas.DataFrame({"average_precision": [ap],})
         df.to_csv(outputPath, index=False)
 
         return
@@ -162,18 +163,28 @@ class prediction_callback(MetricCallback):
 
         y_pred = [e[0] for e in y_pred]
         df = pandas.DataFrame(zip(y_true, y_pred), columns=["y_true", "y_pred"])
-        outputPath = getOutputPath(self.baseName, "predictions.csv", iteration=self.iteration)
+        outputPath = getOutputPath(
+            self.baseName, "predictions.csv", iteration=self.iteration
+        )
         df.to_csv(outputPath, index=False)
 
         if self.lookup:
-            allPos = [(pred, sample, 1) for pred, sample, label in zip(y_pred, samples, y_true) if label == 1]
-            allNeg = [(pred, sample, 0) for pred, sample, label in zip(y_pred, samples, y_true) if label == 0]
+            allPos = [
+                (pred, sample, 1)
+                for pred, sample, label in zip(y_pred, samples, y_true)
+                if label == 1
+            ]
+            allNeg = [
+                (pred, sample, 0)
+                for pred, sample, label in zip(y_pred, samples, y_true)
+                if label == 0
+            ]
 
             interesting = {
-                'Best Positive': max(allPos, key=lambda x: x[0]),
-                'Worst Positive': min(allPos, key=lambda x: x[0]),
-                'Best Negative': min(allNeg, key=lambda x: x[0]),
-                'Worst Negative': max(allNeg, key=lambda x: x[0])
+                "Best Positive": max(allPos, key=lambda x: x[0]),
+                "Worst Positive": min(allPos, key=lambda x: x[0]),
+                "Best Negative": min(allNeg, key=lambda x: x[0]),
+                "Worst Negative": max(allNeg, key=lambda x: x[0]),
             }
 
             for name, (prediction, sample, label) in interesting.items():
@@ -196,7 +207,7 @@ def getMetrics():
         mean_pred,
         AUC,
         keras_metrics.precision(),
-        keras_metrics.recall()
+        keras_metrics.recall(),
     ]
 
 
@@ -207,7 +218,7 @@ class Trainer(object):
         self.includeEarlyStop = includeEarlyStop
         self.histories = dict()
         self.baseName = None
-        self.lookup = lookup        # Lookup map from feature to input (for traceability)
+        self.lookup = lookup  # Lookup map from feature to input (for traceability)
 
     def train(self, model, trainStream, valStream, iteration=None):
         modelInstance = model.newInstance()
@@ -220,7 +231,9 @@ class Trainer(object):
         if GPUS > 1:
             modelInstance = multi_gpu_model(modelInstance, gpus=GPUS)
 
-        modelInstance.compile(loss=model.getLoss(), optimizer=model.getOptimizer(), metrics=getMetrics())
+        modelInstance.compile(
+            loss=model.getLoss(), optimizer=model.getOptimizer(), metrics=getMetrics()
+        )
 
         if not self.baseName:
             self.baseName = model.baseName
@@ -231,7 +244,9 @@ class Trainer(object):
             createTensorboardCallback(model.getName(iteration)),
             roc_callback(valStream, model.baseName, iteration),
             precision_recall_callback(valStream, model.baseName, iteration),
-            prediction_callback(valStream, model.baseName, iteration, lookup=self.lookup)
+            prediction_callback(
+                valStream, model.baseName, iteration, lookup=self.lookup
+            ),
         ]
 
         if self.includeEarlyStop:
@@ -243,18 +258,19 @@ class Trainer(object):
         print("Fitting CNN")
         workers = multiprocessing.cpu_count()
         print(f"Using {workers} workers")
-        history = modelInstance.fit_generator(generator=trainStream,
-                                              epochs=self.epochs,
-                                              verbose=1,
-                                              callbacks=callbacks,
-                                              validation_data=valStream,
-                                              class_weight=None,
-                                              max_queue_size=2,
-                                              workers=workers,
-                                              use_multiprocessing=True,
-                                              shuffle=False
-                                            )
+        history = modelInstance.fit_generator(
+            generator=trainStream,
+            epochs=self.epochs,
+            verbose=1,
+            callbacks=callbacks,
+            validation_data=valStream,
+            class_weight=None,
+            max_queue_size=2,
+            workers=workers,
+            use_multiprocessing=True,
+            shuffle=False,
+        )
         self.histories[iteration] = history
 
     def evaluate(self):
-        pass     # Moved to post processing step
+        pass  # Moved to post processing step

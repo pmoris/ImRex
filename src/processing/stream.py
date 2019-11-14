@@ -71,7 +71,10 @@ class TransformStream(Stream, GroupedStream, BatchStream):
 
     def getGroups(self):
         # item = [X, y] = [(pep1, pep2), y]
-        return {k: [(self.transform(item)) for item in bin] for k, bin in self.stream.getGroups().items()}
+        return {
+            k: [(self.transform(item)) for item in bin]
+            for k, bin in self.stream.getGroups().items()
+        }
 
     def getBatch(self, batchSize, *args, **kwargs):
         batch = self.stream.getBatch(batchSize, *args, **kwargs)

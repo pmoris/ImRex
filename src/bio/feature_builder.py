@@ -55,8 +55,7 @@ class CombinedPeptideFeatureBuilder(PeptideFeatureBuilder):
         return np.dstack(matrices)
 
     def getNumberLayers(self):
-        if self.operator == 'best':
+        if self.operator == "best":
             return sum(f.getBestOperator().getAmountLayers() for f in self.features)
         else:
             return len(self.features) * self.operator.getAmountLayers()
-

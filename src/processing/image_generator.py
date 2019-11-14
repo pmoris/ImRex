@@ -9,4 +9,3 @@ class ImageGenerator(TransformStream):
     def transform(self, item, *args, **kwargs):
         x, y = item
         return self.featureBuilder.generateFeature(x), y
-

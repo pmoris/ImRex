@@ -5,7 +5,14 @@ from bio.peptide_feature import *
 from bio.peptide import Peptide
 from bio.util import subdirs
 from bio.image import *
-from visual.plot import consolidateAll, concatenateAll, plotAll, palette, cmap, plotCombined
+from visual.plot import (
+    consolidateAll,
+    concatenateAll,
+    plotAll,
+    palette,
+    cmap,
+    plotCombined,
+)
 from scipy import stats
 import seaborn as sns
 import pandas as pd
@@ -32,14 +39,25 @@ def render(modelFile: str):
     from keras.utils.vis_utils import plot_model
 
     model = load_model(modelFile, compile=False)
-    plot_model(model, to_file=modelFile + '.pdf', show_shapes=True, show_layer_names=True, rankdir="TB")
+    plot_model(
+        model,
+        to_file=modelFile + ".pdf",
+        show_shapes=True,
+        show_layer_names=True,
+        rankdir="TB",
+    )
 
 
 @bacli.command
-def activations(modelFile: str, epitope: str=None, cdr3: str=None, layer: str="conv2d_1", vsc:bool=False,
-                features: str = "mass,hydrophob,charge,hydrophil",
-                operator: str = "best",
-    ):
+def activations(
+    modelFile: str,
+    epitope: str = None,
+    cdr3: str = None,
+    layer: str = "conv2d_1",
+    vsc: bool = False,
+    features: str = "mass,hydrophob,charge,hydrophil",
+    operator: str = "best",
+):
     """ Display the activations of a model for a given input. """
     from keras.models import load_model
     from keract import get_activations, display_activations, display_heatmaps
@@ -61,7 +79,7 @@ def activations(modelFile: str, epitope: str=None, cdr3: str=None, layer: str="c
     operator = parseOperator(operator)
     featureBuilder = CombinedPeptideFeatureBuilder(featuresList, operator)
     image = featureBuilder.generateFeature([cdr3, epitope])
-    padded, _ = ImagePadding(None, 20, 13).transform((image,None), padValue=0)
+    padded, _ = ImagePadding(None, 20, 13).transform((image, None), padValue=0)
 
     x = np.array((padded,))
     activations = get_activations(model, x, layer)
@@ -79,7 +97,13 @@ def summary(modelFile: str):
 
 
 @bacli.command
-def peptide(epitope: str=None, cdr3: str=None, tensor: bool=False, cmyk: bool=False, operator: str = "best"):
+def peptide(
+    epitope: str = None,
+    cdr3: str = None,
+    tensor: bool = False,
+    cmyk: bool = False,
+    operator: str = "best",
+):
     """ Render peptide images. """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -123,12 +147,12 @@ def imgToPlot(layers, epitope, cdr3, name):
         ax.set_yticklabels(cdr3)
         ax.set_xticks(range(len(epitope)))
         ax.set_xticklabels(epitope)
-        ax.set(ylabel='CDR3')
+        ax.set(ylabel="CDR3")
         ax.grid(False)
         for spine in ax.spines.values():
             spine.set_visible(False)
 
-    fig.text(0.5, 0.08, 'Epitope', ha='center', va='center')
+    fig.text(0.5, 0.08, "Epitope", ha="center", va="center")
 
     # Hide x labels and tick labels for top plots and y ticks for right plots.
     for ax in axes.flat:
@@ -137,14 +161,14 @@ def imgToPlot(layers, epitope, cdr3, name):
     for i, (layer, title) in enumerate(layers):
         sub = axes[i]
         sub.set_title(title)
-        rgb_im = layer.convert('RGB')
+        rgb_im = layer.convert("RGB")
         pix = np.array(rgb_im)
         sub.imshow(pix, origin="lower")
         sub.grid(False)
         for spine in plt.gca().spines.values():
             spine.set_visible(False)
 
-    plt.savefig(os.path.join(OUTPUT_DIR, name), bbox_inches='tight')
+    plt.savefig(os.path.join(OUTPUT_DIR, name), bbox_inches="tight")
 
 
 @bacli.command
@@ -167,20 +191,19 @@ def features():
         r, _ = stats.pearsonr(x, y)
         # s, _ = stats.spearmanr(x, y)
         ax = plt.gca()
-        ax.annotate("r = {:.2f}".format(r),
-                    xy=(.05, .95), xycoords=ax.transAxes)
+        ax.annotate("r = {:.2f}".format(r), xy=(0.05, 0.95), xycoords=ax.transAxes)
 
     # sns.set(font_scale=1.1)
-    sns.set_style("ticks", {'axes.grid': False})
+    sns.set_style("ticks", {"axes.grid": False})
     g = sns.PairGrid(df, height=2)
 
-    g.map_lower(sns.regplot)#, s=25)
+    g.map_lower(sns.regplot)  # , s=25)
     g.map_diag(plt.hist)
     g.map_upper(sns.kdeplot, cmap=cmap)
     # g.map_lower(sns.kdeplot, cmap="Blues_d")
     g.map_lower(corrfunc)
     path = os.path.join(OUTPUT_DIR, "features.pdf")
-    g.savefig(path, bbox_inches='tight')
+    g.savefig(path, bbox_inches="tight")
 
     # plt.figure()
     # sns.palplot(palette)
@@ -188,7 +211,7 @@ def features():
 
 
 @bacli.command
-def metrics(directory: str, force: bool=False):
+def metrics(directory: str, force: bool = False):
     # directory
     #   |- iteration 0
     #       |- metrics.csv
@@ -202,10 +225,12 @@ def metrics(directory: str, force: bool=False):
 
 
 @bacli.command
-def compare(rootDirectory: str, force: bool=False):
+def compare(rootDirectory: str, force: bool = False):
     for directory in subdirs(rootDirectory):
         if os.path.basename(directory).startswith("_"):
-            print("Found directory:", directory, "which starts with underscore, skipping")
+            print(
+                "Found directory:", directory, "which starts with underscore, skipping"
+            )
             continue
 
         print(f"Consolidating metrics of {directory}")

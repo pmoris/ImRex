@@ -21,21 +21,20 @@ class Peptide(str):
 
     @staticmethod
     def random(length=10):
-        return Peptide(''.join(random.choice(AMINO_ACIDS) for _ in range(length)))
+        return Peptide("".join(random.choice(AMINO_ACIDS) for _ in range(length)))
 
     def generateMatch(self, feature, length=5, random_inverse=True):
         startIndex = random.randint(0, len(self) - length)
         match = ""
         for index, aa in enumerate(self):
-            if index < startIndex:                      # start is random
+            if index < startIndex:  # start is random
                 match += random.choice(AMINO_ACIDS)
-            elif index < startIndex + length:           # generate random match
+            elif index < startIndex + length:  # generate random match
                 t = feature.generateMatch(aa)
                 match += t
-            else:                                       # fill with random
+            else:  # fill with random
                 match += random.choice(AMINO_ACIDS)
 
         if random_inverse and random.randint(1, 2) == 1:
-            match = ''.join(reversed(match))
+            match = "".join(reversed(match))
         return Peptide(match)
-

@@ -6,7 +6,7 @@ from .stream import Stream, BatchStream
 class Sampler(Stream):
     def __init__(self, stream, infinite=False):
         super().__init__(stream)
-        self.samples = list(stream)         # materialize
+        self.samples = list(stream)  # materialize
         self.infinite = infinite
 
     def __len__(self):
@@ -22,7 +22,7 @@ class GroupSampler(Stream):
     def __init__(self, stream):
         super().__init__(stream)
         self.stream = stream
-        self.bins = stream.getGroups()      # materialize
+        self.bins = stream.getGroups()  # materialize
 
     def __len__(self):
         return self.stream.__len__()

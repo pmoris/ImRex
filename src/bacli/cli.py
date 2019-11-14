@@ -24,7 +24,11 @@ def command(f):
 
 def parse_args():
     parser = argparse.ArgumentParser(description=description)
-    subparsers = parser.add_subparsers(help="Select one of the following subcommands:", dest='command', metavar="subcommand")
+    subparsers = parser.add_subparsers(
+        help="Select one of the following subcommands:",
+        dest="command",
+        metavar="subcommand",
+    )
     subparsers.required = True
 
     for fName, f in functions.items():
@@ -39,12 +43,17 @@ def parse_args():
                 tpe = str
             if param.default is not inspect.Parameter.empty:
                 prefix = "-" if len(param.name) == 1 else "--"
-                sub_parser.add_argument(prefix + param.name,
-                                        help="type: {}, default={}".format(tpe.__name__, param.default),
-                                        type=tpe, default=param.default, nargs=nargs)
+                sub_parser.add_argument(
+                    prefix + param.name,
+                    help="type: {}, default={}".format(tpe.__name__, param.default),
+                    type=tpe,
+                    default=param.default,
+                    nargs=nargs,
+                )
             else:
-                sub_parser.add_argument(param.name, help="type: " + tpe.__name__,
-                                        type=tpe, nargs=nargs)
+                sub_parser.add_argument(
+                    param.name, help="type: " + tpe.__name__, type=tpe, nargs=nargs
+                )
 
     cmd_args = parser.parse_args()
     fName = cmd_args.command

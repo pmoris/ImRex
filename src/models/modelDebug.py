@@ -17,17 +17,40 @@ class ModelDebug(Model):
     def _buildModel(self):
         import keras
         from keras.models import Sequential
-        from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D, LeakyReLU, GlobalAveragePooling2D, Activation
+        from keras.layers import (
+            Dense,
+            Dropout,
+            Flatten,
+            Conv2D,
+            MaxPool2D,
+            LeakyReLU,
+            GlobalAveragePooling2D,
+            Activation,
+        )
         from keras.layers.normalization import BatchNormalization
 
         model = Sequential()
 
         inputShape = (self.width, self.height, self.channels)
         # WEIGHT_DECAY = 1e-6
-        KERNEL_INIT = 'he_normal'
+        KERNEL_INIT = "he_normal"
 
-        def createConv(depth, kernel_size=(3, 3), activation="relu", padding='same', kernel_initializer=KERNEL_INIT, **kwargs):
-            return Conv2D(depth, kernel_size, activation=activation, padding=padding, kernel_initializer=kernel_initializer, **kwargs)
+        def createConv(
+            depth,
+            kernel_size=(3, 3),
+            activation="relu",
+            padding="same",
+            kernel_initializer=KERNEL_INIT,
+            **kwargs
+        ):
+            return Conv2D(
+                depth,
+                kernel_size,
+                activation=activation,
+                padding=padding,
+                kernel_initializer=kernel_initializer,
+                **kwargs
+            )
 
         model.add(createConv(8, kernel_size=(3, 3), input_shape=inputShape))
         # model.add(Dropout(0.4))
@@ -47,7 +70,7 @@ class ModelDebug(Model):
         model.add(BatchNormalization())
 
         model.add(GlobalAveragePooling2D())
-        model.add(Activation('sigmoid'))
+        model.add(Activation("sigmoid"))
 
         # model.add(Flatten())
         # model.add(Dense(32, activation='tanh'))
@@ -57,8 +80,10 @@ class ModelDebug(Model):
 
     def getLoss(self):
         from keras.metrics import binary_crossentropy
+
         return binary_crossentropy
 
     def getOptimizer(self):
         from keras.optimizers import rmsprop
+
         return rmsprop()

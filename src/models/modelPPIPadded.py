@@ -19,10 +19,24 @@ class ModelPPIPadded(Model):
 
         inputShape = (self.width, self.height, self.channels)
         WEIGHT_DECAY = 1e-6
-        KERNEL_INIT = 'he_normal'
+        KERNEL_INIT = "he_normal"
 
-        def createConv(depth, kernel_size=(3, 3), activation="relu", padding='valid', kernel_initializer=KERNEL_INIT, **kwargs):
-            return Conv2D(depth, kernel_size, activation=activation, padding=padding, kernel_initializer=kernel_initializer, **kwargs)
+        def createConv(
+            depth,
+            kernel_size=(3, 3),
+            activation="relu",
+            padding="valid",
+            kernel_initializer=KERNEL_INIT,
+            **kwargs
+        ):
+            return Conv2D(
+                depth,
+                kernel_size,
+                activation=activation,
+                padding=padding,
+                kernel_initializer=kernel_initializer,
+                **kwargs
+            )
 
         model.add(createConv(16, kernel_size=(10, 10), input_shape=inputShape))
         # model.add(BatchNormalization())
@@ -57,17 +71,18 @@ class ModelPPIPadded(Model):
         model.add(Dropout(0.25))
         model.add(BatchNormalization())
 
-
         model.add(Flatten())
-        model.add(Dense(16, activation='tanh'))
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(16, activation="tanh"))
+        model.add(Dense(1, activation="sigmoid"))
 
         return model
 
     def getLoss(self):
         from keras.metrics import binary_crossentropy
+
         return binary_crossentropy
 
     def getOptimizer(self):
         from keras.optimizers import rmsprop
+
         return rmsprop()

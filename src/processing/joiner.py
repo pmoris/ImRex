@@ -17,7 +17,10 @@ class Joiner(BatchStream):
         elif sourceLengths[1] is None:
             return int(sourceLengths[0] // self.ratio)
         else:
-            lengths = [int(sourceLengths[1] // (1 - self.ratio)), int(sourceLengths[0] // self.ratio)]
+            lengths = [
+                int(sourceLengths[1] // (1 - self.ratio)),
+                int(sourceLengths[0] // self.ratio),
+            ]
             return min(lengths)
 
     def getBatch(self, batchSize, *args, **kwargs):

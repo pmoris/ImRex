@@ -25,6 +25,6 @@ class ShapedBatchSampler(BatchStream):
                 positive = set(i for i, label in self.checkStream.getGroup(key))
                 if tuple(item) in positive:
                     # print(item, "is a positive sample, continuing search for negative sample.")
-                    continue        # item is accidentally a positive sample
+                    continue  # item is accidentally a positive sample
             batch.append(item)
         return batch

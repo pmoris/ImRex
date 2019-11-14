@@ -12,7 +12,7 @@ class VdjdbSource(DataSource):
     def __init__(self, filepath=VDJDB_PATH):
         super().__init__()
         self.filepath = filepath
-        self.data = pandas.read_csv(self.filepath, sep=';')
+        self.data = pandas.read_csv(self.filepath, sep=";")
 
     def __len__(self):
         return len(self.data)
@@ -24,8 +24,8 @@ class VdjdbSource(DataSource):
         # lengths2 = defaultdict(int)
 
         for index, row in self.data.iterrows():
-            pep1 = row['cdr3']
-            pep2 = row['antigen.epitope']
+            pep1 = row["cdr3"]
+            pep2 = row["antigen.epitope"]
             # lengths1[len(pep1)] += 1
             # lengths2[len(pep2)] += 1
             yield (pep1, pep2), 1

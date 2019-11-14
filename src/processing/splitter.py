@@ -9,4 +9,3 @@ def Splitter(dataSource, ratio, shuffle=True):
     part1, part2 = train_test_split(data, test_size=ratio, shuffle=shuffle)
 
     return DataStream(part1), DataStream(part2)
-

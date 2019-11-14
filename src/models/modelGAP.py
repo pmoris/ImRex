@@ -27,10 +27,26 @@ class ModelGAP(Model):
         WEIGHT_DECAY = 1e-6
         # KERNEL_INIT = keras.initializers.he_normal
 
-        KERNEL_INIT = 'he_normal'
+        KERNEL_INIT = "he_normal"
 
-        def createConv(depth, kernel_size=(3, 3), activation="relu", padding='same', regularizer=l2(WEIGHT_DECAY), kernel_initializer=KERNEL_INIT, **kwargs):
-            return Conv2D(depth, kernel_size, activation=activation, padding=padding, kernel_regularizer=regularizer, kernel_initializer=kernel_initializer, **kwargs)
+        def createConv(
+            depth,
+            kernel_size=(3, 3),
+            activation="relu",
+            padding="same",
+            regularizer=l2(WEIGHT_DECAY),
+            kernel_initializer=KERNEL_INIT,
+            **kwargs
+        ):
+            return Conv2D(
+                depth,
+                kernel_size,
+                activation=activation,
+                padding=padding,
+                kernel_regularizer=regularizer,
+                kernel_initializer=kernel_initializer,
+                **kwargs
+            )
 
         model = Sequential()
 
@@ -41,7 +57,7 @@ class ModelGAP(Model):
         model.add(Dropout(0.25))
         model.add(BatchNormalization())
         model.add(createConv(128, (3, 3)))
-        model.add(MaxPool2D(pool_size=(2, 2), padding='same'))
+        model.add(MaxPool2D(pool_size=(2, 2), padding="same"))
         # model.add(Dropout(0.25))
         model.add(BatchNormalization())
 
@@ -59,14 +75,16 @@ class ModelGAP(Model):
         model.add(BatchNormalization())
 
         model.add(GlobalAveragePooling2D())
-        model.add(Activation('sigmoid'))
+        model.add(Activation("sigmoid"))
 
         return model
 
     def getLoss(self):
         from keras.metrics import binary_crossentropy
+
         return binary_crossentropy
 
     def getOptimizer(self):
         from keras.optimizers import rmsprop
+
         return rmsprop()

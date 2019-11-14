@@ -29,12 +29,14 @@ def NetTCRBatchGenerator(dataStream, negRatio, batchSize, minAmount):
 
     peptides1Grouper = SizeGrouper(peptides1, containsLabel=False)
     peptides2Grouper = SizeGrouper(peptides2, containsLabel=False)
-    shapedBatchSampler = ShapedBatchSampler(peptides1Grouper, peptides2Grouper, checkStream=shapeGrouper)
+    shapedBatchSampler = ShapedBatchSampler(
+        peptides1Grouper, peptides2Grouper, checkStream=shapeGrouper
+    )
 
     negativeLabeler = Labeler(shapedBatchSampler, 0)
     negImageGen = BlossumImageGenerator(negativeLabeler)
 
-    negativeExtender = NetTCRBatchExtender(batchSampler, negImageGen, 1-negRatio)
+    negativeExtender = NetTCRBatchExtender(batchSampler, negImageGen, 1 - negRatio)
     batchGenerator = BatchGenerator(negativeExtender, batchSize, multipleInput=True)
 
     return batchGenerator
@@ -91,5 +93,5 @@ class NetTCRBatchExtender(BatchStream):
         all = list()
         all.extend(base)
         all.extend(ext)
-        random.shuffle(all)     # shuffle in place
+        random.shuffle(all)  # shuffle in place
         return all

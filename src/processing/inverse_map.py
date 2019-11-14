@@ -38,7 +38,7 @@ class InverseMap(object):
 
     def output(self, stream, hasLabel=True):
         def hook(item):
-            assert(len(self.ins) > 0)
+            assert len(self.ins) > 0
             key = item.tobytes()
             value = self.ins.pop(0)
             self.map[key] = value
