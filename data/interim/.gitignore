@@ -1,4 +1,4 @@
-# .gitignore to keep just descriptive markdown files and bash scripts
+# .gitignore to keep just logs, descriptive markdown files and bash scripts
 ###################################
 
 # Filter everything...
@@ -14,3 +14,4 @@
 !*.md
 !*.markdown
 !*.sh
+!*.log
