@@ -1,7 +1,9 @@
 deepTCR
 ==============================
 
-TCR-epitope recognition prediction using CNN approach
+## TCR-epitope recognition prediction using CNN approach
+
+This project is an extension of original work done by [Joey De Pauw](https://github.com/JoeyDP) during his master thesis at the University of Antwerp under supervision of Pieter Meysman and Pieter Moris. A fork of the original project is made available at [https://github.com/pmoris/Master-Thesis](https://github.com/pmoris/Master-Thesis).
 
 Project Organization
 ------------

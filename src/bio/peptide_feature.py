@@ -1,0 +1,542 @@
+import random
+from functools import lru_cache
+
+from pyteomics import electrochem
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
+from Bio.SeqUtils.ProtParamData import *
+from Bio.SeqUtils import molecular_weight
+
+import numpy as np
+
+from bio.util import AMINO_ACIDS, scale_matrix
+
+
+PH = 7
+
+
+class Operator(object):
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+    @lru_cache()
+    def min_op(self, peptideFeature):
+        raise NotImplementedError()
+
+    @lru_cache()
+    def max_op(self, peptideFeature):
+        raise NotImplementedError()
+
+    def matrix(self, v1, v2):
+        raise NotImplementedError()
+
+    def scaledMatrix(self, matrix, upper, peptideFeature):
+        return scale_matrix(matrix, self.min_op(peptideFeature), self.max_op(peptideFeature), upper=upper)
+
+    def image_matrix(self, v1, v2, peptideFeature):
+        m = self.matrix(v1, v2)
+        return self.scaledMatrix(m, 255.0, peptideFeature)
+
+    def norm_matrix(self, v1, v2, peptideFeature):
+        m = self.matrix(v1, v2)
+        return self.scaledMatrix(m, 1.0, peptideFeature)
+
+    def getAmountLayers(self):
+        return 1
+
+
+@lru_cache()
+class ProductOperator(Operator):
+    @lru_cache()
+    def min_op(self, peptideFeature):
+        """ The minimum if two values are multiplied """
+        if peptideFeature.min < 0 and peptideFeature.max > 0:           # if result can be negative, minimum product is lowest * highest
+            return peptideFeature.min * peptideFeature.max
+        elif peptideFeature.min < 0 and peptideFeature.max < 0:         # if result positive from negatives, min is closest to zero multiplied
+            return peptideFeature.max * peptideFeature.max
+        else:                                       # if result positive from positives, minimum product is lowest * lowest
+            return peptideFeature.min * peptideFeature.min
+
+    @lru_cache()
+    def max_op(self, peptideFeature):
+        """ The maximum if two values are multiplied """
+        return max(peptideFeature.max * peptideFeature.max, peptideFeature.min * peptideFeature.min)
+
+    def matrix(self, v1, v2):
+        """ Performs matrix multiplication. """
+        vv1 = v1.reshape(-1, 1)        # make 2d array with column vector
+        vv2 = v2.reshape(1, -1)        # make 2d array with row vector
+        a = np.matmul(vv1, vv2)
+
+        # aa = v1*v2
+        # print("a:", a.shape)
+        # print("aa:", aa.shape)
+        # print(a)
+        # print(aa)
+
+        return a
+
+
+@lru_cache()
+class LayeredOperator(Operator):
+    @lru_cache()
+    def min_op(self, peptideFeature):
+        raise RuntimeError("min_op not defined for LayeredOperator")
+
+    @lru_cache()
+    def max_op(self, peptideFeature):
+        raise RuntimeError("max_op not defined for LayeredOperator")
+
+    def matrix(self, v1, v2):
+        len1, len2 = len(v1), len(v2)
+        v1 = v1.reshape(-1, 1)        # make 2d array with column vector
+        v2 = v2.reshape(1, -1)        # make 2d array with row vector
+        l1 = np.repeat(v1, len2, axis=1)
+        l2 = np.repeat(v2, len1, axis=0)
+        l3 = ProductOperator().matrix(v1, v2)
+        return np.dstack([l1, l2, l3])
+
+    def scaledMatrix(self, matrix, upper, peptideFeature):
+        l1 = scale_matrix(np.take(matrix, 0, axis=2), peptideFeature.min, peptideFeature.max, upper=upper)
+        l2 = scale_matrix(np.take(matrix, 1, axis=2), peptideFeature.min, peptideFeature.max, upper=upper)
+        l3 = scale_matrix(np.take(matrix, 2, axis=2), ProductOperator().min_op(peptideFeature), ProductOperator().max_op(peptideFeature), upper=upper)
+        scaled = np.dstack([l1, l2, l3])
+        return scaled
+
+    def getAmountLayers(self):
+        return 3
+
+
+@lru_cache()
+class AbsDifferenceOperator(Operator):
+    @lru_cache()
+    def min_op(self, peptideFeature):
+        return 0
+
+    @lru_cache()
+    def max_op(self, peptideFeature):
+        return abs(peptideFeature.max - peptideFeature.min)
+
+    def matrix(self, v1, v2):
+        """ Use subtract then abs rather than product """
+        # m = list()
+        # for rowElem in v1:
+        #     row = list()
+        #     for colElem in v2:
+        #         row.append(abs(rowElem - colElem))
+        #     m.append(row)
+        # aa = np.array(m)
+
+        # a = np.empty((len(v1), len(v2)))
+        # for row in range(len(v1)):
+        #     for col in range(len(v2)):
+        #         a[row, col] = abs(v2[col] - v1[row])
+
+        aa = v1[...,np.newaxis]-v2[np.newaxis,...]
+        aa = np.abs(aa)
+
+        return aa
+
+
+@lru_cache()
+class DifferenceOperator(Operator):
+    @lru_cache()
+    def min_op(self, peptideFeature):
+        return peptideFeature.min - peptideFeature.max
+
+    @lru_cache()
+    def max_op(self, peptideFeature):
+        return peptideFeature.max - peptideFeature.min
+
+    def matrix(self, v1, v2):
+        """ Use subtract rather than product """
+        aa = v1[...,np.newaxis]-v2[np.newaxis,...]
+        return aa
+
+
+class PeptideFeature(object):
+    name = None
+
+    def __repr__(self):
+        return self.__class__.__name__ + "()"
+
+    def __init__(self):
+        pass
+
+    def _calculate(self, aa):
+        """ return the associated value for a given amino acid """
+        raise NotImplementedError()
+
+    def generateMatch(self, aa):
+        raise RuntimeError("generateMatch not implemented")
+
+    def getBestOperator(self):
+        raise NotImplementedError()
+
+    @property
+    @lru_cache()
+    def values(self):
+        return {aa: self._calculate(aa) for aa in AMINO_ACIDS}
+
+    @property
+    @lru_cache()
+    def max(self):
+        return max(self.values.values())
+
+    @property
+    @lru_cache()
+    def min(self):
+        return min(self.values.values())
+
+    def value(self, aa):
+        return self.values.get(aa, 0)
+
+    def calculate(self, peptide):
+        values = [self.value(aa) for aa in peptide]
+        return np.asanyarray(values)
+
+    def matrix(self, pep1, pep2, operator="best"):
+        """ By default implements matrix multiplication, but can be overridden """
+        if operator == "best":
+            operator = self.getBestOperator()
+        m = operator.matrix(self.calculate(pep1), self.calculate(pep2))
+        return m
+
+    def image_matrix(self, pep1, pep2, operator="best"):
+        if operator == "best":
+            operator = self.getBestOperator()
+        return operator.image_matrix(self.calculate(pep1), self.calculate(pep2), self).astype(np.uint8)
+
+    def norm_matrix(self, pep1, pep2, operator="best"):
+        if operator == "best":
+            operator = self.getBestOperator()
+        return operator.norm_matrix(self.calculate(pep1), self.calculate(pep2), self)
+
+
+@lru_cache()
+class Charge(PeptideFeature):
+    name = "Charge"
+
+    def __init__(self, ph=PH):
+        super().__init__()
+        self.ph = ph
+
+    def _calculate(self, aa):
+        return electrochem.charge(aa, self.ph)
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+    # @after(lambda x: print(x, Charge().value(x)))
+    def generateMatch(self, amino):
+        # print(amino, self.value(amino))
+
+        """ This method uses charge as weight for sampling (neg to pos). """
+        # pos, posW = zip(*[(aa, charge) for aa, charge in self.values.items() if charge >= 0])
+        # neg, negW = zip(*[(aa, abs(charge)) for aa, charge in self.values.items() if charge < 0])
+        # if self.value(aa) >= 0:                  # match pos aa with negative
+        #     return random.choices(neg, negW)[0]
+        # else:
+        #     return random.choices(pos, posW)[0]
+
+        """ This method matches pos to neg, neg to pos and neutral to neutral. """
+        CUTOFF = 0.5
+
+        pos = [aa for aa, charge in self.values.items() if charge >= CUTOFF]
+        neg = [aa for aa, charge in self.values.items() if charge <= CUTOFF]
+        net = [aa for aa, charge in self.values.items() if abs(charge) < CUTOFF]
+        if self.value(amino) >= CUTOFF:
+            return random.choice(neg)
+        elif self.value(amino) <= CUTOFF:
+            return random.choice(pos)
+        else:
+            return random.choice(net)
+
+
+@lru_cache()
+class Hydrophobicity(PeptideFeature):
+    name = "Hydrophobicity"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return kd
+
+    def _calculate(self, aa):
+        return kd[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+    # @after(lambda x: print(x, Hydrophobicity().value(x), '\n'))
+    def generateMatch(self, amino):
+        # print(amino, self.value(amino))
+
+        """ This method selects a value close to the value of the aa. """
+        acids, weights = zip(*[(aa, abs(pow(v - self.value(amino), 2))) for aa, v in self.values.items()])
+        secondBest = sorted([w for w in weights if w > 0])[0]               # give same amino acid same weight as second best
+        invWeights = [1.0/w if w != 0 else 1/secondBest for w in weights]
+        return random.choices(acids, invWeights)[0]
+
+
+
+@lru_cache()
+class Polarity(PeptideFeature):
+    name = "Polarity"
+
+    def _calculate(self, aa):
+        return ProteinAnalysis(aa).isoelectric_point()
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+    def generateMatch(self, amino):
+        # print(amino, self.value(amino))
+
+        """ This method selects a value close to the value of the aa. """
+        acids, weights = zip(*[(aa, abs(pow(v - self.value(amino), 2))) for aa, v in self.values.items()])
+        secondBest = sorted([w for w in weights if w > 0])[0]               # give same amino acid same weight as second best
+        invWeights = [1.0/w if w != 0 else 1/secondBest for w in weights]
+        return random.choices(acids, invWeights)[0]
+
+
+
+@lru_cache()
+class Mass(PeptideFeature):
+    name = "Mass"
+
+    def _calculate(self, aa):
+        return molecular_weight(aa, seq_type="protein", circular=True)      # circular to not include water
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+    def generateMatch(self, amino):
+        """ This method selects a value close to the value of the aa. """
+        acids, weights = zip(*[(aa, abs(pow(v - self.value(amino), 2))) for aa, v in self.values.items()])
+        secondBest = sorted([w for w in weights if w > 0])[0]               # give same amino acid same weight as second best
+        invWeights = [1.0/w if w != 0 else 1/secondBest for w in weights]
+        return random.choices(acids, invWeights)[0]
+
+
+@lru_cache()
+class Hydrophilicity(PeptideFeature):
+    name = "Hydrophilicity"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return hw
+
+    def _calculate(self, aa):
+        return hw[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class Surface(PeptideFeature):
+    name = "SurfaceAccessibility"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return em
+
+    def _calculate(self, aa):
+        return em[aa]
+
+
+@lru_cache()
+class Flexibility(PeptideFeature):
+    name = "Flexibility"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return Flex
+
+    def _calculate(self, aa):
+        return Flex[aa]
+
+
+@lru_cache()
+class Transfer(PeptideFeature):
+    name = "InteriorToSurfaceTransferEnergy"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return ja
+
+    def _calculate(self, aa):
+        return ja[aa]
+
+
+@lru_cache()
+class Prime(PeptideFeature):
+    name = "Prime"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return {aa: float(p) for aa, p in zip(AMINO_ACIDS, gen_primes())}
+
+    def getBestOperator(self):
+        return ProductOperator()
+
+
+# Source: https://github.com/bittremieux/TCR-Classifier/blob/master/tcr_classifier_v2.ipynb
+basicity = {'A': 206.4, 'B': 210.7, 'C': 206.2, 'D': 208.6, 'E': 215.6, 'F': 212.1, 'G': 202.7,
+            'H': 223.7, 'I': 210.8, 'K': 221.8, 'L': 209.6, 'M': 213.3, 'N': 212.8, 'P': 214.4,
+            'Q': 214.2, 'R': 237.0, 'S': 207.6, 'T': 211.7, 'V': 208.7, 'W': 216.1, 'X': 210.2,
+            'Y': 213.1, 'Z': 214.9}
+
+hydrophobicity = {'A': 0.16, 'B': -3.14, 'C': 2.50, 'D': -2.49, 'E': -1.50, 'F': 5.00, 'G': -3.31,
+                  'H': -4.63, 'I': 4.41, 'K': -5.00, 'L': 4.76, 'M': 3.23, 'N': -3.79, 'P': -4.92,
+                  'Q': -2.76, 'R': -2.77, 'S': -2.85, 'T': -1.08, 'V': 3.02, 'W': 4.88, 'X': 4.59,
+                  'Y': 2.00, 'Z': -2.13}
+
+helicity = {'A': 1.24, 'B': 0.92, 'C': 0.79, 'D': 0.89, 'E': 0.85, 'F': 1.26, 'G': 1.15, 'H': 0.97,
+            'I': 1.29, 'K': 0.88, 'L': 1.28, 'M': 1.22, 'N': 0.94, 'P': 0.57, 'Q': 0.96, 'R': 0.95,
+            'S': 1.00, 'T': 1.09, 'V': 1.27, 'W': 1.07, 'X': 1.29, 'Y': 1.11, 'Z': 0.91}
+
+mutation_stability = {'A': 13., 'C': 52., 'D': 11., 'E': 12., 'F': 32., 'G': 27., 'H': 15., 'I': 10.,
+                      'K': 24., 'L': 34., 'M':  6., 'N':  6., 'P': 20., 'Q': 10., 'R': 17., 'S': 10.,
+                      'T': 11., 'V': 17., 'W': 55., 'Y': 31.}
+
+
+@lru_cache()
+class TCRexBasicity(PeptideFeature):
+    name = "TCRexBasicity"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return basicity
+
+    def _calculate(self, aa):
+        return basicity[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class TCRexHydrophobicity(PeptideFeature):
+    name = "TCRexHydrophobicity"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return hydrophobicity
+
+    def _calculate(self, aa):
+        return hydrophobicity[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class TCRexHelicity(PeptideFeature):
+    name = "TCRexHelicity"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return helicity
+
+    def _calculate(self, aa):
+        return helicity[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class TCRexMutationStability(PeptideFeature):
+    name = "TCRexMutationStability"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return mutation_stability
+
+    def _calculate(self, aa):
+        return mutation_stability[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+# Sieve of Eratosthenes
+# Code by David Eppstein, UC Irvine, 28 Feb 2002
+# http://code.activestate.com/recipes/117119/
+def gen_primes():
+    """ Generate an infinite sequence of prime numbers. """
+    # Maps composites to primes witnessing their compositeness.
+    # This is memory efficient, as the sieve is not "run forward"
+    # indefinitely, but only as long as required by the current
+    # number being tested.
+    #
+    D = {}
+
+    # The running integer that's checked for primeness
+    q = 2
+
+    while True:
+        if q not in D:
+            # q is a new prime.
+            # Yield it and mark its first multiple that isn't
+            # already marked in previous iterations
+            #
+            yield q
+            D[q * q] = [q]
+        else:
+            # q is composite. D[q] is the list of primes that
+            # divide it. Since we've reached q, we no longer
+            # need it in the map, but we'll mark the next
+            # multiples of its witnesses to prepare for larger
+            # numbers
+            #
+            for p in D[q]:
+                D.setdefault(p + q, []).append(p)
+            del D[q]
+
+        q += 1
+
+
+featuresMap = {
+    'charge': Charge(),
+    'hydrophob': Hydrophobicity(),
+    'hydrophil': Hydrophilicity(),
+    'polarity': Polarity(),
+    'mass': Mass(),
+    'prime': Prime(),
+    'basicity': TCRexBasicity(),
+    'helicity': TCRexHelicity(),
+    'hydrophob2': TCRexHydrophobicity(),
+    'mutationstab': TCRexMutationStability(),
+}
+
+operatorsMap = {
+    'prod': ProductOperator(),
+    'absdiff': AbsDifferenceOperator(),
+    'diff': DifferenceOperator(),
+    'layer': LayeredOperator(),
+    'best': 'best'
+}
+
+
+def parseFeatures(string):
+    names = [name.strip() for name in string.split(",")]
+    try:
+        return [featuresMap[name] for name in names]
+    except ValueError as e:
+        print("Unkown feature encountered")
+        raise e
+
+
+def parseOperator(string):
+    return operatorsMap[string]
