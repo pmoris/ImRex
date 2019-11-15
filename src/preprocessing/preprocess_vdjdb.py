@@ -130,7 +130,7 @@ def filter_vdjdb(
     if hla == "all":
         logger.info("Not filtering on HLA type...")
     else:
-        df = df.loc[df["MHC A"].str.startswith("HLA-A")]
+        df = df.loc[df["MHC A"].str.startswith(hla)]
         logger.info(f"Filtered down to {df.shape[0]} {hla}* entries...")
 
     # extract CDR3 and antigen sequence columns
