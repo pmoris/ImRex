@@ -1,9 +1,6 @@
-from collections import defaultdict
+import pandas as pd
 
 from .data_source import DataSource
-
-from pandas import *
-
 
 PATH = "../data/control_sequences.csv"
 # PATH = "../data/control_sequences_SUBSET.csv"
@@ -14,7 +11,7 @@ class ControlCDR3Source(DataSource):
         super().__init__()
         self.filepath = filepath
         print("Reading ref CDR3")
-        self.data = pandas.read_csv(self.filepath, sep=";")
+        self.data = pd.read_csv(self.filepath, sep=";")
         print("Done reading")
 
     def __len__(self):

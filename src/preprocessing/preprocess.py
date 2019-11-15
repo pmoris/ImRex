@@ -9,7 +9,7 @@ import bacli
 from matplotlib import interactive
 
 from tqdm import tqdm
-from pandas import *
+import pandas as pd
 from requests_futures.sessions import (
     FuturesSession,
     ThreadPoolExecutor,
@@ -21,7 +21,7 @@ from requests_futures.sessions import (
 def vdjdb(inpath: str, outpath: str):
     """ preprocess vdjdb file. Filter on TRB """
 
-    data = pandas.read_csv(inpath, sep="\t")
+    data = pd.read_csv(inpath, sep="\t")
 
     # filter rows on TRB
     data = data.loc[data["gene"] == "TRB"]
@@ -37,7 +37,7 @@ def vdjdb(inpath: str, outpath: str):
 def vdjdb_trb_human(inpath: str, outpath: str):
     """ preprocess vdjdb file. Filter on TRB """
 
-    data = pandas.read_csv(inpath, sep="\t")
+    data = pd.read_csv(inpath, sep="\t")
 
     # filter rows on TRB
     data = data.loc[data["Gene"] == "TRB"]
@@ -59,7 +59,7 @@ def vdjdb_trb_human(inpath: str, outpath: str):
 def vdjdb_tra(inpath: str, outpath: str):
     """ preprocess vdjdb file. Filter on TRA """
 
-    data = pandas.read_csv(inpath, sep="\t")
+    data = pd.read_csv(inpath, sep="\t")
 
     # filter rows on TRB
     data = data.loc[data["gene"] == "TRA"]
@@ -75,7 +75,7 @@ def vdjdb_tra(inpath: str, outpath: str):
 def vdjdb_hla(inpath: str, outpath: str):
     """ preprocess vdjdb file. Take a subset with mhc.a = HLA-A* """
 
-    data = pandas.read_csv(inpath, sep="\t")
+    data = pd.read_csv(inpath, sep="\t")
 
     print(data.set_index(["gene", "mhc.a"]).count(level="mhc.a"))
 
@@ -96,7 +96,7 @@ def vdjdb_hla(inpath: str, outpath: str):
 def vdjdb_all(inpath: str, outpath: str):
     """ preprocess vdjdb file. No filtering """
 
-    data = pandas.read_csv(inpath, sep="\t")
+    data = pd.read_csv(inpath, sep="\t")
 
     # filter columns
     columns = ["cdr3", "antigen.epitope"]
@@ -138,7 +138,7 @@ def ppi(
         def __init__(self, inpath, outpath):
             self.inpath = inpath
             self.outpath = outpath
-            self.data = ppi_trim(pandas.read_csv(self.inpath, sep="\t"))
+            self.data = ppi_trim(pd.read_csv(self.inpath, sep="\t"))
 
         def getIdentifiers(self):
             return set(chain(self.data[PPI_NAME1], self.data[PPI_NAME2]))

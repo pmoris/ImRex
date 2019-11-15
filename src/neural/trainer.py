@@ -1,5 +1,5 @@
 import os
-import pandas
+import pandas as pd
 from collections import defaultdict
 from sklearn.metrics import (
     roc_curve,
@@ -113,11 +113,11 @@ class roc_callback(MetricCallback):
         tprI = np.interp(interval, fpr, tpr)
 
         outputPath = getOutputPath(self.baseName, "roc.csv", iteration=self.iteration)
-        df = pandas.DataFrame({"fpr": interval, "tpr": tprI})
+        df = pd.DataFrame({"fpr": interval, "tpr": tprI})
         df.to_csv(outputPath, index=False)
 
         outputPath = getOutputPath(self.baseName, "auc.csv", iteration=self.iteration)
-        df = pandas.DataFrame({"auc": [aucValue],})
+        df = pd.DataFrame({"auc": [aucValue],})
         df.to_csv(outputPath, index=False)
 
         return
@@ -138,13 +138,13 @@ class precision_recall_callback(MetricCallback):
         outputPath = getOutputPath(
             self.baseName, "precision_recall.csv", iteration=self.iteration
         )
-        df = pandas.DataFrame({"recall": interval, "precision": precisionI})
+        df = pd.DataFrame({"recall": interval, "precision": precisionI})
         df.to_csv(outputPath, index=False)
 
         outputPath = getOutputPath(
             self.baseName, "average_precision.csv", iteration=self.iteration
         )
-        df = pandas.DataFrame({"average_precision": [ap],})
+        df = pd.DataFrame({"average_precision": [ap],})
         df.to_csv(outputPath, index=False)
 
         return
@@ -162,7 +162,7 @@ class prediction_callback(MetricCallback):
             y_pred, y_true = self._predict(includeSamples=False)
 
         y_pred = [e[0] for e in y_pred]
-        df = pandas.DataFrame(zip(y_true, y_pred), columns=["y_true", "y_pred"])
+        df = pd.DataFrame(zip(y_true, y_pred), columns=["y_true", "y_pred"])
         outputPath = getOutputPath(
             self.baseName, "predictions.csv", iteration=self.iteration
         )

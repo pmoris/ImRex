@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from .data_source import DataSource
 
-from pandas import *
+import pandas as pd
 
 
 VDJDB_PATH = "../data/vdjdb_TRB.csv"
@@ -12,13 +12,13 @@ class VdjdbSource(DataSource):
     def __init__(self, filepath=VDJDB_PATH):
         super().__init__()
         self.filepath = filepath
-        self.data = pandas.read_csv(self.filepath, sep=";")
+        self.data = pd.read_csv(self.filepath, sep=";")
 
     def __len__(self):
         return len(self.data)
 
     def __iter__(self):
-        # data = pandas.read_csv(self.filepath, sep=';')
+        # data = pd.read_csv(self.filepath, sep=';')
 
         # lengths1 = defaultdict(int)
         # lengths2 = defaultdict(int)
