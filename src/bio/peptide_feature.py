@@ -3,7 +3,7 @@ from functools import lru_cache
 
 from pyteomics import electrochem
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
-from Bio.SeqUtils.ProtParamData import *
+from Bio.SeqUtils import ProtParamData
 from Bio.SeqUtils import molecular_weight
 
 import numpy as np
@@ -283,15 +283,23 @@ class Charge(PeptideFeature):
 
 @lru_cache()
 class Hydrophobicity(PeptideFeature):
+    """Calculate the hydrophobicity of the amino acids in a protein sequence.
+
+    kd = # Kyte & Doolittle index of hydrophobicity
+
+    Relies on biopython's Bio.SeqUtils.ProtParamData
+    Source: https://biopython.org/DIST/docs/api/Bio.SeqUtils.ProtParamData-pysrc.html
+    """
+
     name = "Hydrophobicity"
 
     @property
     @lru_cache()
     def values(self):
-        return kd
+        return ProtParamData.kd
 
     def _calculate(self, aa):
-        return kd[aa]
+        return ProtParamData.kd[aa]
 
     def getBestOperator(self):
         return AbsDifferenceOperator()
@@ -361,15 +369,23 @@ class Mass(PeptideFeature):
 
 @lru_cache()
 class Hydrophilicity(PeptideFeature):
+    """Calculate the Hydrophilicity of the amino acids in a protein sequence.
+
+    hw = Hopp & Wood Proc. Natl. Acad. Sci. U.S.A. 78:3824-3828(1981). 
+
+    Relies on biopython's Bio.SeqUtils.ProtParamData
+    Source: https://biopython.org/DIST/docs/api/Bio.SeqUtils.ProtParamData-pysrc.html
+    """
+
     name = "Hydrophilicity"
 
     @property
     @lru_cache()
     def values(self):
-        return hw
+        return ProtParamData.hw
 
     def _calculate(self, aa):
-        return hw[aa]
+        return ProtParamData.hw[aa]
 
     def getBestOperator(self):
         return AbsDifferenceOperator()
@@ -377,41 +393,65 @@ class Hydrophilicity(PeptideFeature):
 
 @lru_cache()
 class Surface(PeptideFeature):
+    """Calculate the surface accessibility of the amino acids in a protein sequence.
+
+    em = Vergoten G & Theophanides T, Biomolecular Structure and Dynamics, pg.138 (1997).
+
+    Relies on biopython's Bio.SeqUtils.ProtParamData
+    Source: https://biopython.org/DIST/docs/api/Bio.SeqUtils.ProtParamData-pysrc.html
+    """
+
     name = "SurfaceAccessibility"
 
     @property
     @lru_cache()
     def values(self):
-        return em
+        return ProtParamData.em
 
     def _calculate(self, aa):
-        return em[aa]
+        return ProtParamData.em[aa]
 
 
 @lru_cache()
 class Flexibility(PeptideFeature):
+    """Calculate the flexibility of the amino acids in a protein sequence.
+
+    Flex = Normalized flexibility parameters (B-values), average Vihinen M., Torkkila E., Riikonen P. Proteins. 19(2):141-9(1994).
+
+    Relies on biopython's Bio.SeqUtils.ProtParamData
+    Source: https://biopython.org/DIST/docs/api/Bio.SeqUtils.ProtParamData-pysrc.html
+    """
+
     name = "Flexibility"
 
     @property
     @lru_cache()
     def values(self):
-        return Flex
+        return ProtParamData.Flex
 
     def _calculate(self, aa):
-        return Flex[aa]
+        return ProtParamData.Flex[aa]
 
 
 @lru_cache()
 class Transfer(PeptideFeature):
+    """Calculate the surface transfer energy of the amino acids in a protein sequence.
+
+    ja = 2 Janin Interior to surface transfer energy scale
+
+    Relies on biopython's Bio.SeqUtils.ProtParamData
+    Source: https://biopython.org/DIST/docs/api/Bio.SeqUtils.ProtParamData-pysrc.html
+    """
+
     name = "InteriorToSurfaceTransferEnergy"
 
     @property
     @lru_cache()
     def values(self):
-        return ja
+        return ProtParamData.ja
 
     def _calculate(self, aa):
-        return ja[aa]
+        return ProtParamData.ja[aa]
 
 
 @lru_cache()
