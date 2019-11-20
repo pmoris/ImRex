@@ -73,19 +73,33 @@ class ProductOperator(Operator):
             peptideFeature.min * peptideFeature.min,
         )
 
-    def matrix(self, v1, v2):
-        """ Performs matrix multiplication. """
-        vv1 = v1.reshape(-1, 1)  # make 2d array with column vector
-        vv2 = v2.reshape(1, -1)  # make 2d array with row vector
-        a = np.matmul(vv1, vv2)
+    def matrix(self, v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
+        """Performs outer product (or matrix multiplication on column and row vector).
 
-        # aa = v1*v2
-        # print("a:", a.shape)
-        # print("aa:", aa.shape)
-        # print(a)
-        # print(aa)
+        np.outer(v1, v2) is the standard approach, but for small vectors,
+        broadcasting should be faster.
+        ref: https://stackoverflow.com/questions/46198104/numpy-multiply-arrays-into-matrix-outer-product
 
-        return a
+        Note that np.newaxis is an alias for None, which would also work.
+        Similarly, the second vector is not required to be broadcast into a matrix, but it makes our intent clearer.
+
+        Parameters
+        ----------
+        v1 : ndarray
+            An ndarray of feature values for each amino acid in a sequence.
+        v2 : ndarray
+            An ndarray of feature values for each amino acid in a sequence.
+
+        Returns
+        -------
+        ndarray
+            The outer product of the two vectors.
+            E.g.
+            [1,2] x [3,4] = [[3,4], [6,8]]
+        """
+
+        m = v1[:, np.newaxis] * v2[np.newaxis, :]
+        return m
 
 
 @lru_cache()
@@ -143,20 +157,24 @@ class AbsDifferenceOperator(Operator):
     def max_op(self, peptideFeature):
         return abs(peptideFeature.max - peptideFeature.min)
 
-    def matrix(self, v1, v2):
-        """ Use subtract then abs rather than product """
-        # m = list()
-        # for rowElem in v1:
-        #     row = list()
-        #     for colElem in v2:
-        #         row.append(abs(rowElem - colElem))
-        #     m.append(row)
-        # aa = np.array(m)
+    def matrix(self, v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
+        """Compute the pairwise absolute difference between every element in two vectors.
 
-        # a = np.empty((len(v1), len(v2)))
-        # for row in range(len(v1)):
-        #     for col in range(len(v2)):
-        #         a[row, col] = abs(v2[col] - v1[row])
+        Parameters
+        ----------
+        v1 : ndarray
+            An ndarray of feature values for each amino acid in a sequence.
+        v2 : ndarray
+            An ndarray of feature values for each amino acid in a sequence.
+
+        Returns
+        -------
+        ndarray
+            A new matrix where every index is the absolute difference
+            of the elements in the corresponding indices of the input vectors.
+            E.g.
+            [1,2] - [3,4] = [[2,3], [1,2]]
+        """
 
         aa = v1[..., np.newaxis] - v2[np.newaxis, ...]
         aa = np.abs(aa)
