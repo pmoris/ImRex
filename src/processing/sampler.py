@@ -1,6 +1,6 @@
 import random
 
-from .stream import Stream, BatchStream
+from src.processing.stream import Stream, BatchStream
 
 
 class Sampler(Stream):

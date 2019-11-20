@@ -1,6 +1,6 @@
+import argparse
 import atexit
 import inspect
-import argparse
 
 
 functions = dict()

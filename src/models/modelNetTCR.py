@@ -1,5 +1,27 @@
 """ CNN model for recognizing generated peptides. """
-from .model import Model
+# from keras import Model
+# from keras.layers import LeakyReLU
+# from keras.layers import Activation
+# from keras.regularizers import l2
+import keras
+from keras.layers import (
+    Dense,
+    # Dropout,
+    # Flatten,
+    # Conv2D,
+    # MaxPool2D,
+    Input,
+    Conv1D,
+)
+from keras.layers.normalization import BatchNormalization
+from keras.layers import (
+    # GlobalAveragePooling2D,
+    # GlobalMaxPooling2D,
+    GlobalMaxPooling1D,
+)
+import keras.initializers
+
+from src.models.model import Model
 
 NUM_CLASSES = 1
 LENGTH = 10
@@ -10,28 +32,6 @@ class ModelNetTCR(Model):
         super().__init__(*args, **kwargs)
 
     def _buildModel(self):
-        import keras
-        from keras import Model
-        from keras.layers import (
-            Dense,
-            Dropout,
-            Flatten,
-            Conv2D,
-            MaxPool2D,
-            Input,
-            Conv1D,
-        )
-        from keras.layers.normalization import BatchNormalization
-        from keras.layers import LeakyReLU
-        from keras.layers import Activation
-        from keras.layers import (
-            GlobalAveragePooling2D,
-            GlobalMaxPooling2D,
-            GlobalMaxPooling1D,
-        )
-        from keras.regularizers import l2
-        import keras.initializers
-
         KERNEL_INIT = keras.initializers.he_normal
 
         input1 = Input(shape=(None, 20))
@@ -111,7 +111,7 @@ class ModelNetTCR(Model):
         # dense = Dropout(0.5)(dense)
         predictions = Dense(1, activation="sigmoid")(dense)
 
-        model = Model(inputs=[input1, input2], outputs=predictions)
+        model = keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
 
     def getLoss(self):

@@ -1,20 +1,18 @@
 """ Preprocess data files with pandas """
-from collections import defaultdict
 from itertools import chain
 
-import sys, os
-
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-import bacli
-from matplotlib import interactive
-
-from tqdm import tqdm
 import pandas as pd
 from requests_futures.sessions import (
     FuturesSession,
     ThreadPoolExecutor,
-    ProcessPoolExecutor,
+    # ProcessPoolExecutor,
 )
+from tqdm import tqdm
+
+import src.bacli as bacli
+
+# from collections import defaultdict
+# from matplotlib import interactive
 
 
 @bacli.command
@@ -200,7 +198,7 @@ def ppi(
 
         dataset.data.to_csv(dataset.outpath, index=False, sep=";")
 
-    sequencesFrame = DataFrame.from_records(
+    sequencesFrame = pd.DataFrame.from_records(
         sequences, columns=["accession", "sequence"]
     )
     sequencesFrame.to_csv(sequencesPath, index=False, sep=";")

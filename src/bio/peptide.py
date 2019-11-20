@@ -1,7 +1,7 @@
 import random
 
-from bio.peptide_feature import Charge, Hydrophobicity, Polarity
-from bio.util import AMINO_ACIDS
+from src.bio.peptide_feature import Charge, Hydrophobicity, Polarity
+from src.bio.util import AMINO_ACIDS
 
 
 class Peptide(str):

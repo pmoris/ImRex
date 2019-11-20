@@ -1,6 +1,6 @@
 import random
 
-from .stream import BatchStream
+from src.processing.stream import BatchStream
 
 
 class BatchExtender(BatchStream):

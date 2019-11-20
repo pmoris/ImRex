@@ -1,11 +1,13 @@
 import os
 import logging
+from pathlib import Path
+
 import pandas as pd
+
 import src.preprocessing.preprocess_vdjdb
 
 # from io import StringIO
 # import tempfile
-from pathlib import Path
 
 # file logger
 log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

@@ -1,14 +1,14 @@
-from .joiner import Joiner
-from .batch_generator import BatchGenerator
-from .image_generator import ImageGenerator
-from .image_padding import ImagePadding
-from .sampler import Sampler
-from .zipper import Zipper, Unzipper
-from .swapper import Swapper
-from .labeler import Labeler, LabelTrimmer
-from .filter import SizeFilter, PositiveFilter
-from .tee import Tee
-from .inverse_map import NoOp
+from src.processing.joiner import Joiner
+from src.processing.batch_generator import BatchGenerator
+from src.processing.image_generator import ImageGenerator
+from src.processing.image_padding import ImagePadding
+from src.processing.sampler import Sampler
+from src.processing.zipper import Zipper, Unzipper
+from src.processing.swapper import Swapper
+from src.processing.labeler import Labeler, LabelTrimmer
+from src.processing.filter import SizeFilter, PositiveFilter
+from src.processing.tee import Tee
+from src.processing.inverse_map import NoOp
 
 
 def PaddedBatchGenerator(

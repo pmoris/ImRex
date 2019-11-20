@@ -1,6 +1,7 @@
-from collections import defaultdict
 import random
-from .data_stream import DataStream
+from collections import defaultdict
+
+from src.processing.data_stream import DataStream
 
 
 def EpitopeStratifiedFoldSplitter(dataSource, nrFolds):

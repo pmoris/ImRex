@@ -1,7 +1,10 @@
 """ CNN model for recognizing generated peptides. """
-import os
+# import keras
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D  # , LeakyReLU
+from keras.layers.normalization import BatchNormalization
 
-from .model import Model
+from src.models.model import Model
 
 
 NUM_CLASSES = 1
@@ -15,11 +18,6 @@ class ModelPadded(Model):
         self.channels = channels
 
     def _buildModel(self):
-        import keras
-        from keras.models import Sequential
-        from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D, LeakyReLU
-        from keras.layers.normalization import BatchNormalization
-
         model = Sequential()
 
         inputShape = (self.width, self.height, self.channels)

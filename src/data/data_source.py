@@ -1,4 +1,4 @@
-from processing.stream import Stream
+from src.processing.stream import Stream
 
 
 class DataSource(Stream):

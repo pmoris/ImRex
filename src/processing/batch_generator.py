@@ -1,7 +1,7 @@
 from keras.utils import Sequence
 import numpy as np
 
-from .stream import BatchStream
+from src.processing.stream import BatchStream
 
 
 class BatchGenerator(Sequence, BatchStream):

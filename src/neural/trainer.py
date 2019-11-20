@@ -1,19 +1,19 @@
 import os
+
+from keras.callbacks import Callback
+from keras.utils import multi_gpu_model
+import keras_metrics
+import multiprocessing
+import numpy as np
 import pandas as pd
-from collections import defaultdict
 from sklearn.metrics import (
     roc_curve,
     auc,
     precision_recall_curve,
     average_precision_score,
 )
-import numpy as np
-import multiprocessing
 
-import keras_metrics
-from keras.callbacks import Callback
-from metric.metric import *
-from keras.utils import multi_gpu_model
+from src.metric import metric
 
 
 GPUS = int(os.environ["GPUS"])
@@ -203,9 +203,9 @@ class prediction_callback(MetricCallback):
 def getMetrics():
     return [
         "accuracy",
-        balanced_accuracy,
-        mean_pred,
-        AUC,
+        metric.balanced_accuracy,
+        metric.mean_pred,
+        metric.AUC,
         keras_metrics.precision(),
         keras_metrics.recall(),
     ]

@@ -1,6 +1,6 @@
-from .data_stream import DataStream
-
 from sklearn.model_selection import train_test_split
+
+from src.processing.data_stream import DataStream
 
 
 def Splitter(dataSource, ratio, shuffle=True):

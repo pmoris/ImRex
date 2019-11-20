@@ -1,14 +1,13 @@
-import random
 from functools import lru_cache
+import random
 
-from pyteomics import electrochem
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.SeqUtils import ProtParamData
 from Bio.SeqUtils import molecular_weight
-
 import numpy as np
+from pyteomics import electrochem
 
-from bio.util import AMINO_ACIDS, scale_matrix
+from src.bio.util import AMINO_ACIDS, scale_matrix
 
 
 PH = 7

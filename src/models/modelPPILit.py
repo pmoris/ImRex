@@ -1,7 +1,21 @@
 """ CNN model for recognizing generated peptides. """
-from .model import Model
+# import keras_metrics
+# from keras.layers.normalization import BatchNormalization
+# from keras.regularizers import l2
+import keras
+import keras.initializers
+from keras.layers import (
+    Dense,
+    # Dropout,
+    # Flatten,
+    Conv1D,
+    MaxPool1D,
+    Embedding,
+    LSTM,
+    Activation,
+)
 
-import keras_metrics
+from src.models.model import Model
 
 
 class ModelPPILit(Model):
@@ -11,27 +25,11 @@ class ModelPPILit(Model):
         self.height = height
 
     def _buildModel(self):
-        import keras
-        from keras import Model, Input
-        from keras.layers import (
-            Dense,
-            Dropout,
-            Flatten,
-            Conv1D,
-            MaxPool1D,
-            Embedding,
-            LSTM,
-            Activation,
-        )
-        from keras.layers.normalization import BatchNormalization
-        from keras.regularizers import l2
-        import keras.initializers
-
         WEIGHT_DECAY = 1e-6
         KERNEL_INIT = keras.initializers.he_normal
 
-        input1 = Input(shape=(self.width,))
-        input2 = Input(shape=(self.height,))
+        input1 = keras.Input(shape=(self.width,))
+        input2 = keras.Input(shape=(self.height,))
 
         def featureExtraction(input):
             embedding = Embedding(21, 128)(input)
@@ -56,7 +54,7 @@ class ModelPPILit(Model):
         merged_vector = keras.layers.concatenate([part1, part2], axis=-1)
         predictions = Dense(1, activation="sigmoid")(merged_vector)
 
-        model = Model(inputs=[input1, input2], outputs=predictions)
+        model = keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
 
     def getLoss(self):

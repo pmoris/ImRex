@@ -1,9 +1,8 @@
-from .data_source_generated import GeneratedDataSource
-
 import random
 
-from bio.peptide import Peptide
-from bio.peptide_feature import Hydrophobicity
+from src.bio.peptide import Peptide
+from src.bio.peptide_feature import Hydrophobicity
+from src.data.data_source_generated import GeneratedDataSource
 
 
 LENGTH = 10

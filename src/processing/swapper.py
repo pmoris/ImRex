@@ -1,5 +1,6 @@
 import random
-from .stream import TransformStream
+
+from src.processing.stream import TransformStream
 
 
 class Swapper(TransformStream):

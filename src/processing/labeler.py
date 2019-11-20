@@ -1,4 +1,4 @@
-from .stream import TransformStream
+from src.processing.stream import TransformStream
 
 
 class Labeler(TransformStream):

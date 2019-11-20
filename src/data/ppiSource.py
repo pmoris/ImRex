@@ -1,9 +1,9 @@
-from collections import defaultdict
+# from collections import defaultdict
 from functools import lru_cache
 
-from .data_source import DataSource
-
 import pandas as pd
+
+from src.data.data_source import DataSource
 
 
 POS_PATH = "../data/PPI_positive.csv"

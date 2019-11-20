@@ -1,6 +1,6 @@
 import numpy as np
 
-from .stream import TransformStream
+from src.processing.stream import TransformStream
 
 
 class ImagePadding(TransformStream):

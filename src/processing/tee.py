@@ -1,4 +1,4 @@
-from .data_stream import DataStream
+from src.processing.data_stream import DataStream
 
 
 def Tee(stream, amount=2):

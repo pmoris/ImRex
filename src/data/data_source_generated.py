@@ -1,11 +1,7 @@
-# import sys
-# import os
-# sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
-import bacli
 import numpy as np
 
-from neural.trainer import createCheckpointer, createLRR, createTensorboardCallback
+# import src.bacli as bacli
+# from src.neural.trainer import createCheckpointer, createLRR, createTensorboardCallback
 
 
 # BATCH_SIZE = 256

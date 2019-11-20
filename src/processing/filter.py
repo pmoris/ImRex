@@ -1,6 +1,4 @@
-import collections
-
-from .stream import Stream
+from src.processing.stream import Stream
 
 
 class Filter(Stream):

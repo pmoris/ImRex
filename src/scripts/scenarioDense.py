@@ -1,23 +1,19 @@
 """ Scenario for neural network. """
-import sys
-import os
+import src.bacli as bacli
 
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
-import bacli
-
-from data.vdjdbSource import VdjdbSource
-from models.modelDense import ModelDense
-from bio.feature_builder import *
-from processing.padded_batch_generator import PaddedBatchGenerator
-from processing.kfolds import (
+from src.bio.feature_builder import CombinedPeptideFeatureBuilder
+from src.bio.peptide_feature import parseFeatures, parseOperator
+from src.data.vdjdbSource import VdjdbSource
+from src.models.modelDense import ModelDense
+from src.neural.trainer import Trainer
+from src.processing.inverse_map import InverseMap
+from src.processing.kfolds import (
     EpitopeStratifiedFoldSplitter,
     FoldIterator,
     RandomFoldSplitter,
 )
-from processing.splitter import Splitter
-from processing.inverse_map import InverseMap
-from neural.trainer import Trainer
+from src.processing.padded_batch_generator import PaddedBatchGenerator
+from src.processing.splitter import Splitter
 
 bacli.setDescription(__doc__)
 

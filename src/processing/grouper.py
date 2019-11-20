@@ -1,7 +1,7 @@
 from collections import defaultdict
 from functools import lru_cache
 
-from .stream import GroupedStream
+from src.processing.stream import GroupedStream
 
 
 class Grouper(GroupedStream):

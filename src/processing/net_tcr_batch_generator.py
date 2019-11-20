@@ -1,16 +1,18 @@
 import random
-from .batch_generator import BatchGenerator
-from .grouper import ShapeGrouper, GroupedAmountFilter, SizeGrouper
-from .sampler import GroupSampler, BatchSampler
-from .shaped_batch_sampler import ShapedBatchSampler
-from .labeler import Labeler, LabelTrimmer
-from .tee import Tee
-from .stream import TransformStream, BatchStream
-from .zipper import Unzipper
+
 from Bio.SubsMat import MatrixInfo
 from Bio.Alphabet import IUPAC
-
 import numpy as np
+
+from src.processing.batch_generator import BatchGenerator
+from src.processing.grouper import ShapeGrouper, GroupedAmountFilter, SizeGrouper
+from src.processing.sampler import GroupSampler, BatchSampler
+from src.processing.shaped_batch_sampler import ShapedBatchSampler
+from src.processing.labeler import Labeler, LabelTrimmer
+from src.processing.tee import Tee
+from src.processing.stream import TransformStream, BatchStream
+from src.processing.zipper import Unzipper
+
 
 AMINO_ACIDS = IUPAC.IUPACProtein.letters
 

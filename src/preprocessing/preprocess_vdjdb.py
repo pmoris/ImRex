@@ -4,10 +4,10 @@
 
 import argparse
 import logging
+from pathlib import Path
+
 import pandas as pd
 import pyteomics.parser
-
-from pathlib import Path
 
 
 def create_parser():

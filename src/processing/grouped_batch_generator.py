@@ -1,12 +1,12 @@
-from .batch_generator import BatchGenerator
-from .grouper import ShapeGrouper, GroupedAmountFilter, SizeGrouper
-from .image_generator import ImageGenerator
-from .sampler import GroupSampler, BatchSampler
-from .shaped_batch_sampler import ShapedBatchSampler
-from .batch_extender import BatchExtender
-from .labeler import Labeler, LabelTrimmer
-from .tee import Tee
-from .zipper import Unzipper
+from src.processing.batch_generator import BatchGenerator
+from src.processing.grouper import ShapeGrouper, GroupedAmountFilter, SizeGrouper
+from src.processing.image_generator import ImageGenerator
+from src.processing.sampler import GroupSampler, BatchSampler
+from src.processing.shaped_batch_sampler import ShapedBatchSampler
+from src.processing.batch_extender import BatchExtender
+from src.processing.labeler import Labeler, LabelTrimmer
+from src.processing.tee import Tee
+from src.processing.zipper import Unzipper
 
 
 def GroupedBatchGenerator(dataStream, featureBuilder, negRatio, batchSize, minAmount):

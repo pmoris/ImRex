@@ -1,22 +1,32 @@
 import os
-import bacli
 
-from bio.peptide_feature import *
-from bio.peptide import Peptide
-from bio.util import subdirs
-from bio.image import *
-from visual.plot import (
+from scipy import stats
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+import src.bacli as bacli
+from src.bio.image import imageFromMatrix, imageFromMatrices
+from src.bio.peptide_feature import (
+    Charge,
+    Hydrophilicity,
+    Hydrophobicity,
+    Mass,
+    parseFeatures,
+    parseOperator,
+    Polarity,
+)
+from src.bio.util import AMINO_ACIDS
+from src.bio.util import subdirs
+from src.visualisation.plot import (
     consolidateAll,
     concatenateAll,
     plotAll,
-    palette,
+    # palette,
     cmap,
     plotCombined,
 )
-from scipy import stats
-import seaborn as sns
-import pandas as pd
-import matplotlib.pyplot as plt
 
 
 OUTPUT_DIR = "output/"
@@ -60,9 +70,10 @@ def activations(
 ):
     """ Display the activations of a model for a given input. """
     from keras.models import load_model
-    from keract import get_activations, display_activations, display_heatmaps
-    from processing.image_padding import ImagePadding
-    from bio.feature_builder import CombinedPeptideFeatureBuilder
+    from keract import get_activations, display_activations  # , display_heatmaps
+
+    from src.processing.image_padding import ImagePadding
+    from src.bio.feature_builder import CombinedPeptideFeatureBuilder
 
     if epitope is None or cdr3 is None:
         print("Supply epitope and cdr3")

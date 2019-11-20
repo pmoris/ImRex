@@ -1,18 +1,11 @@
 """ Scenario for neural network. """
-import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
-import bacli
-
-from data.ppiSource import PpiSource, SequencesMap
-from data.vdjdbSource import VdjdbSource
-from models.modelPPILitVDJdb import ModelPPILitVDJdb
-from processing.ppi_lit_generator import PPILitGenerator, PPILitGenerator2
-from processing.kfolds import FoldIterator, RandomFoldSplitter
-from processing.splitter import Splitter
-from neural.trainer import Trainer
+import src.bacli as bacli
+from src.data.vdjdbSource import VdjdbSource
+from src.models.modelPPILitVDJdb import ModelPPILitVDJdb
+from src.neural.trainer import Trainer
+from src.processing.kfolds import FoldIterator, RandomFoldSplitter
+from src.processing.ppi_lit_generator import PPILitGenerator  # , PPILitGenerator2
+from src.processing.splitter import Splitter
 
 
 bacli.setDescription(__doc__)

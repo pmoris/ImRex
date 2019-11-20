@@ -1,17 +1,16 @@
-from .joiner import Joiner
-from .batch_generator import BatchGenerator
-from .sampler import Sampler
-from .zipper import Zipper, Unzipper
-from .swapper import Swapper
-from .labeler import Labeler, LabelTrimmer
-from .filter import SizeFilter, PositiveFilter
-from .tee import Tee
-from .stream import TransformStream
-
-import numpy as np
+from Bio.Alphabet import IUPAC
 import keras
 
-from Bio.Alphabet import IUPAC
+from src.processing.joiner import Joiner
+from src.processing.batch_generator import BatchGenerator
+from src.processing.sampler import Sampler
+from src.processing.zipper import Zipper, Unzipper
+from src.processing.swapper import Swapper
+from src.processing.labeler import Labeler, LabelTrimmer
+from src.processing.filter import SizeFilter, PositiveFilter
+from src.processing.tee import Tee
+from src.processing.stream import TransformStream
+
 
 AMINO_ACIDS = IUPAC.IUPACProtein.letters
 

@@ -1,8 +1,17 @@
 """ CNN model for recognizing generated peptides. """
-from .model import Model
+# import keras
+# import keras_metrics
+# from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
+# from keras.layers import LeakyReLU
+# import keras.initializers
+from keras import Sequential
+from keras.layers import Dropout, Conv2D, MaxPool2D
+from keras.layers.normalization import BatchNormalization
+from keras.layers import Activation
+from keras.layers import GlobalAveragePooling2D  # , GlobalMaxPooling2D
+from keras.regularizers import l2
 
-import keras_metrics
-
+from src.models.model import Model
 
 NUM_CLASSES = 1
 LENGTH = 10
@@ -14,16 +23,6 @@ class ModelGAP(Model):
         self.channels = channels
 
     def _buildModel(self):
-        import keras
-        from keras import Sequential
-        from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
-        from keras.layers.normalization import BatchNormalization
-        from keras.layers import LeakyReLU
-        from keras.layers import Activation
-        from keras.layers import GlobalAveragePooling2D, GlobalMaxPooling2D
-        from keras.regularizers import l2
-        import keras.initializers
-
         WEIGHT_DECAY = 1e-6
         # KERNEL_INIT = keras.initializers.he_normal
 

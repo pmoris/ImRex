@@ -2,15 +2,14 @@ import os
 import math
 from functools import partial
 
-import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 import pandas as pd
-from matplotlib.ticker import MaxNLocator
+import seaborn as sns
 from sklearn.metrics import confusion_matrix
-from sklearn.utils.multiclass import unique_labels
 
-from bio.util import subdirs
+from src.bio.util import subdirs
 
 
 FILES = [

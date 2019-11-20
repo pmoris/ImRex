@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .data_source import DataSource
+from src.data.data_source import DataSource
 
 PATH = "../data/control_sequences.csv"
 # PATH = "../data/control_sequences_SUBSET.csv"

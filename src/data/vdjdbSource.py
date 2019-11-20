@@ -1,8 +1,8 @@
-from collections import defaultdict
-
-from .data_source import DataSource
+# from collections import defaultdict
 
 import pandas as pd
+
+from src.data.data_source import DataSource
 
 
 VDJDB_PATH = "../data/vdjdb_TRB.csv"

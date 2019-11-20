@@ -1,21 +1,15 @@
 """ Scenario for neural network. """
-import sys
-import os
-
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
-import bacli
-
-from data.vdjdbSource import VdjdbSource
-from models.modelNetTCR import ModelNetTCR
-from processing.net_tcr_batch_generator import NetTCRBatchGenerator
-from processing.kfolds import (
+import src.bacli as bacli
+from src.data.vdjdbSource import VdjdbSource
+from src.models.modelNetTCR import ModelNetTCR
+from src.neural.trainer import Trainer
+from src.processing.kfolds import (
     EpitopeStratifiedFoldSplitter,
     FoldIterator,
     RandomFoldSplitter,
 )
-from processing.splitter import Splitter
-from neural.trainer import Trainer
+from src.processing.net_tcr_batch_generator import NetTCRBatchGenerator
+from src.processing.splitter import Splitter
 
 bacli.setDescription(__doc__)
 
