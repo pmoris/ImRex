@@ -68,7 +68,7 @@ def create_parser():
 
 
 def filter_vdjdb(
-    input: str, output: str, tcr_chain: str, species: str, mhc: str, hla: str,
+    input: str, tcr_chain: str, species: str, mhc: str, hla: str,
 ):
     """[summary]
 
@@ -76,8 +76,6 @@ def filter_vdjdb(
     ----------
     input : str
         Filepath to the VDJdb data file, should be located in "./data/raw/vdjdb/".
-    output : str
-        Filepath where output should be saved, preferably "./data/processed/".
     tcr_chain : str
         Specify which TCR chain will be extracted: "TRA", "TRB" or "all" (default).
     species : str
@@ -155,8 +153,7 @@ def filter_vdjdb(
         df = df.loc[mask]
         logger.info(f"Filtered down to {df.shape[0]} entries...")
 
-    df.to_csv(output, index=False, sep=";")
-    logger.info(f"Saved processed dataset to {output.resolve()}.")
+    return df
 
 
 def is_amino_acid_sequence(peptide: str):
@@ -231,6 +228,8 @@ if __name__ == "__main__":
     logger.info(f"Command line call: {args}")
 
     # preprocess vdjdb files based on passed arguments
-    filter_vdjdb(
-        input_file, output_file, args.tcr_chain, args.species, args.mhc, args.hla,
-    )
+    df = filter_vdjdb(input_file, args.tcr_chain, args.species, args.mhc, args.hla,)
+
+    # save output
+    df.to_csv(output_file, index=False, sep=";")
+    logger.info(f"Saved processed dataset to {output_file.resolve()}.")
