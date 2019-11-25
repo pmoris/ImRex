@@ -24,8 +24,10 @@ class VdjdbSource(DataSource):
         # lengths2 = defaultdict(int)
 
         for index, row in self.data.iterrows():
-            pep1 = row["CDR3"]
-            pep2 = row["Epitope"]
+            # pep1 = row["CDR3"]
+            # pep2 = row["Epitope"]
+            pep1 = row["cdr3"]
+            pep2 = row["antigen.epitope"]
             # lengths1[len(pep1)] += 1
             # lengths2[len(pep2)] += 1
             yield (pep1, pep2), 1

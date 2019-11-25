@@ -3,10 +3,12 @@
 """
 
 import argparse
+import json
 import logging
 from pathlib import Path
 
 import pandas as pd
+from pandas.io.json import json_normalize
 import pyteomics.parser
 
 
@@ -40,6 +42,13 @@ def create_parser():
         help='Specify which TCR host species will be extracted: "human" (default), "mouse", "macaque" or "all"',
     )
     parser.add_argument(
+        "--drop-spurious",
+        dest="drop_spurious",
+        type=bool,
+        default=True,
+        help="Indicates whether or not the spurious sequences (as defined by cdr3fix: good = false) should be dropped (default: True, i.e. drop them).",
+    )
+    parser.add_argument(
         "--mhc",
         dest="mhc",
         type=str,
@@ -68,7 +77,12 @@ def create_parser():
 
 
 def filter_vdjdb(
-    input: str, tcr_chain: str, species: str, mhc: str, hla: str,
+    input: str,
+    tcr_chain: str = "all",
+    species: str = "all",
+    drop_spurious: bool = True,
+    mhc: str = "all",
+    hla: str = "all",
 ):
     """[summary]
 
@@ -80,6 +94,8 @@ def filter_vdjdb(
         Specify which TCR chain will be extracted: "TRA", "TRB" or "all" (default).
     species : str
         Specify which TCR host species will be extracted: "human" (default), "mouse", "macaque" or "all".
+    drop_spurious : boolan
+        Indicates whether or not the spurious sequences (as defined by cdr3fix: good = false) should be dropped (default: True, i.e. drop them).
     mhc : str
         Specify which MHC type will be extracted: "all" (default), "MHCI" or "MHCII".
     hla : str
@@ -98,11 +114,32 @@ def filter_vdjdb(
     # assert that the VDJdb file has the expected headers
     assert_columns(df, input)
 
+    # parse the dict/json-like methods, meta and cdr3fix columns
+    df = (
+        df.join(
+            json_normalize(
+                df["method"].apply(lambda x: json.loads(r"{}".format(x)))
+            ).add_prefix("method.")
+        )
+        .join(
+            json_normalize(
+                df["meta"].apply(lambda x: json.loads(r"{}".format(x)))
+            ).add_prefix("meta.")
+        )
+        .join(
+            json_normalize(
+                df["cdr3fix"].apply(lambda x: json.loads(r"{}".format(x)))
+            ).add_prefix("cdr3fix.")
+        )
+        .drop(["method", "meta", "cdr3fix"], axis=1)
+    )
+
     # filter rows on TCR chain
     if tcr_chain == "all":
         logger.info("Not filtering on TCR chain...")
     else:
-        df = df.loc[df["Gene"] == tcr_chain]
+        # df = df.loc[df["Gene"] == tcr_chain]
+        df = df.loc[df["gene"] == tcr_chain]
         logger.info(f"Filtered down to {df.shape[0]} {tcr_chain} entries...")
 
     # filter rows on host species
@@ -114,25 +151,36 @@ def filter_vdjdb(
     if species == "all":
         logger.info("Not filtering on TCR host species...")
     else:
-        df = df.loc[df["Species"] == species_dict[species]]
+        # df = df.loc[df["Species"] == species_dict[species]]
+        df = df.loc[df["species"] == species_dict[species]]
         logger.info(f"Filtered down to {df.shape[0]} {species} entries...")
+
+    # remove spurious entries
+    if drop_spurious:
+        df = df.loc[df["cdr3fix.good"]]
+        logger.info(f"Filtered down to {df.shape[0]} non-spurious entries...")
+    else:
+        logger.info("Not removing spurious entries...")
 
     # filter rows on MHC type
     if mhc == "all":
         logger.info("Not filtering on MHC class...")
     else:
-        df = df.loc[df["MHC class"] == mhc]
+        # df = df.loc[df["MHC class"] == mhc]
+        df = df.loc[df["mhc.class"] == mhc]
         logger.info(f"Filtered down to {df.shape[0]} {mhc} entries...")
 
     # filter rows on HLA type
     if hla == "all":
         logger.info("Not filtering on HLA type...")
     else:
-        df = df.loc[df["MHC A"].str.startswith(hla)]
+        # df = df.loc[df["MHC A"].str.startswith(hla)]
+        df = df.loc[df["mhc.a"].str.startswith(hla)]
         logger.info(f"Filtered down to {df.shape[0]} {hla}* entries...")
 
     # extract CDR3 and antigen sequence columns
-    columns = ["CDR3", "Epitope"]
+    # columns = ["CDR3", "Epitope"]
+    columns = ["cdr3", "antigen.epitope"]
     df = df.filter(items=columns)
 
     # remove duplicates
@@ -176,24 +224,45 @@ def is_amino_acid_sequence(peptide: str):
 
 def assert_columns(df, input):
     assert df.columns.tolist() == [
+        # "complex.id",
+        # "Gene",
+        # "CDR3",
+        # "V",
+        # "J",
+        # "Species",
+        # "MHC A",
+        # "MHC B",
+        # "MHC class",
+        # "Epitope",
+        # "Epitope gene",
+        # "Epitope species",
+        # "Reference",
+        # "Method",
+        # "Meta",
+        # "CDR3fix",
+        # "Score",
         "complex.id",
-        "Gene",
-        "CDR3",
-        "V",
-        "J",
-        "Species",
-        "MHC A",
-        "MHC B",
-        "MHC class",
-        "Epitope",
-        "Epitope gene",
-        "Epitope species",
-        "Reference",
-        "Method",
-        "Meta",
-        "CDR3fix",
-        "Score",
-    ], f"Column headers of {input.resolve()} do not match the expected names."
+        "gene",
+        "cdr3",
+        "v.segm",
+        "j.segm",
+        "species",
+        "mhc.a",
+        "mhc.b",
+        "mhc.class",
+        "antigen.epitope",
+        "antigen.gene",
+        "antigen.species",
+        "reference.id",
+        "method",
+        "meta",
+        "cdr3fix",
+        "vdjdb.score",
+        "web.method",
+        "web.method.seq",
+        "web.cdr3fix.nc",
+        "web.cdr3fix.unmp",
+    ], f"Column headers of {input.resolve()} do not match the expected header names."
 
 
 if __name__ == "__main__":
@@ -228,7 +297,14 @@ if __name__ == "__main__":
     logger.info(f"Command line call: {args}")
 
     # preprocess vdjdb files based on passed arguments
-    df = filter_vdjdb(input_file, args.tcr_chain, args.species, args.mhc, args.hla,)
+    df = filter_vdjdb(
+        input_file,
+        args.tcr_chain,
+        args.species,
+        args.drop_spurious,
+        args.mhc,
+        args.hla,
+    )
 
     # save output
     df.to_csv(output_file, index=False, sep=";")
