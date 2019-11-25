@@ -64,6 +64,14 @@ def create_parser():
         help='Specify which HLA type will be extracted: "all" (default) or a prefix such as "HLA-A"',
     )
     parser.add_argument(
+        "--remove-specific-epitope-reference",
+        dest="specific_removal",
+        nargs="+",
+        type=str,
+        default=None,
+        help="Specify a specific epitope and reference to remove. E.g. 'KLGGALQAK 10xgenomics'",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         dest="output",
@@ -83,6 +91,7 @@ def filter_vdjdb(
     drop_spurious: bool = True,
     mhc: str = "all",
     hla: str = "all",
+    specific_removal: list = None,
 ):
     """[summary]
 
@@ -100,6 +109,8 @@ def filter_vdjdb(
         Specify which MHC type will be extracted: "all" (default), "MHCI" or "MHCII".
     hla : str
         Specify which HLA type will be extracted: "all" (default) or a prefix such as "HLA-A".
+    specific_removal : list
+        Specify a specific epitope and reference to remove. E.g. 'KLGGALQAK 10xgenomics'".
     """
 
     # setup logger
@@ -177,6 +188,18 @@ def filter_vdjdb(
         # df = df.loc[df["MHC A"].str.startswith(hla)]
         df = df.loc[df["mhc.a"].str.startswith(hla)]
         logger.info(f"Filtered down to {df.shape[0]} {hla}* entries...")
+
+    # filter on specifically provided epitope-reference combination
+    if specific_removal:
+        df = df.loc[
+            ~(df["antigen.epitope"] == specific_removal[0])
+            | ~(df["reference.id"].str.contains(specific_removal[1]))
+        ]
+        logger.info(
+            f"Removed specific entries with epitope sequence {specific_removal[0]} and reference {specific_removal[1]}, resulting in {df.shape[0]} remaining entries..."
+        )
+    else:
+        logger.info("Not filtering on HLA type...")
 
     # extract CDR3 and antigen sequence columns
     # columns = ["CDR3", "Epitope"]
@@ -304,6 +327,7 @@ if __name__ == "__main__":
         args.drop_spurious,
         args.mhc,
         args.hla,
+        args.specific_removal,
     )
 
     # save output
