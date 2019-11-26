@@ -26,6 +26,6 @@ def test_abs_diff_operator():
 
     abs_diff = abs_diff_operator.matrix(vector_1, vector_2)
 
-    expected = np.array([[-3, -4, -5], [-2, -3, -4], [-1, -2, -3]])
+    expected = np.array([[3, 4, 5], [2, 3, 4], [1, 2, 3]])
 
     np.testing.assert_array_equal(expected, abs_diff)
