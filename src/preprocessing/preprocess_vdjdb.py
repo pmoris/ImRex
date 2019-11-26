@@ -39,15 +39,22 @@ def create_parser():
         type=str,
         choices=["all", "human", "mouse", "macaque"],
         default="all",
-        help='Specify which TCR host species will be extracted: "human" (default), "mouse", "macaque" or "all"',
+        help='Specify which TCR host species will be extracted: "human", "mouse", "macaque" or "all" (default)',
     )
-    parser.add_argument(
+    spurious_parser = parser.add_mutually_exclusive_group(required=False)
+    spurious_parser.add_argument(
         "--drop-spurious",
         dest="drop_spurious",
-        type=bool,
-        default=True,
-        help="Indicates whether or not the spurious sequences (as defined by cdr3fix: good = false) should be dropped (default: True, i.e. drop them).",
+        action="store_true",
+        help="Indicates that spurious sequence pairs (as defined by cdr3fix: good = false) should be dropped (default behaviour is to drop them).",
     )
+    spurious_parser.add_argument(
+        "--keep-spurious",
+        dest="drop_spurious",
+        action="store_false",
+        help="Indicates that spurious sequence pairs (as defined by cdr3fix: good = false) should be kept.",
+    )
+    parser.set_defaults(drop_spurious="True")
     parser.add_argument(
         "--mhc",
         dest="mhc",
@@ -93,7 +100,7 @@ def filter_vdjdb(
     hla: str = "all",
     specific_removal: list = None,
 ):
-    """[summary]
+    """Filters relevant CDR3-epitope pairs from VDJdb files and returns a dataframe.
 
     Parameters
     ----------
