@@ -79,6 +79,14 @@ def create_parser():
         help="Specify a specific epitope and reference to remove. E.g. 'KLGGALQAK 10xgenomics'",
     )
     parser.add_argument(
+        "--remove-specific-references",
+        dest="specific_removal_references",
+        nargs="+",
+        type=str,
+        default=None,
+        help="Specify specific references to remove. E.g. '10xgenomics PMID#####'",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         dest="output",
@@ -99,6 +107,7 @@ def filter_vdjdb(
     mhc: str = "all",
     hla: str = "all",
     specific_removal: list = None,
+    specific_removal_references: list = None,
 ):
     """Filters relevant CDR3-epitope pairs from VDJdb files and returns a dataframe.
 
@@ -118,6 +127,8 @@ def filter_vdjdb(
         Specify which HLA type will be extracted: "all" (default) or a prefix such as "HLA-A".
     specific_removal : list
         Specify a specific epitope and reference to remove. E.g. 'KLGGALQAK 10xgenomics'".
+    specific_removal_references : list
+        Specify specific references to remove. E.g. '10xgenomics PMID#####'.
     """
 
     # setup logger
@@ -196,7 +207,7 @@ def filter_vdjdb(
         df = df.loc[df["mhc.a"].str.startswith(hla)]
         logger.info(f"Filtered down to {df.shape[0]} {hla}* entries...")
 
-    # filter on specifically provided epitope-reference combination
+    # Remove specifically provided epitope-reference combination
     if specific_removal:
         df = df.loc[
             ~(df["antigen.epitope"] == specific_removal[0])
@@ -206,7 +217,19 @@ def filter_vdjdb(
             f"Removed specific entries with epitope sequence {specific_removal[0]} and reference {specific_removal[1]}, resulting in {df.shape[0]} remaining entries..."
         )
     else:
-        logger.info("Not filtering on HLA type...")
+        logger.info("Not filtering on specific epitope-reference entries...")
+
+    # Remove specified references
+    if specific_removal_references:
+        df = df.loc[
+            ~(df["reference.id"].str.contains("|".join(specific_removal_references)))
+        ]
+        # df["reference.id"].isin([specific_removal_references]) could be used if exact matching is wanted instead of containing the string
+        logger.info(
+            f"Removed specific entries with reference(s) {specific_removal_references}, resulting in {df.shape[0]} remaining entries..."
+        )
+    else:
+        logger.info("Not filtering on specific reference entries...")
 
     # extract CDR3 and antigen sequence columns
     # columns = ["CDR3", "Epitope"]
@@ -335,6 +358,7 @@ if __name__ == "__main__":
         args.mhc,
         args.hla,
         args.specific_removal,
+        args.specific_removal_references,
     )
 
     # save output
