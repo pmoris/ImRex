@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from keras.callbacks import Callback
 from keras.utils import multi_gpu_model
@@ -14,12 +15,13 @@ from sklearn.metrics import (
 )
 
 from src.metric import metric
+from src.config import PROJECT_ROOT
 
 
 GPUS = int(os.environ["GPUS"])
 
-LOGDIR = "output/logs"
-OUTDIR = "output/models"
+LOGDIR = PROJECT_ROOT / "models/logs"
+OUTDIR = PROJECT_ROOT / "models/models"
 
 
 def getOutputDir(baseName, iteration=None):
