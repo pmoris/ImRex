@@ -1,7 +1,10 @@
 """ Scenario for neural network. """
+from pathlib import Path
+
 import src.bacli as bacli
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
 from src.bio.peptide_feature import parseFeatures, parseOperator
+from src.config import PROJECT_ROOT
 from src.data.controlCDR3Source import ControlCDR3Source
 from src.data.vdjdbSource import VdjdbSource
 from src.models.modelPadded import ModelPadded
@@ -31,12 +34,15 @@ def run(
     name: str = "",
     nrFolds: int = 5,
     features: str = "hydrophob,polarity,mass,hydrophil,charge",
-    operator: str = "best",  # can be: prod, diff, absdiff, layer or best
+    operator: str = "absdiff",  # can be: prod, diff, absdiff, layer or best
     early_stop=False,
-    data_path="../data/vdjdb_TRB.csv",
+    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-trb.csv",
     neg_ref: bool = False,
     stratified: bool = False,
 ):
+
+    # print function arguments
+    print(locals())
 
     dataSource = VdjdbSource(filepath=data_path)
 
