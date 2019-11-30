@@ -13,6 +13,18 @@ from src.bio.operator import (
     AbsDifferenceOperator,
     DifferenceOperator,
 )
+from src.definitions.amino_acid_properties import (
+    AMINO_ACIDS,
+    ATCHLEY_FACTOR_1,
+    ATCHLEY_FACTOR_2,
+    ATCHLEY_FACTOR_3,
+    ATCHLEY_FACTOR_4,
+    ATCHLEY_FACTOR_5,
+    TCREX_BASICITY,
+    TCREX_HYDROPHOBICITY,
+    TCREX_HELICITY,
+    TCREX_MUTATION_STABILITY,
+)
 
 PH = 7
 
@@ -304,109 +316,6 @@ class Prime(PeptideFeature):
         return ProductOperator()
 
 
-# Source: https://github.com/bittremieux/TCR-Classifier/blob/master/tcr_classifier_v2.ipynb
-basicity = {
-    "A": 206.4,
-    "B": 210.7,
-    "C": 206.2,
-    "D": 208.6,
-    "E": 215.6,
-    "F": 212.1,
-    "G": 202.7,
-    "H": 223.7,
-    "I": 210.8,
-    "K": 221.8,
-    "L": 209.6,
-    "M": 213.3,
-    "N": 212.8,
-    "P": 214.4,
-    "Q": 214.2,
-    "R": 237.0,
-    "S": 207.6,
-    "T": 211.7,
-    "V": 208.7,
-    "W": 216.1,
-    "X": 210.2,
-    "Y": 213.1,
-    "Z": 214.9,
-}
-
-hydrophobicity = {
-    "A": 0.16,
-    "B": -3.14,
-    "C": 2.50,
-    "D": -2.49,
-    "E": -1.50,
-    "F": 5.00,
-    "G": -3.31,
-    "H": -4.63,
-    "I": 4.41,
-    "K": -5.00,
-    "L": 4.76,
-    "M": 3.23,
-    "N": -3.79,
-    "P": -4.92,
-    "Q": -2.76,
-    "R": -2.77,
-    "S": -2.85,
-    "T": -1.08,
-    "V": 3.02,
-    "W": 4.88,
-    "X": 4.59,
-    "Y": 2.00,
-    "Z": -2.13,
-}
-
-helicity = {
-    "A": 1.24,
-    "B": 0.92,
-    "C": 0.79,
-    "D": 0.89,
-    "E": 0.85,
-    "F": 1.26,
-    "G": 1.15,
-    "H": 0.97,
-    "I": 1.29,
-    "K": 0.88,
-    "L": 1.28,
-    "M": 1.22,
-    "N": 0.94,
-    "P": 0.57,
-    "Q": 0.96,
-    "R": 0.95,
-    "S": 1.00,
-    "T": 1.09,
-    "V": 1.27,
-    "W": 1.07,
-    "X": 1.29,
-    "Y": 1.11,
-    "Z": 0.91,
-}
-
-mutation_stability = {
-    "A": 13.0,
-    "C": 52.0,
-    "D": 11.0,
-    "E": 12.0,
-    "F": 32.0,
-    "G": 27.0,
-    "H": 15.0,
-    "I": 10.0,
-    "K": 24.0,
-    "L": 34.0,
-    "M": 6.0,
-    "N": 6.0,
-    "P": 20.0,
-    "Q": 10.0,
-    "R": 17.0,
-    "S": 10.0,
-    "T": 11.0,
-    "V": 17.0,
-    "W": 55.0,
-    "Y": 31.0,
-}
-
-
 @lru_cache()
 class TCRexBasicity(PeptideFeature):
     name = "TCRexBasicity"
@@ -414,10 +323,10 @@ class TCRexBasicity(PeptideFeature):
     @property
     @lru_cache()
     def values(self):
-        return basicity
+        return TCREX_BASICITY
 
     def _calculate(self, aa):
-        return basicity[aa]
+        return TCREX_BASICITY[aa]
 
     def getBestOperator(self):
         return AbsDifferenceOperator()
@@ -430,10 +339,10 @@ class TCRexHydrophobicity(PeptideFeature):
     @property
     @lru_cache()
     def values(self):
-        return hydrophobicity
+        return TCREX_HYDROPHOBICITY
 
     def _calculate(self, aa):
-        return hydrophobicity[aa]
+        return TCREX_HYDROPHOBICITY[aa]
 
     def getBestOperator(self):
         return AbsDifferenceOperator()
@@ -446,10 +355,10 @@ class TCRexHelicity(PeptideFeature):
     @property
     @lru_cache()
     def values(self):
-        return helicity
+        return TCREX_HELICITY
 
     def _calculate(self, aa):
-        return helicity[aa]
+        return TCREX_HELICITY[aa]
 
     def getBestOperator(self):
         return AbsDifferenceOperator()
@@ -462,10 +371,10 @@ class TCRexMutationStability(PeptideFeature):
     @property
     @lru_cache()
     def values(self):
-        return mutation_stability
+        return TCREX_MUTATION_STABILITY
 
     def _calculate(self, aa):
-        return mutation_stability[aa]
+        return TCREX_MUTATION_STABILITY[aa]
 
     def getBestOperator(self):
         return AbsDifferenceOperator()
@@ -508,6 +417,61 @@ def gen_primes():
         q += 1
 
 
+@lru_cache()
+class AtchleyFactor1(PeptideFeature):
+    name = "Atchley_factor_1"
+
+    def _calculate(self, aa):
+        return ATCHLEY_FACTOR_1[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class AtchleyFactor2(PeptideFeature):
+    name = "Atchley_factor_2"
+
+    def _calculate(self, aa):
+        return ATCHLEY_FACTOR_2[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class AtchleyFactor3(PeptideFeature):
+    name = "Atchley_factor_3"
+
+    def _calculate(self, aa):
+        return ATCHLEY_FACTOR_3[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class AtchleyFactor4(PeptideFeature):
+    name = "Atchley_factor_4"
+
+    def _calculate(self, aa):
+        return ATCHLEY_FACTOR_4[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
+@lru_cache()
+class AtchleyFactor5(PeptideFeature):
+    name = "Atchley_factor_5"
+
+    def _calculate(self, aa):
+        return ATCHLEY_FACTOR_5[aa]
+
+    def getBestOperator(self):
+        return AbsDifferenceOperator()
+
+
 featuresMap = {
     "charge": Charge(),
     "hydrophob": Hydrophobicity(),
@@ -519,6 +483,11 @@ featuresMap = {
     "helicity": TCRexHelicity(),
     "hydrophob2": TCRexHydrophobicity(),
     "mutationstab": TCRexMutationStability(),
+    "atchley1": AtchleyFactor1(),
+    "atchley2": AtchleyFactor2(),
+    "atchley3": AtchleyFactor3(),
+    "atchley4": AtchleyFactor4(),
+    "atchley5": AtchleyFactor5(),
 }
 
 operatorsMap = {
