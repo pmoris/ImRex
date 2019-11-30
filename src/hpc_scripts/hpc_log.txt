@@ -1,0 +1,62 @@
+# cuda 0
+
+successfully run:
+
+- pad-b512-e40-f10-absdif-human-trb
+- pad-b128-e40-f5-absdif-human-trb
+- pad-b512-e40-f10-absdif-human-ab
+- pad-b128-e40-f5-absdif-human-ab
+
+all stratified models failed to run due to omitted flag
+
+pad-b512-e40-f10-absdif-all-301018 failed to run (was later re-run in cuda 3)
+
+# cuda 1
+
+stratified models failed to run due to omitted flag
+- pad-b128-e40-strat4-absdif-human-trb (was later re-run in cuda 3)
+
+successfully run:
+
+- pad-b128-e40-f5-absdif-all-301018
+- pad-b512-e40-f10-absdif-human-ab-301018
+- pad-b512-e40-f10-absdif-human-trb-301018
+- pad-b128-e40-f5-absdif-human-trb-301018
+
+# cuda 3
+
+failed retries:
+
+- pad-b512-e40-f10-absdif-all-301018
+- pad-b512-e40-strat4-absdif-human-trb
+- pad-b128-e40-strat4-absdif-human-trb
+- pad-b512-e40-strat4-absdif-human-ab
+
+succesfully run:
+
+- pad-b512-e40-strat4-absdif-all-301018
+- pad-b512-e40-strat3-absdif-human-ab-301018
+- pad-b512-e40-strat3-absdif-human-trb-301018
+
+# cuda 3-2
+
+successful retries:
+
+- pad-b512-e40-f10-absdif-all-301018
+- pad-b512-e40-strat4-absdif-human-trb
+- pad-b128-e40-strat4-absdif-human-trb
+- pad-b512-e40-strat4-absdif-human-ab
+
+# cuda 2
+
+successfully run:
+
+- pad-b512-e40-f10-absdif-human-trb-no10x
+- pad-b512-e40-f10-absdif-human-tra-trb-no10x
+- pad-b512-e40-f10-absdif-all-no10x
+- pad-b512-e40-f10-absdif-all-trb-no10x
+
+- pad-b512-e40-strat3-absdif-human-trb-no10x
+- pad-b512-e40-strat3-absdif-human-tra-trb-no10x
+- pad-b512-e40-strat3-absdif-all-no10x
+- pad-b512-e40-strat3-absdif-all-trb-no10x
