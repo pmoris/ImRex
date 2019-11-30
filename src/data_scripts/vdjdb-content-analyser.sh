@@ -1,7 +1,19 @@
 #! /usr/bin/env bash
 
-OUTPUT_FILE=${1:-vdjdb-browser-summary.md}
-VDJDB_FILE=${2:-vdjdb-browser.tsv}
+# retrieve project root (or pass project root from makefile instead?)
+# ${parameter:-word} If parameter is unset or null, the expansion of word is substituted. Otherwise, the value of parameter is substituted.
+# i.e. if PROJECT_ROOT is not passed through via the Makefile (or when the script is run on its own)
+# the oneliner will attempt to move up two directories from the location of this script and set that as the project root.
+# A potential problem with this approach is that when PROJECT_ROOT is not a resolved path, VDJDB_RAW_DATA_PATh will not be valid.
+# However, normally this script will either be used on its own (and PROJECT_ROOT will be empty initially)
+# or it will be invoked by the Makefile, which should pass a fully resolved path.
+# To be safe, the PROJECT_ROOT variable is assigned a second time as resolved path.
+# Note that "readlink -f/--canonicalize" or "realpath" are not used because it does not exist on all systems.
+PROJECT_ROOT=${PROJECT_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." >/dev/null 2>&1 && pwd )"}
+
+# set default input and output paths
+OUTPUT_FILE=${1:-${PROJECT_ROOT}/data/raw/vdjdb/vdjdb-browser-summary.md}
+VDJDB_FILE=${2:-${PROJECT_ROOT}/data/raw/vdjdb/vdjdb-browser.tsv}
 
 # check if output file already exists and confirm before overwriting
 if [ -f "$OUTPUT_FILE" ]; then
