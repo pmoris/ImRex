@@ -1,13 +1,13 @@
 import pandas as pd
 
+from src.config import PROJECT_ROOT
 from src.data.data_source import DataSource
 
-PATH = "../data/control_sequences.csv"
-# PATH = "../data/control_sequences_SUBSET.csv"
+CONTROL_CDR3_PATH = PROJECT_ROOT / "data/raw/CDR3_control_sequences.tsv"
 
 
 class ControlCDR3Source(DataSource):
-    def __init__(self, filepath=PATH):
+    def __init__(self, filepath=CONTROL_CDR3_PATH):
         super().__init__()
         self.filepath = filepath
         print("Reading ref CDR3")
