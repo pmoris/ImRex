@@ -8,6 +8,7 @@ import seaborn as sns
 
 import src.bacli as bacli
 from src.bio.image import imageFromMatrix, imageFromMatrices
+from src.metric import metric
 from src.bio.peptide_feature import (
     Charge,
     Hydrophilicity,
@@ -29,8 +30,15 @@ from src.visualisation.plot import (
 )
 
 
-OUTPUT_DIR = "output/"
+# OUTPUT_DIR = "output/"
+OUTPUT_DIR = "/media/pieter/DATA/Wetenschap/Doctoraat/projects/deepTCR/results/original-data/output"
 SCALE = 50
+
+dependencies = {
+    "mean_pred": metric.mean_pred,
+    "AUC": metric.AUC,
+    "balanced_accuracy": metric.balanced_accuracy,
+}
 
 
 @bacli.command
@@ -38,7 +46,7 @@ def test(modelFile: str):
     """ Debug function used to test commands out. """
     from keras.models import load_model
 
-    model = load_model(modelFile)
+    model = load_model(modelFile, custom_objects=dependencies)
     print(model.layers[0].get_weights())
 
 
@@ -103,7 +111,7 @@ def summary(modelFile: str):
     """ Print summary of neural network. """
     from keras.models import load_model
 
-    model = load_model(modelFile)
+    model = load_model(modelFile, custom_objects=dependencies)
     model.summary(line_length=80)
 
 
