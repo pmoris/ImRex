@@ -2,10 +2,11 @@
 
 import pandas as pd
 
+from src.config import PROJECT_ROOT
 from src.data.data_source import DataSource
 
 
-VDJDB_PATH = "../data/vdjdb_TRB.csv"
+VDJDB_PATH = PROJECT_ROOT / "data/interim/vdjdb-human-trb.csv"
 
 
 class VdjdbSource(DataSource):
