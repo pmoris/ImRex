@@ -8,18 +8,29 @@ import seaborn as sns
 
 import src.bacli as bacli
 from src.bio.image import imageFromMatrix, imageFromMatrices
-from src.metric import metric
 from src.bio.peptide_feature import (
     Charge,
     Hydrophilicity,
     Hydrophobicity,
     Mass,
+    Surface,
+    Flexibility,
+    Transfer,
+    TCRexBasicity,
+    TCRexHelicity,
+    AtchleyFactor1,
+    AtchleyFactor2,
+    AtchleyFactor3,
+    AtchleyFactor4,
+    AtchleyFactor5,
     parseFeatures,
     parseOperator,
     Polarity,
 )
 from src.bio.util import AMINO_ACIDS
 from src.bio.util import subdirs
+from src.config import PROJECT_ROOT
+from src.metric import metric
 from src.visualisation.plot import (
     consolidateAll,
     concatenateAll,
@@ -31,7 +42,7 @@ from src.visualisation.plot import (
 
 
 # OUTPUT_DIR = "output/"
-OUTPUT_DIR = "/media/pieter/DATA/Wetenschap/Doctoraat/projects/deepTCR/results/original-data/output"
+OUTPUT_DIR = PROJECT_ROOT / "reports/figures"
 SCALE = 50
 
 dependencies = {
@@ -193,7 +204,24 @@ def imgToPlot(layers, epitope, cdr3, name):
 @bacli.command
 def features():
     data = list()
-    features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity()]
+    features = [
+        Charge(),
+        Hydrophobicity(),
+        Hydrophilicity(),
+        Polarity(),
+        Mass(),
+        Surface(),
+        Flexibility(),
+        Transfer(),
+        TCRexBasicity(),
+        TCRexHelicity(),
+        AtchleyFactor1(),
+        AtchleyFactor2(),
+        AtchleyFactor3(),
+        AtchleyFactor4(),
+        AtchleyFactor5(),
+    ]
+    # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity()]
     # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity(), TCRexBasicity(), TCRexHelicity(), TCRexHydrophobicity(), TCRexMutationStability()]
     for f in features:
         print(f.name)
