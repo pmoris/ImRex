@@ -24,9 +24,8 @@ from src.definitions.amino_acid_properties import (
     TCREX_HYDROPHOBICITY,
     TCREX_HELICITY,
     TCREX_MUTATION_STABILITY,
+    PH,
 )
-
-PH = 7
 
 
 class PeptideFeature(object):

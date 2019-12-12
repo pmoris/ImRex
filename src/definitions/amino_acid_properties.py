@@ -7,6 +7,9 @@ import numpy as np
 
 AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
 
+# PH value, required for certain physiochemical properties
+PH = 7
+
 # Atchley factors
 # Described in Atchley et al. 2005 - https://www.pnas.org/content/102/18/6395.full (https://doi.org/10.1073/pnas.0408677102)
 # Values taken from the R package HDMD: https://github.com/cran/HDMD/blob/master/R/HDMD_package.R
