@@ -11,7 +11,9 @@ class ControlCDR3Source(DataSource):
         super().__init__()
         self.filepath = filepath
         print("Reading ref CDR3")
-        self.data = pd.read_csv(self.filepath, sep=";")
+        self.data = pd.read_csv(self.filepath, sep="\t").drop_duplicates(
+            subset="CDR3_beta"
+        )
         print("Done reading")
 
     def __len__(self):
