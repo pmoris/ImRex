@@ -3,6 +3,7 @@ import math
 from functools import partial
 
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 import pandas as pd
@@ -30,6 +31,12 @@ paletteG = partial(sns.light_palette, rgb(0, 61, 100), reverse=True, input="rgb"
 gradientPalette = paletteG()
 cmap = paletteG(as_cmap=True)
 cmapI = paletteG(as_cmap=True, reverse=False)
+
+sns.set_style("darkgrid")
+# plt.rcParams.update({'font.size': 11})
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.sans-serif"] = "Source Sans Pro"  # ['Fira Sans', 'Source Sans Pro']
+font = {"weight": "normal"}  # ,'size'   : 22}
 
 palette = sns.color_palette(
     [
@@ -215,6 +222,36 @@ def plotMetrics(directory):
         sns_plot.get_figure().savefig(
             getOutputPath(directory, metric), bbox_inches="tight"
         )
+
+
+def plotRocPR(directory):
+
+    # define facet figure
+    fig = plt.figure(constrained_layout=True, dpi=200, figsize=(12, 6))
+    gs = GridSpec(1, 2, figure=fig)
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+
+    # create roc plot
+    plotRoc(directory, ax=ax1)
+
+    # create precision-recall plot
+    plotPrecisionRecall(directory, ax=ax2)
+
+    # add labels
+    import string
+
+    for n, ax in enumerate(fig.axes):
+        ax.text(
+            -0.1,
+            1.1,
+            string.ascii_uppercase[n],
+            transform=ax.transAxes,
+            size=20,
+            weight="bold",
+        )
+
+    fig.savefig(getOutputPath(directory, "roc-pr"), bbox_inches="tight")
 
 
 def plotRoc(directory, ax=None):
@@ -425,6 +462,7 @@ def plotAll(directory):
     plotMetrics(directory)
     plotRoc(directory)
     plotPrecisionRecall(directory)
+    plotRocPR(directory)
     plotPredictions(directory)
     plotConfusionMatrix(directory)
 
