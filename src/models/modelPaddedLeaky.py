@@ -1,7 +1,7 @@
 """ CNN model for recognizing generated peptides. """
 # import keras
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D  # , LeakyReLU
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D, LeakyReLU
 from keras.layers.normalization import BatchNormalization
 
 from src.models.model import Model
@@ -27,7 +27,7 @@ class ModelPaddedLeaky(Model):
         def createConv(
             depth,
             kernel_size=(3, 3),
-            activation="leakyrelu",
+            # activation="lrelu",
             padding="same",
             kernel_initializer=KERNEL_INIT,
             **kwargs
@@ -35,25 +35,29 @@ class ModelPaddedLeaky(Model):
             return Conv2D(
                 depth,
                 kernel_size,
-                activation=activation,
+                # activation=activation,
                 padding=padding,
                 kernel_initializer=kernel_initializer,
                 **kwargs
             )
 
         model.add(createConv(128, kernel_size=(3, 3), input_shape=inputShape))
+        model.add(LeakyReLU(alpha=0.3))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
         model.add(createConv(64, kernel_size=(3, 3)))
+        model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
 
         model.add(createConv(128, kernel_size=(3, 3)))
+        model.add(LeakyReLU(alpha=0.3))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
         model.add(createConv(64, kernel_size=(3, 3)))
+        model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         # model.add(Dropout(0.4))
