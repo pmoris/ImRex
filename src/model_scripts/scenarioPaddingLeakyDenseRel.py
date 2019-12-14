@@ -5,7 +5,7 @@ from src.bio.peptide_feature import parseFeatures, parseOperator
 from src.config import PROJECT_ROOT
 from src.data.controlCDR3Source import ControlCDR3Source
 from src.data.vdjdbSource import VdjdbSource
-from src.models.modelPadded import ModelPaddedLeakyDenseRel
+from src.models.modelPaddedLeakyDenseRel import ModelPaddedLeakyDenseRel
 from src.neural.trainer import Trainer
 from src.processing.inverse_map import InverseMap
 from src.processing.kfolds import (
