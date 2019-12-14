@@ -11,11 +11,13 @@ NUM_CLASSES = 1
 
 
 class ModelPadded(Model):
-    def __init__(self, width, height, channels, *args, **kwargs):
+    def __init__(self, width, height, channels, optimizer, include_lr, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.width = width
         self.height = height
         self.channels = channels
+        self.optimizer = optimizer
+        self.include_lr = include_lr
 
     def _buildModel(self):
         model = Sequential()
@@ -71,6 +73,26 @@ class ModelPadded(Model):
         return binary_crossentropy
 
     def getOptimizer(self):
-        from keras.optimizers import rmsprop
+        if self.optimizer == "rmsprop":
 
-        return rmsprop()
+            from keras.optimizers import rmsprop
+
+            return rmsprop()
+
+        elif self.optimizer == "adam":
+
+            from keras.optimizers import Adam
+
+            if self.include_lr:
+                return Adam(lr=self.include_lr)
+            else:
+                return Adam()
+
+        elif self.optimizer == "SGD":
+
+            from keras.optimizers import SGD
+
+            if self.include_lr:
+                return SGD(lr=self.include_lr)
+            else:
+                return SGD()

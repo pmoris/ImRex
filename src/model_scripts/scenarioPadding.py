@@ -37,6 +37,8 @@ def run(
     data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
     neg_ref: bool = False,
     stratified: bool = False,
+    optimizer: str = "rmsprop",
+    learning_rate: bool = False,
 ):
 
     # print function arguments
@@ -63,7 +65,12 @@ def run(
 
     trainer = Trainer(epochs, lookup=inverseMap, includeEarlyStop=early_stop)
     model = ModelPadded(
-        max1, max2, nameSuffix=name, channels=featureBuilder.getNumberLayers()
+        max1,
+        max2,
+        nameSuffix=name,
+        channels=featureBuilder.getNumberLayers(),
+        optimizer=optimizer,
+        include_lr=learning_rate,
     )
 
     if val_split is not None:
