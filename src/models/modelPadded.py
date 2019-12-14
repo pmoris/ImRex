@@ -62,7 +62,7 @@ class ModelPadded(Model):
         model.add(BatchNormalization())
 
         model.add(Flatten())
-        model.add(Dense(32, activation="tanh"))
+        model.add(Dense(32, activation="relu"))
         model.add(Dense(NUM_CLASSES, activation="sigmoid"))
 
         return model
