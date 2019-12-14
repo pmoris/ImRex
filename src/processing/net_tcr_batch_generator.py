@@ -1,10 +1,10 @@
 import random
 
 from Bio.SubsMat import MatrixInfo
-from Bio.Alphabet import IUPAC
 import numpy as np
 
 from src.processing.batch_generator import BatchGenerator
+from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.processing.grouper import ShapeGrouper, GroupedAmountFilter, SizeGrouper
 from src.processing.sampler import GroupSampler, BatchSampler
 from src.processing.shaped_batch_sampler import ShapedBatchSampler
@@ -14,7 +14,6 @@ from src.processing.stream import TransformStream, BatchStream
 from src.processing.zipper import Unzipper
 
 
-AMINO_ACIDS = IUPAC.IUPACProtein.letters
 
 
 def NetTCRBatchGenerator(dataStream, negRatio, batchSize, minAmount):

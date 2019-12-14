@@ -2,6 +2,7 @@
 import src.bacli as bacli
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
 from src.bio.peptide_feature import parseFeatures, parseOperator
+from src.config import PROJECT_ROOT
 from src.data.controlCDR3Source import ControlCDR3Source
 from src.data.vdjdbSource import VdjdbSource
 from src.models.modelDebug import ModelDebug
@@ -33,7 +34,7 @@ def run(
     features: str = "mass,hydrophob,charge,hydrophil",
     operator: str = "best",  # can be: prod, diff, absdiff, layer or best
     early_stop=False,
-    data_path="../data/vdjdb_TRB.csv",
+    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
     neg_ref: bool = False,
     stratified: bool = False,
 ):

@@ -1,5 +1,6 @@
 """ Scenario for neural network. """
 import src.bacli as bacli
+from src.config import PROJECT_ROOT
 from src.data.vdjdbSource import VdjdbSource
 from src.models.modelPPILitVDJdb import ModelPPILitVDJdb
 from src.neural.trainer import Trainer
@@ -24,7 +25,7 @@ def run(
     name: str = "",
     nrFolds: int = 3,
     early_stop=False,
-    data_path="../data/vdjdb_TRB.csv",
+    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
 ):
 
     ppiSourcePos = VdjdbSource(data_path)

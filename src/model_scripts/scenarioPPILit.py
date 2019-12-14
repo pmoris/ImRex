@@ -1,5 +1,6 @@
 """ Scenario for neural network. """
 import src.bacli as bacli
+from src.config import PROJECT_ROOT
 from src.data.ppiSource import PpiSource, SequencesMap
 from src.models.modelPPILit import ModelPPILit
 from src.neural.trainer import Trainer
@@ -21,9 +22,9 @@ def run(
     name: str = "",
     nrFolds: int = 3,
     early_stop=False,
-    data_path="../data/PPI_positive.csv",
-    negative_path="../data/PPI_negative.csv",
-    sequences_path="../data/PPI_sequences.csv",
+    data_path=PROJECT_ROOT / "data/raw/ppi/PPI_positive.csv",
+    negative_path=PROJECT_ROOT / "data/raw/ppi/data/PPI_negative.csv",
+    sequences_path=PROJECT_ROOT / "data/raw/ppi/PPI_sequences.csv",
     swap=False,
 ):
 

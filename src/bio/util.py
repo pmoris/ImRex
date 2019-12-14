@@ -1,10 +1,5 @@
 import os
 
-from Bio.Alphabet import IUPAC
-
-
-AMINO_ACIDS = IUPAC.IUPACProtein.letters
-
 
 # decorator annotation
 def decorator(func):

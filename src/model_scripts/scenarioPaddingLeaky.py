@@ -34,7 +34,7 @@ def run(
     features: str = "hydrophob,polarity,mass,hydrophil,charge",
     operator: str = "absdiff",  # can be: prod, diff, absdiff, layer or best
     early_stop=False,
-    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-trb.csv",
+    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
     neg_ref: bool = False,
     stratified: bool = False,
 ):

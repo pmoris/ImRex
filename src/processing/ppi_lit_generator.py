@@ -1,6 +1,6 @@
-from Bio.Alphabet import IUPAC
 import keras
 
+from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.processing.joiner import Joiner
 from src.processing.batch_generator import BatchGenerator
 from src.processing.sampler import Sampler
@@ -10,9 +10,6 @@ from src.processing.labeler import Labeler, LabelTrimmer
 from src.processing.filter import SizeFilter, PositiveFilter
 from src.processing.tee import Tee
 from src.processing.stream import TransformStream
-
-
-AMINO_ACIDS = IUPAC.IUPACProtein.letters
 
 
 def PPILitGenerator(

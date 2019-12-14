@@ -27,9 +27,9 @@ from src.bio.peptide_feature import (
     parseOperator,
     Polarity,
 )
-from src.bio.util import AMINO_ACIDS
 from src.bio.util import subdirs
 from src.config import PROJECT_ROOT
+from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.metric import metric
 from src.visualisation.plot import (
     consolidateAll,

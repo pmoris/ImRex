@@ -2,6 +2,7 @@
 import src.bacli as bacli
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
 from src.bio.peptide_feature import parseFeatures, parseOperator
+from src.config import PROJECT_ROOT
 from src.data.vdjdbSource import VdjdbSource
 from src.models.modelGAP import ModelGAP
 from src.neural.trainer import Trainer
@@ -34,7 +35,7 @@ def run(
     features: str = "hydrophob,polarity,mass,hydrophil,charge",
     operator: str = "best",  # can be: prod,diff,layer or best
     early_stop=False,
-    data_path="../data/vdjdb_TRB.csv",
+    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
     stratified: bool = False,
 ):
 
