@@ -166,7 +166,7 @@ def peptide(
     img = imageFromMatrices(*matrices, mode=mode)
     layers.append((img, "Combined"))
 
-    imgToPlot(layers, epitope, cdr3, "Image.pdf")
+    imgToPlot(layers, epitope, cdr3, "amino-acid-map.pdf")
 
 
 def imgToPlot(layers, epitope, cdr3, name):
@@ -213,13 +213,13 @@ def features():
         Surface(),
         Flexibility(),
         Transfer(),
-        TCRexBasicity(),
-        TCRexHelicity(),
-        AtchleyFactor1(),
-        AtchleyFactor2(),
-        AtchleyFactor3(),
-        AtchleyFactor4(),
-        AtchleyFactor5(),
+        # TCRexBasicity(),
+        # TCRexHelicity(),
+        # AtchleyFactor1(),
+        # AtchleyFactor2(),
+        # AtchleyFactor3(),
+        # AtchleyFactor4(),
+        # AtchleyFactor5(),
     ]
     # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity()]
     # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity(), TCRexBasicity(), TCRexHelicity(), TCRexHydrophobicity(), TCRexMutationStability()]
