@@ -111,21 +111,21 @@ def run(
         print("val set", len(val))
 
         trainStream = PaddedBatchGenerator(
-            train,
-            featureBuilder,
-            neg_ratio,
-            batch_size,
-            pep1Range,
-            pep2Range,
+            dataStream=train,
+            featureBuilder=featureBuilder,
+            negRatio=neg_ratio,
+            batchSize=batch_size,
+            pep1Range=pep1Range,
+            pep2Range=pep2Range,
             negativeStream=negTrain,
         )
         valStream = PaddedBatchGenerator(
-            val,
-            featureBuilder,
-            neg_ratio,
-            batch_size,
-            pep1Range,
-            pep2Range,
+            dataStream=val,
+            featureBuilder=featureBuilder,
+            negRatio=neg_ratio,
+            batchSize=batch_size,
+            pep1Range=pep1Range,
+            pep2Range=pep2Range,
             inverseMap=inverseMap,
             negativeStream=negVal,
         )
