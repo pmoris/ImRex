@@ -89,5 +89,7 @@ target/
 # Mypy cache
 .mypy_cache/
 
-models/
+!src/models
+/models/*
+
 *.fuse*
