@@ -72,7 +72,7 @@ def create_parser():
     )
     parser.add_argument(
         "--remove-specific-epitope-reference",
-        dest="specific_removal",
+        dest="specific_removal_epitope_reference",
         nargs="+",
         type=str,
         default=None,
@@ -95,6 +95,14 @@ def create_parser():
         help="Specify specific references to keep. E.g. '10xgenomics PMID#####'",
     )
     parser.add_argument(
+        "--length-restriction",
+        dest="length_restriction",
+        nargs="+",
+        type=str,
+        default=None,
+        help="Specify the sequence length restriction. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         dest="output",
@@ -114,9 +122,10 @@ def filter_vdjdb(
     drop_spurious: bool = True,
     mhc: str = "all",
     hla: str = "all",
-    specific_removal: list = None,
+    specific_removal_epitope_reference: list = None,
     specific_removal_references: list = None,
     keep_specific_references: list = None,
+    length_restriction: list = None,
 ):
     """Filters relevant CDR3-epitope pairs from VDJdb files and returns a dataframe.
 
@@ -134,12 +143,14 @@ def filter_vdjdb(
         Specify which MHC type will be extracted: "all" (default), "MHCI" or "MHCII".
     hla : str
         Specify which HLA type will be extracted: "all" (default) or a prefix such as "HLA-A".
-    specific_removal : list
+    specific_removal_epitope_reference : list
         Specify a specific epitope and reference to remove. E.g. 'KLGGALQAK 10xgenomics'".
     specific_removal_references : list
         Specify specific references to remove. E.g. '10xgenomics PMID#####'.
     keep_specific_references : list
         Specify specific references to keep. E.g. '10xgenomics PMID#####'.
+    length_restriction: list
+        Specify the sequence length restrictions. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'
     """
 
     # setup logger
@@ -219,13 +230,13 @@ def filter_vdjdb(
         logger.info(f"Filtered down to {df.shape[0]} {hla}* entries...")
 
     # Remove specifically provided epitope-reference combination
-    if specific_removal:
+    if specific_removal_epitope_reference:
         df = df.loc[
-            ~(df["antigen.epitope"] == specific_removal[0])
-            | ~(df["reference.id"].str.contains(specific_removal[1]))
+            ~(df["antigen.epitope"] == specific_removal_epitope_reference[0])
+            | ~(df["reference.id"].str.contains(specific_removal_epitope_reference[1]))
         ]
         logger.info(
-            f"Removed specific entries with epitope sequence {specific_removal[0]} and reference {specific_removal[1]}, resulting in {df.shape[0]} remaining entries..."
+            f"Removed specific entries with epitope sequence {specific_removal_epitope_reference[0]} and reference {specific_removal_epitope_reference[1]}, resulting in {df.shape[0]} remaining entries..."
         )
     else:
         logger.info(
@@ -254,6 +265,24 @@ def filter_vdjdb(
         )
     else:
         logger.info("Not filtering on specific reference entries...")
+
+    # Filter on sequence length
+    if length_restriction:
+        length_restriction = [int(n) for n in length_restriction]
+        assert_length_restrictions(length_restriction)
+        cdr3_min, cdr3_max, epitope_min, epitope_max = length_restriction
+
+        df = df.loc[
+            (df["cdr3"].str.len() >= cdr3_min)
+            & (df["cdr3"].str.len() <= cdr3_max)
+            & (df["antigen.epitope"].str.len() >= epitope_min)
+            & (df["antigen.epitope"].str.len() <= epitope_max)
+        ]
+        logger.info(
+            f"Filtered on provided length restrictions ({cdr3_min}<=CDR3<={cdr3_max}, {epitope_min}<=epitope<={epitope_max}), resulting in {df.shape[0]} remaining entries..."
+        )
+    else:
+        logger.info("Not filtering on sequence length...")
 
     # extract CDR3 and antigen sequence columns
     # columns = ["CDR3", "Epitope"]
@@ -297,6 +326,19 @@ def is_amino_acid_sequence(peptide: str):
         True or False depending on whether the sequence contains only valid characters or not.
     """
     return all(aa in pyteomics.parser.std_amino_acids for aa in peptide)
+
+
+def assert_length_restrictions(length_restriction_list: list):
+    """Checks whether number of provided length restrictions is possible
+
+    Parameters
+    ----------
+    length_restriction_list : list
+        A list of length restrictions passed from the command line arguments.
+    """
+    assert (
+        len(length_restriction_list) == 4
+    ), f"Expected four numbers for length restrictions (cdr-min cdr3-max epitope-min epitope-max), but received {len(length_restriction_list)}."
 
 
 def assert_columns(df, input):
@@ -375,15 +417,16 @@ if __name__ == "__main__":
 
     # preprocess vdjdb files based on passed arguments
     df = filter_vdjdb(
-        input_file,
-        args.tcr_chain,
-        args.species,
-        args.drop_spurious,
-        args.mhc,
-        args.hla,
-        args.specific_removal,
-        args.specific_removal_references,
-        args.keep_specific_references,
+        input=input_file,
+        tcr_chain=args.tcr_chain,
+        species=args.species,
+        drop_spurious=args.drop_spurious,
+        mhc=args.mhc,
+        hla=args.hla,
+        specific_removal_epitope_reference=args.specific_removal_epitope_reference,
+        specific_removal_references=args.specific_removal_references,
+        keep_specific_references=args.keep_specific_references,
+        length_restriction=args.length_restriction,
     )
 
     # save output
