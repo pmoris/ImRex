@@ -4,20 +4,22 @@
 # When not specified explicitly, spurious entries are removed by default.
 
 # import os
-import logging
-from pathlib import Path
+# import logging
 
+# from pathlib import Path
 # import pandas as pd
-
-import src.preprocessing.preprocess_vdjdb
-
 # from io import StringIO
 # import tempfile
 
-# file logger
-log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-logging.basicConfig(level=logging.INFO, format=log_fmt)
-logger = logging.getLogger(__name__)
+from src.config import PROJECT_ROOT
+import src.preprocessing.preprocess_vdjdb
+
+# enable file logger because preprocessing function expects it...
+# log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+# logging.basicConfig(level=logging.INFO, format=log_fmt)
+# logger = logging.getLogger(__name__)
+# disable logger from showing up on console
+# logger.disabled = True
 
 
 def test_filter_vdjdb():
@@ -74,7 +76,7 @@ def test_filter_vdjdb():
 
     # human TRB with spurious - vdjdb
     df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
-        input=Path("data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt"),
+        input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRB",
         species="human",
         mhc="all",
@@ -84,7 +86,7 @@ def test_filter_vdjdb():
 
     # human TRB without spurious - vdjdb
     df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
-        input=Path("data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt"),
+        input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRB",
         species="human",
         mhc="all",
@@ -95,7 +97,7 @@ def test_filter_vdjdb():
 
     # human TRB without spurious without 10x - vdjdb
     df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
-        input=Path("data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt"),
+        input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRB",
         species="human",
         mhc="all",
@@ -106,7 +108,7 @@ def test_filter_vdjdb():
 
     # human TRA - vdjdb
     df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
-        input=Path("data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt"),
+        input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRA",
         species="human",
         mhc="all",
@@ -117,7 +119,7 @@ def test_filter_vdjdb():
 
     # all species all chains with spurious - vdjdb
     df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
-        input=Path("data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt"),
+        input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="all",
         species="all",
         mhc="all",
@@ -128,7 +130,7 @@ def test_filter_vdjdb():
 
     # all species all chains - vdjdb
     df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
-        input=Path("data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt"),
+        input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="all",
         species="all",
         mhc="all",
