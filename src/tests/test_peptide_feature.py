@@ -1,31 +1,75 @@
 import numpy as np
 
-import src.bio.peptide_feature
+from src.bio import peptide_feature
+from src.definitions.amino_acid_properties import AMINO_ACIDS
 
 
-def test_product_operator():
-
-    vector_1 = np.array([1, 2, 3])
-    vector_2 = np.array([4, 5, 6])
-
-    product_operator = src.bio.peptide_feature.ProductOperator()
-
-    outer_product = product_operator.matrix(vector_1, vector_2)
-
-    expected = np.array([[4, 5, 6], [8, 10, 12], [12, 15, 18]])
-
-    np.testing.assert_array_equal(expected, outer_product)
+def test_features_map():
+    assert peptide_feature.featuresMap
+    assert len(peptide_feature.featuresMap) == 18
 
 
-def test_abs_diff_operator():
+def test_charge():
 
-    vector_1 = np.array([1, 2, 3])
-    vector_2 = np.array([4, 5, 6])
+    charge_per_aa = [
+        -0.0020157006072527572,
+        -0.06399041653261084,
+        -1.001569216452248,
+        -1.000240577861443,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        0.08889339030183807,
+        -0.0020157006072527572,
+        0.9976892655407432,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        0.9979809880924972,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        -0.0020157006072527572,
+        -0.0028661148255656466,
+    ]
 
-    abs_diff_operator = src.bio.peptide_feature.AbsDifferenceOperator()
+    # _calculate
+    np.testing.assert_almost_equal(
+        [peptide_feature.featuresMap["charge"]._calculate(aa) for aa in AMINO_ACIDS],
+        charge_per_aa,
+    )
 
-    abs_diff = abs_diff_operator.matrix(vector_1, vector_2)
+    # values
+    np.testing.assert_almost_equal(
+        [*peptide_feature.featuresMap["charge"].values.values()], charge_per_aa
+    )
+    np.testing.assert_almost_equal(
+        [peptide_feature.featuresMap["charge"].values.get(aa) for aa in AMINO_ACIDS],
+        charge_per_aa,
+    )
 
-    expected = np.array([[3, 4, 5], [2, 3, 4], [1, 2, 3]])
+    # value
+    # np.testing.assert_almost_equal(
+    #     [peptide_feature.featuresMap["charge"].value(aa) for aa in AMINO_ACIDS],
+    #     charge_per_aa,
+    # )
 
-    np.testing.assert_array_equal(expected, abs_diff)
+    # calculate
+    np.testing.assert_almost_equal(
+        peptide_feature.featuresMap["charge"].calculate(AMINO_ACIDS), charge_per_aa
+    )
+
+    # calculate manually
+    # np.testing.assert_almost_equal(
+    #     [peptide_feature.featuresMap["charge"].value(aa) for aa in AMINO_ACIDS],
+    #     charge_per_aa,
+    # )
+    np.testing.assert_almost_equal(
+        [peptide_feature.featuresMap["charge"]._calculate(aa) for aa in AMINO_ACIDS],
+        charge_per_aa,
+    )
+    np.testing.assert_almost_equal(
+        [peptide_feature.featuresMap["charge"].values.get(aa, 0) for aa in AMINO_ACIDS],
+        charge_per_aa,
+    )
