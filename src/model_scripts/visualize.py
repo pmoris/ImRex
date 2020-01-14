@@ -215,11 +215,11 @@ def features():
         Transfer(),
         # TCRexBasicity(),
         # TCRexHelicity(),
-        # AtchleyFactor1(),
-        # AtchleyFactor2(),
-        # AtchleyFactor3(),
-        # AtchleyFactor4(),
-        # AtchleyFactor5(),
+        AtchleyFactor1(),
+        AtchleyFactor2(),
+        AtchleyFactor3(),
+        AtchleyFactor4(),
+        AtchleyFactor5(),
     ]
     # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity()]
     # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity(), TCRexBasicity(), TCRexHelicity(), TCRexHydrophobicity(), TCRexMutationStability()]
@@ -227,8 +227,8 @@ def features():
         print(f.name)
         values = list()
         for aa in AMINO_ACIDS:
-            values.append(f.value(aa))
-            print(f"{aa};{f.value(aa)}")
+            values.append(f._calculate(aa))
+            print(f"{aa};{f._calculate(aa)}")
         print()
         data.append(values)
 
@@ -249,7 +249,7 @@ def features():
     g.map_upper(sns.kdeplot, cmap=cmap)
     # g.map_lower(sns.kdeplot, cmap="Blues_d")
     g.map_lower(corrfunc)
-    path = os.path.join(OUTPUT_DIR, "features.pdf")
+    path = os.path.join(OUTPUT_DIR, "features-many.pdf")
     g.savefig(path, bbox_inches="tight")
 
     # plt.figure()
