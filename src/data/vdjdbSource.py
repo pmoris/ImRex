@@ -10,32 +10,33 @@ VDJDB_PATH = PROJECT_ROOT / "data/interim/vdjdb-human-trb.csv"
 
 
 class VdjdbSource(DataSource):
-    def __init__(self, filepath=VDJDB_PATH):
+    """Object holding VDJDB data.
+    Contains a pandas DataFrame and dictionary with header names.
+    Implements an __iter__ method, and consequently can
+    be iterated through via a loop or list comprehension to yield
+    the cdr3 and epitope sequences as a tuple, plus a 1.
+
+    Inherits from DataSource object,
+    which in turn inherits from Stream object.
+    """
+
+    def __init__(
+        self,
+        filepath=VDJDB_PATH,
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
+    ):
         super().__init__()
         self.filepath = filepath
         self.data = pd.read_csv(self.filepath, sep=";")
+        self.headers = headers
 
     def __len__(self):
         return len(self.data)
 
     def __iter__(self):
-        # data = pd.read_csv(self.filepath, sep=';')
-
-        # lengths1 = defaultdict(int)
-        # lengths2 = defaultdict(int)
-
         for index, row in self.data.iterrows():
-            # pep1 = row["CDR3"]
-            # pep2 = row["Epitope"]
-            pep1 = row["cdr3"]
-            pep2 = row["antigen.epitope"]
+            pep1 = row[self.headers["cdr3_header"]]
+            pep2 = row[self.headers["epitope_header"]]
             # lengths1[len(pep1)] += 1
             # lengths2[len(pep2)] += 1
             yield (pep1, pep2), 1
-
-        # print("lengths1")
-        # for k, v in sorted(lengths1.items()):
-        #     print(k, v)
-        # print("lengths2")
-        # for k, v in sorted(lengths2.items()):
-        #     print(k, v)
