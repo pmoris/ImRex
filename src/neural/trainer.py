@@ -18,7 +18,7 @@ from src.metric import metric
 from src.config import PROJECT_ROOT
 
 
-GPUS = int(os.environ["GPUS"])
+NUMBER_OF_GPUS = int(os.environ["GPUS"])
 
 LOGDIR = PROJECT_ROOT / "models/logs"
 OUTDIR = PROJECT_ROOT / "models/models"
@@ -230,8 +230,8 @@ class Trainer(object):
             print("Training model:")
             modelInstance.summary()
 
-        if GPUS > 1:
-            modelInstance = multi_gpu_model(modelInstance, gpus=GPUS)
+        if NUMBER_OF_GPUS > 1:
+            modelInstance = multi_gpu_model(modelInstance, gpus=NUMBER_OF_GPUS)
 
         modelInstance.compile(
             loss=model.getLoss(), optimizer=model.getOptimizer(), metrics=getMetrics()
