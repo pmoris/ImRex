@@ -2,37 +2,37 @@ import time
 
 
 class Model(object):
-    def __init__(self, nameSuffix=""):
+    def __init__(self, name_suffix=""):
         self.name = "{}-{}".format(
             self.__class__.__name__, time.strftime("%Y%m%d-%H%M%S")
         )
-        if nameSuffix:
-            self.name += " - " + str(nameSuffix)
+        if name_suffix:
+            self.name += " - " + str(name_suffix)
 
         self.name = self.name.strip()
 
     @property
-    def baseName(self):
+    def base_name(self):
         return self.name
 
-    def _buildModel(self):
+    def _build_model(self):
         raise NotImplementedError
 
-    def newInstance(self):
-        return self._buildModel()
+    def new_instance(self):
+        return self._build_model()
 
-    def getName(self, iteration=None):
+    def get_name(self, iteration=None):
         name = self.name
         if iteration is not None:
             name += " ({})".format(str(iteration))
         return name
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         raise NotImplementedError
 
-    def getLoss(self):
+    def get_loss(self):
         raise NotImplementedError
 
     @staticmethod
-    def getCustomObjects():
+    def get_custom_objects():
         return {}

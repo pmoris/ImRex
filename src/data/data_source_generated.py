@@ -13,22 +13,22 @@ import numpy as np
 
 
 class GeneratedDataSource(object):
-    def generateSample(self):
+    def generate_sample(self):
         raise NotImplementedError
 
-    def generateBatch(self, batch_size):
+    def generate_batch(self, batch_size):
         X = list()
         Y = list()
         for i in range(batch_size):
-            x, y = self.generateSample()
+            x, y = self.generate_sample()
             X.append(x)
             Y.append(y)
 
         return np.array(X), np.array(Y).reshape((batch_size, 1))
 
-    def generateData(self, batch_size=BATCH_SIZE):
+    def generate_data(self, batch_size=BATCH_SIZE):
         while True:
-            yield self.generateBatch(batch_size)
+            yield self.generate_batch(batch_size)
 
 
 # def createCommands(dataSource):

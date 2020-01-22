@@ -7,18 +7,18 @@ functions = dict()
 description = ""
 
 
-def setDescription(desc):
+def set_description(desc):
     global description
     description = desc
 
 
 # decorator for runnable functions
 def command(f):
-    fName = f.__name__
-    if fName in functions:
+    f_name = f.__name__
+    if f_name in functions:
         print("Function {} already registered, overwriting it..")
 
-    functions[fName] = f
+    functions[f_name] = f
     return f
 
 
@@ -31,8 +31,10 @@ def parse_args():
     )
     subparsers.required = True
 
-    for fName, f in functions.items():
-        sub_parser = subparsers.add_parser(fName, help=f.__doc__, description=f.__doc__)
+    for f_name, f in functions.items():
+        sub_parser = subparsers.add_parser(
+            f_name, help=f.__doc__, description=f.__doc__
+        )
         for param in inspect.signature(f).parameters.values():
             tpe = param.annotation
             nargs = None
@@ -56,8 +58,8 @@ def parse_args():
                 )
 
     cmd_args = parser.parse_args()
-    fName = cmd_args.command
-    f = functions[fName]
+    f_name = cmd_args.command
+    f = functions[f_name]
     args = cmd_args._get_args()
     kwargs = {n: v for n, v in cmd_args._get_kwargs() if n != "command"}
     f(*args, **kwargs)

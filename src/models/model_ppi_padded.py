@@ -14,14 +14,14 @@ class ModelPPIPadded(Model):
         self.height = height
         self.channels = channels
 
-    def _buildModel(self):
+    def _build_model(self):
         model = Sequential()
 
-        inputShape = (self.width, self.height, self.channels)
+        input_shape = (self.width, self.height, self.channels)
         WEIGHT_DECAY = 1e-6
         KERNEL_INIT = "he_normal"
 
-        def createConv(
+        def create_conv(
             depth,
             kernel_size=(3, 3),
             activation="relu",
@@ -38,35 +38,35 @@ class ModelPPIPadded(Model):
                 **kwargs
             )
 
-        model.add(createConv(16, kernel_size=(10, 10), input_shape=inputShape))
+        model.add(create_conv(16, kernel_size=(10, 10), input_shape=input_shape))
         # model.add(BatchNormalization())
-        # model.add(createConv(16, kernel_size=(5, 5)))
+        # model.add(create_conv(16, kernel_size=(5, 5)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         model.add(BatchNormalization())
 
-        # model.add(createConv(32, kernel_size=(5, 5), input_shape=inputShape))
+        # model.add(create_conv(32, kernel_size=(5, 5), input_shape=input_shape))
         # model.add(BatchNormalization())
-        model.add(createConv(16, kernel_size=(8, 8)))
+        model.add(create_conv(16, kernel_size=(8, 8)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         model.add(BatchNormalization())
 
-        # model.add(createConv(32, kernel_size=(3, 3), input_shape=inputShape))
+        # model.add(create_conv(32, kernel_size=(3, 3), input_shape=input_shape))
         # model.add(BatchNormalization())
-        model.add(createConv(16, kernel_size=(5, 5)))
+        model.add(create_conv(16, kernel_size=(5, 5)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         model.add(BatchNormalization())
 
-        # model.add(createConv(32, kernel_size=(3, 3), input_shape=inputShape))
+        # model.add(create_conv(32, kernel_size=(3, 3), input_shape=input_shape))
         # model.add(BatchNormalization())
-        model.add(createConv(8, kernel_size=(3, 3)))
+        model.add(create_conv(8, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         model.add(BatchNormalization())
 
-        model.add(createConv(8, kernel_size=(3, 3)))
+        model.add(create_conv(8, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         model.add(BatchNormalization())
@@ -77,12 +77,12 @@ class ModelPPIPadded(Model):
 
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         from keras.optimizers import rmsprop
 
         return rmsprop()

@@ -10,27 +10,27 @@ class Peptide(str):
         if not (isinstance(seq, Peptide) or isinstance(seq, str)):
             raise RuntimeError("Peptide sequence should be of type str or Peptide")
 
-    def getChargeVector(self):
+    def get_charge_vector(self):
         return Charge().calculate(self)
 
-    def getHyrdophobicityVector(self):
+    def get_hydrophobicity_vector(self):
         return Hydrophobicity().calculate(self)
 
-    def getIsoElectricVector(self):
+    def get_isoelectric_vector(self):
         return IsoelectricPoint().calculate(self)
 
     @staticmethod
     def random(length=10):
         return Peptide("".join(random.choice(AMINO_ACIDS) for _ in range(length)))
 
-    def generateMatch(self, feature, length=5, random_inverse=True):
-        startIndex = random.randint(0, len(self) - length)
+    def generate_match(self, feature, length=5, random_inverse=True):
+        start_index = random.randint(0, len(self) - length)
         match = ""
         for index, aa in enumerate(self):
-            if index < startIndex:  # start is random
+            if index < start_index:  # start is random
                 match += random.choice(AMINO_ACIDS)
-            elif index < startIndex + length:  # generate random match
-                t = feature.generateMatch(aa)
+            elif index < start_index + length:  # generate random match
+                t = feature.generate_match(aa)
                 match += t
             else:  # fill with random
                 match += random.choice(AMINO_ACIDS)

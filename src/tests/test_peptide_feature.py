@@ -5,8 +5,8 @@ from src.definitions.amino_acid_properties import AMINO_ACIDS
 
 
 def test_features_map():
-    assert peptide_feature.featuresMap
-    assert len(peptide_feature.featuresMap) == 18
+    assert peptide_feature.features_map
+    assert len(peptide_feature.features_map) == 18
 
 
 def test_charge():
@@ -36,16 +36,16 @@ def test_charge():
 
     # _calculate
     np.testing.assert_almost_equal(
-        [peptide_feature.featuresMap["charge"]._calculate(aa) for aa in AMINO_ACIDS],
+        [peptide_feature.features_map["charge"]._calculate(aa) for aa in AMINO_ACIDS],
         charge_per_aa,
     )
 
     # values
     np.testing.assert_almost_equal(
-        [*peptide_feature.featuresMap["charge"].values.values()], charge_per_aa
+        [*peptide_feature.features_map["charge"].values.values()], charge_per_aa
     )
     np.testing.assert_almost_equal(
-        [peptide_feature.featuresMap["charge"].values.get(aa) for aa in AMINO_ACIDS],
+        [peptide_feature.features_map["charge"].values.get(aa) for aa in AMINO_ACIDS],
         charge_per_aa,
     )
 
@@ -57,7 +57,7 @@ def test_charge():
 
     # calculate
     np.testing.assert_almost_equal(
-        peptide_feature.featuresMap["charge"].calculate(AMINO_ACIDS), charge_per_aa
+        peptide_feature.features_map["charge"].calculate(AMINO_ACIDS), charge_per_aa
     )
 
     # calculate manually
@@ -66,10 +66,13 @@ def test_charge():
     #     charge_per_aa,
     # )
     np.testing.assert_almost_equal(
-        [peptide_feature.featuresMap["charge"]._calculate(aa) for aa in AMINO_ACIDS],
+        [peptide_feature.features_map["charge"]._calculate(aa) for aa in AMINO_ACIDS],
         charge_per_aa,
     )
     np.testing.assert_almost_equal(
-        [peptide_feature.featuresMap["charge"].values.get(aa, 0) for aa in AMINO_ACIDS],
+        [
+            peptide_feature.features_map["charge"].values.get(aa, 0)
+            for aa in AMINO_ACIDS
+        ],
         charge_per_aa,
     )

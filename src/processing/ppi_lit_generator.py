@@ -4,91 +4,97 @@ from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.processing.joiner import Joiner
 from src.processing.batch_generator import BatchGenerator
 from src.processing.sampler import Sampler
-from src.processing.zipper import Zipper, Unzipper
+from src.processing.zipper import Zipper, unzipper
 from src.processing.swapper import Swapper
 from src.processing.labeler import Labeler, LabelTrimmer
 from src.processing.filter import SizeFilter, PositiveFilter
-from src.processing.tee import Tee
+from src.processing.tee import tee
 from src.processing.stream import TransformStream
 
 
-def PPILitGenerator(
-    dataStream, negRatio, batchSize, pep1Range, pep2Range, swap=False, symmetric=True
+def ppi_lit_generator(
+    data_stream,
+    neg_ratio,
+    batch_size,
+    pep1_range,
+    pep2_range,
+    swap=False,
+    symmetric=True,
 ):
-    width = pep1Range[1]
-    height = pep2Range[1]
+    width = pep1_range[1]
+    height = pep2_range[1]
 
-    sizeFilter = SizeFilter(dataStream, pep1Range, pep2Range)
+    size_filter = SizeFilter(data_stream, pep1_range, pep2_range)
 
-    input1, input2, input3 = Tee(sizeFilter, amount=3)
+    input1, input2, input3 = tee(size_filter, amount=3)
 
-    posSampler = Sampler(input1)
+    pos_sampler = Sampler(input1)
 
     if swap:
-        posSampler = Swapper(posSampler)
+        pos_sampler = Swapper(pos_sampler)
 
-    posTokenizer = Tokenizer(posSampler)
-    posSequencePadder = SequencePadding(posTokenizer, width, height)
+    pos_tokenizer = Tokenizer(pos_sampler)
+    pos_sequence_padder = SequencePadding(pos_tokenizer, width, height)
 
-    labelTrimmer = LabelTrimmer(input2)
-    peptides1, peptides2 = Unzipper(labelTrimmer)
+    label_trimmer = LabelTrimmer(input2)
+    peptides1, peptides2 = unzipper(label_trimmer)
 
     sampler1 = Sampler(peptides1, infinite=True)
     sampler2 = Sampler(peptides2, infinite=True)
     zipper = Zipper(sampler1, sampler2)
-    posFilter = PositiveFilter(
-        zipper, positiveItems=input3, hasLabel=False, symmetric=symmetric
+    pos_filter = PositiveFilter(
+        zipper, positive_items=input3, has_label=False, symmetric=symmetric
     )
 
-    negativeLabeler = Labeler(posFilter, 0)
+    negative_labeler = Labeler(pos_filter, 0)
 
     if swap:
-        negativeLabeler = Swapper(negativeLabeler)
+        negative_labeler = Swapper(negative_labeler)
 
-    negTokenizer = Tokenizer(negativeLabeler)
-    negSequencePadder = SequencePadding(negTokenizer, width, height)
+    neg_tokenizer = Tokenizer(negative_labeler)
+    neg_sequence_padder = SequencePadding(neg_tokenizer, width, height)
 
-    joiner = Joiner(posSequencePadder, negSequencePadder, 1 - negRatio)
-    batchGenerator = BatchGenerator(joiner, batchSize, multipleInput=True)
+    joiner = Joiner(pos_sequence_padder, neg_sequence_padder, 1 - neg_ratio)
+    batch_generator = BatchGenerator(joiner, batch_size, multiple_input=True)
 
-    return batchGenerator
+    return batch_generator
 
 
-def PPILitGenerator2(
-    posStream, negStream, negRatio, batchSize, pep1Range, pep2Range, swap=False
+def ppi_lit_generator2(
+    pos_stream, neg_stream, neg_ratio, batch_size, pep1_range, pep2_range, swap=False
 ):
-    width = pep1Range[1]
-    height = pep2Range[1]
+    width = pep1_range[1]
+    height = pep2_range[1]
 
-    tokenizerGenerator = TokenizerGenerator()
+    tokenizer_generator = TokenizerGenerator()
 
-    posSizeFilter = SizeFilter(posStream, pep1Range, pep2Range, hasLabel=True)
-    posFiltered1, posFiltered2 = Tee(posSizeFilter)
+    pos_size_filter = SizeFilter(pos_stream, pep1_range, pep2_range, has_label=True)
+    pos_filtered1, pos_filtered2 = tee(pos_size_filter)
 
-    # posFiltered2 does not need to be swapped
+    # pos_filtered2 does not need to be swapped
     if swap:
-        posFiltered1 = Swapper(posFiltered1)
+        pos_filtered1 = Swapper(pos_filtered1)
 
-    posTokenizer = tokenizerGenerator.getTokenizer(posFiltered1)
-    posSequencePadder = SequencePadding(posTokenizer, width, height)
-    posSampler = Sampler(posSequencePadder)
+    pos_tokenizer = tokenizer_generator.get_tokenizer(pos_filtered1)
+    pos_sequence_padder = SequencePadding(pos_tokenizer, width, height)
+    pos_sampler = Sampler(pos_sequence_padder)
 
-    negSizeFilter = SizeFilter(negStream, pep1Range, pep2Range, hasLabel=True)
-    negFilter = PositiveFilter(
-        negSizeFilter, positiveItems=posFiltered2, hasLabel=True, symmetric=True
+    neg_size_filter = SizeFilter(neg_stream, pep1_range, pep2_range, has_label=True)
+    neg_filter = PositiveFilter(
+        neg_size_filter, positive_items=pos_filtered2, has_label=True, symmetric=True
     )
 
     if swap:
-        negFilter = Swapper(negFilter)
+        neg_filter = Swapper(neg_filter)
 
-    negTokenizer = tokenizerGenerator.getTokenizer(negFilter)
-    negSequencePadder = SequencePadding(negTokenizer, width, height)
-    negSampler = Sampler(negSequencePadder)
+    neg_tokenizer = tokenizer_generator.get_tokenizer(neg_filter)
+    neg_sequence_padder = SequencePadding(neg_tokenizer, width, height)
+    neg_sampler = Sampler(neg_sequence_padder)
 
-    joiner = Joiner(posSampler, negSampler, 1 - negRatio)
-    batchGenerator = BatchGenerator(joiner, batchSize, multipleInput=True)
+    joiner = Joiner(pos_sampler, neg_sampler, 1 - neg_ratio)
+    batch_generator = BatchGenerator(joiner, batch_size, multiple_input=True)
 
-    return batchGenerator
+    return batch_generator
 
 
 class TokenizerGenerator(object):
@@ -96,7 +102,7 @@ class TokenizerGenerator(object):
         self.tokenizer = keras.preprocessing.text.Tokenizer(lower=True, char_level=True)
         self.tokenizer.fit_on_texts(AMINO_ACIDS)
 
-    def getTokenizer(self, stream):
+    def get_tokenizer(self, stream):
         return Tokenizer(stream, state=self.tokenizer)
 
 
@@ -118,21 +124,21 @@ class Tokenizer(TransformStream):
 
 
 class SequencePadding(TransformStream):
-    def __init__(self, stream, width, height, padValue=0):
+    def __init__(self, stream, width, height, pad_value=0):
         super().__init__(stream)
         self.width = width
         self.height = height
-        self.padValue = padValue
+        self.pad_value = pad_value
 
     def transform(self, item, *args, **kwargs):
         (seq1, seq2), label = item
-        pad1Length = self.width - len(seq1)
-        pad2Length = self.height - len(seq2)
+        pad1_length = self.width - len(seq1)
+        pad2_length = self.height - len(seq2)
 
-        # seq1 = tuple(seq1) + (self.padValue,) * pad1Length
-        # seq2 = tuple(seq2) + (self.padValue,) * pad2Length
+        # seq1 = tuple(seq1) + (self.padValue,) * pad1_length
+        # seq2 = tuple(seq2) + (self.padValue,) * pad2_length
 
-        seq1 = (self.padValue,) * pad1Length + tuple(seq1)
-        seq2 = (self.padValue,) * pad2Length + tuple(seq2)
+        seq1 = (self.pad_value,) * pad1_length + tuple(seq1)
+        seq2 = (self.pad_value,) * pad2_length + tuple(seq2)
 
         return (seq1, seq2), label

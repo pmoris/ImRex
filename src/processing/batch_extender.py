@@ -4,26 +4,26 @@ from src.processing.stream import BatchStream
 
 
 class BatchExtender(BatchStream):
-    def __init__(self, baseStream, extendStream, baseRatio):
-        super().__init__(baseStream, extendStream)
-        assert 0 <= baseRatio <= 1
-        self.baseStream = baseStream
-        self.extendStream = extendStream
-        self.baseRatio = baseRatio
+    def __init__(self, base_stream, extend_stream, base_ratio):
+        super().__init__(base_stream, extend_stream)
+        assert 0 <= base_ratio <= 1
+        self.base_stream = base_stream
+        self.extend_stream = extend_stream
+        self.base_ratio = base_ratio
 
     def __len__(self):
-        return int(len(self.baseStream) // self.baseRatio)
+        return int(len(self.base_stream) // self.base_ratio)
 
-    def getBatch(self, batchSize, *args, **kwargs):
-        baseAmount = int(batchSize * self.baseRatio)
-        extendAmount = int(batchSize - baseAmount)
+    def get_batch(self, batch_size, *args, **kwargs):
+        base_amount = int(batch_size * self.base_ratio)
+        extend_amount = int(batch_size - base_amount)
 
-        base = self.baseStream.getBatch(baseAmount)
+        base = self.base_stream.get_batch(base_amount)
 
         shape = base[0][0].shape[
             :-1
         ]  # first element = [X, y], we select shape of X (without channels)
-        ext = self.extendStream.getBatch(extendAmount, shape=shape)
+        ext = self.extend_stream.get_batch(extend_amount, shape=shape)
 
         all = list()
         all.extend(base)

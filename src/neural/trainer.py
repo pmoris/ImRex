@@ -24,50 +24,50 @@ LOGDIR = PROJECT_ROOT / "models/logs"
 OUTDIR = PROJECT_ROOT / "models/models"
 
 
-def getOutputDir(baseName, iteration=None):
+def get_output_dir(base_name, iteration=None):
     if iteration is None:
-        ret = os.path.join(OUTDIR, baseName)
+        ret = os.path.join(OUTDIR, base_name)
     else:
-        ret = os.path.join(OUTDIR, baseName, "iteration {}".format(iteration))
+        ret = os.path.join(OUTDIR, base_name, "iteration {}".format(iteration))
     os.makedirs(ret, exist_ok=True)
     return ret
 
 
-def getOutputPath(baseName, fileName, iteration=None):
-    return os.path.join(getOutputDir(baseName, iteration), fileName)
+def get_output_path(base_name, file_name, iteration=None):
+    return os.path.join(get_output_dir(base_name, iteration), file_name)
 
 
-def createCheckpointer(baseName, iteration):
+def create_checkpointer(base_name, iteration):
     from keras.callbacks import ModelCheckpoint
 
-    outputPath = getOutputPath(baseName, baseName + ".h5", iteration=iteration)
+    output_path = get_output_path(base_name, base_name + ".h5", iteration=iteration)
     return ModelCheckpoint(
-        outputPath, monitor="val_loss", verbose=1, save_best_only=True, mode="min"
+        output_path, monitor="val_loss", verbose=1, save_best_only=True, mode="min"
     )
 
 
-def createTensorboardCallback(modelName):
+def create_tensorboard_callback(model_name):
     from keras.callbacks import TensorBoard
 
-    logpath = os.path.join(LOGDIR, modelName)
+    logpath = os.path.join(LOGDIR, model_name)
 
     return TensorBoard(log_dir=logpath)
 
 
-def createEarlyStopping(patience=5):
+def create_early_stopping(patience=5):
     from keras.callbacks import EarlyStopping
 
     return EarlyStopping(patience=patience)
 
 
-def createCSVLogger(baseName, iteration):
+def create_csv_logger(base_name, iteration):
     from keras.callbacks import CSVLogger
 
-    outputPath = getOutputPath(baseName, "metrics.csv", iteration=iteration)
-    return CSVLogger(outputPath)
+    output_path = get_output_path(base_name, "metrics.csv", iteration=iteration)
+    return CSVLogger(output_path)
 
 
-def createLRR():
+def create_LRR():
     from keras.callbacks import ReduceLROnPlateau
 
     return ReduceLROnPlateau(
@@ -76,58 +76,62 @@ def createLRR():
 
 
 class MetricCallback(Callback):
-    def __init__(self, valStream, baseName, iteration):
+    def __init__(self, val_stream, base_name, iteration):
         super().__init__()
-        self.valStream = valStream
-        self.baseName = baseName
+        self.val_stream = val_stream
+        self.base_name = base_name
         self.iteration = iteration
 
-    def _predict(self, includeSamples=False):
+    def _predict(self, include_samples=False):
         xx = list()
         y_pred = list()
         y_true = list()
-        for i in range(len(self.valStream) * 5):
-            batch = self.valStream[i]
+        for i in range(len(self.val_stream) * 5):
+            batch = self.val_stream[i]
             x, y = batch
             pred = self.model.predict_on_batch(x)
-            if includeSamples:
+            if include_samples:
                 xx.extend(x)
             y_pred.extend(pred)
             y_true.extend(y)
 
-        if includeSamples:
+        if include_samples:
             return y_pred, y_true, xx
         else:
             return y_pred, y_true
 
 
-class roc_callback(MetricCallback):
-    def __init__(self, valStream, baseName, iteration):
-        super().__init__(valStream, baseName, iteration)
+class RocCallback(MetricCallback):
+    def __init__(self, val_stream, base_name, iteration):
+        super().__init__(val_stream, base_name, iteration)
 
     def on_train_end(self, logs={}):
         y_pred, y_true = self._predict()
 
         fpr, tpr, _ = roc_curve(y_true, y_pred, drop_intermediate=True)
-        aucValue = auc(fpr, tpr)
+        auc_value = auc(fpr, tpr)
 
         interval = np.linspace(0, 1, 201)
-        tprI = np.interp(interval, fpr, tpr)
+        tpr_i = np.interp(interval, fpr, tpr)
 
-        outputPath = getOutputPath(self.baseName, "roc.csv", iteration=self.iteration)
-        df = pd.DataFrame({"fpr": interval, "tpr": tprI})
-        df.to_csv(outputPath, index=False)
+        output_path = get_output_path(
+            self.base_name, "roc.csv", iteration=self.iteration
+        )
+        df = pd.DataFrame({"fpr": interval, "tpr": tpr_i})
+        df.to_csv(output_path, index=False)
 
-        outputPath = getOutputPath(self.baseName, "auc.csv", iteration=self.iteration)
-        df = pd.DataFrame({"auc": [aucValue],})
-        df.to_csv(outputPath, index=False)
+        output_path = get_output_path(
+            self.base_name, "auc.csv", iteration=self.iteration
+        )
+        df = pd.DataFrame({"auc": [auc_value],})
+        df.to_csv(output_path, index=False)
 
         return
 
 
-class precision_recall_callback(MetricCallback):
-    def __init__(self, valStream, baseName, iteration):
-        super().__init__(valStream, baseName, iteration)
+class PrecisionRecallCallback(MetricCallback):
+    def __init__(self, val_stream, base_name, iteration):
+        super().__init__(val_stream, base_name, iteration)
 
     def on_train_end(self, logs={}):
         y_pred, y_true = self._predict()
@@ -135,65 +139,65 @@ class precision_recall_callback(MetricCallback):
         ap = average_precision_score(y_true, y_pred)
 
         interval = np.linspace(0, 1, 201)
-        precisionI = np.interp(interval, recall[::-1], precision[::-1])
+        precision_i = np.interp(interval, recall[::-1], precision[::-1])
 
-        outputPath = getOutputPath(
-            self.baseName, "precision_recall.csv", iteration=self.iteration
+        output_path = get_output_path(
+            self.base_name, "precision_recall.csv", iteration=self.iteration
         )
-        df = pd.DataFrame({"recall": interval, "precision": precisionI})
-        df.to_csv(outputPath, index=False)
+        df = pd.DataFrame({"recall": interval, "precision": precision_i})
+        df.to_csv(output_path, index=False)
 
-        outputPath = getOutputPath(
-            self.baseName, "average_precision.csv", iteration=self.iteration
+        output_path = get_output_path(
+            self.base_name, "average_precision.csv", iteration=self.iteration
         )
         df = pd.DataFrame({"average_precision": [ap],})
-        df.to_csv(outputPath, index=False)
+        df.to_csv(output_path, index=False)
 
         return
 
 
-class prediction_callback(MetricCallback):
-    def __init__(self, valStream, baseName, iteration, lookup=None):
-        super().__init__(valStream, baseName, iteration)
+class PredictionCallback(MetricCallback):
+    def __init__(self, val_stream, base_name, iteration, lookup=None):
+        super().__init__(val_stream, base_name, iteration)
         self.lookup = lookup
 
     def on_train_end(self, logs={}):
         if self.lookup:
-            y_pred, y_true, samples = self._predict(includeSamples=True)
+            y_pred, y_true, samples = self._predict(include_samples=True)
         else:
-            y_pred, y_true = self._predict(includeSamples=False)
+            y_pred, y_true = self._predict(include_samples=False)
 
         y_pred = [e[0] for e in y_pred]
         df = pd.DataFrame(zip(y_true, y_pred), columns=["y_true", "y_pred"])
-        outputPath = getOutputPath(
-            self.baseName, "predictions.csv", iteration=self.iteration
+        output_path = get_output_path(
+            self.base_name, "predictions.csv", iteration=self.iteration
         )
-        df.to_csv(outputPath, index=False)
+        df.to_csv(output_path, index=False)
 
         if self.lookup:
-            allPos = [
+            all_pos = [
                 (pred, sample, 1)
                 for pred, sample, label in zip(y_pred, samples, y_true)
                 if label == 1
             ]
-            allNeg = [
+            all_neg = [
                 (pred, sample, 0)
                 for pred, sample, label in zip(y_pred, samples, y_true)
                 if label == 0
             ]
 
             interesting = {
-                "Best Positive": max(allPos, key=lambda x: x[0]),
-                "Worst Positive": min(allPos, key=lambda x: x[0]),
-                "Best Negative": min(allNeg, key=lambda x: x[0]),
-                "Worst Negative": max(allNeg, key=lambda x: x[0]),
+                "Best Positive": max(all_pos, key=lambda x: x[0]),
+                "Worst Positive": min(all_pos, key=lambda x: x[0]),
+                "Best Negative": min(all_neg, key=lambda x: x[0]),
+                "Worst Negative": max(all_neg, key=lambda x: x[0]),
             }
 
             for name, (prediction, sample, label) in interesting.items():
                 print(f" ======= {name} ======= ")
                 print(f"prediction:\t{prediction}")
                 print(f"label:\t\t{label}")
-                x = self.lookup.findInputFor(sample)
+                x = self.lookup.find_input_for(sample)
                 if x:
                     cdr3, epitope = x
                     print(f"epitope:\t{epitope}")
@@ -202,7 +206,7 @@ class prediction_callback(MetricCallback):
                     print("Not found")
 
 
-def getMetrics():
+def get_metrics():
     return [
         "accuracy",
         metric.balanced_accuracy,
@@ -214,58 +218,62 @@ def getMetrics():
 
 
 class Trainer(object):
-    def __init__(self, epochs, includeLRR=False, lookup=None, includeEarlyStop=False):
+    def __init__(
+        self, epochs, include_LRR=False, lookup=None, include_early_stop=False
+    ):
         self.epochs = epochs
-        self.includeLRR = includeLRR
-        self.includeEarlyStop = includeEarlyStop
+        self.include_LRR = include_LRR
+        self.include_early_stop = include_early_stop
         self.histories = dict()
-        self.baseName = None
+        self.base_name = None
         self.lookup = lookup  # Lookup map from feature to input (for traceability)
 
-    def train(self, model, trainStream, valStream, iteration=None):
-        modelInstance = model.newInstance()
+    def train(self, model, train_stream, val_stream, iteration=None):
+        model_instance = model.new_instance()
 
         # Print summary once, and before converting to multi GPU
         if iteration == 0:
             print("Training model:")
-            modelInstance.summary()
+            model_instance.summary()
 
         if NUMBER_OF_GPUS > 1:
-            modelInstance = multi_gpu_model(modelInstance, gpus=NUMBER_OF_GPUS)
+            model_instance = multi_gpu_model(model_instance, gpus=NUMBER_OF_GPUS)
 
-        modelInstance.compile(
-            loss=model.getLoss(), optimizer=model.getOptimizer(), metrics=getMetrics()
+        model_instance.compile(
+            loss=model.get_loss(),
+            optimizer=model.get_optimizer(),
+            metrics=get_metrics(),
         )
 
-        if not self.baseName:
-            self.baseName = model.baseName
+        if not self.base_name:
+            self.base_name = model.base_name
 
         callbacks = [
-            createCheckpointer(model.baseName, iteration),
-            createCSVLogger(model.baseName, iteration),
-            createTensorboardCallback(model.getName(iteration)),
-            roc_callback(valStream, model.baseName, iteration),
-            precision_recall_callback(valStream, model.baseName, iteration),
-            prediction_callback(
-                valStream, model.baseName, iteration, lookup=self.lookup
+            create_checkpointer(model.base_name, iteration),
+            create_csv_logger(model.base_name, iteration),
+            create_tensorboard_callback(model.get_name(iteration)),
+            RocCallback(val_stream, model.base_name, iteration),
+            PrecisionRecallCallback(val_stream, model.base_name, iteration),
+            PredictionCallback(
+                val_stream, model.base_name, iteration, lookup=self.lookup
             ),
         ]
 
-        if self.includeEarlyStop:
-            callbacks.append(createEarlyStopping())
+        if self.include_early_stop:
+            callbacks.append(create_early_stopping())
 
-        if self.includeLRR:
-            callbacks.append(createLRR())
+        if self.include_LRR:
+            callbacks.append(create_LRR())
 
         print("Fitting CNN")
         workers = multiprocessing.cpu_count()
         print(f"Using {workers} workers")
-        history = modelInstance.fit_generator(
-            generator=trainStream,
+        history = model_instance.fit_generator(
+            generator=train_stream,
             epochs=self.epochs,
             verbose=1,
             callbacks=callbacks,
-            validation_data=valStream,
+            validation_data=val_stream,
             class_weight=None,
             max_queue_size=2,
             workers=workers,

@@ -17,14 +17,14 @@ class ModelDense(Model):
         self.height = height
         self.channels = channels
 
-    def _buildModel(self):
+    def _build_model(self):
         model = Sequential()
 
-        inputShape = (self.width, self.height, self.channels)
+        input_shape = (self.width, self.height, self.channels)
 
-        # model.add(Input(shape=inputShape))
+        # model.add(Input(shape=input_shape))
 
-        model.add(Flatten(input_shape=inputShape))
+        model.add(Flatten(input_shape=input_shape))
         model.add(Dense(512, activation="tanh"))
         model.add(BatchNormalization())
         model.add(Dense(512, activation="tanh"))
@@ -35,12 +35,12 @@ class ModelDense(Model):
 
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         from keras.optimizers import rmsprop
 
         return rmsprop()

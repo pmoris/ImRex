@@ -96,22 +96,22 @@ echo "Arg 1: $1"
 # TCRnet structure
 
 # new data human trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCR.py run --name nettcr-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr.py run --name nettcr-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human tra+trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCR.py run --name nettcr-b512-e30-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr.py run --name nettcr-b512-e30-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 # new data human trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e30-strat3-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e30-strat3-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human tra+trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e30-strat3-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e30-strat3-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 # new data human trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRreludropout.py run --name nettcrreludrop-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu_dropout.py run --name nettcrreludrop-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human tra+trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRreludropout.py run --name nettcrreludrop-b512-e30-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu_dropout.py run --name nettcrreludrop-b512-e30-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 
@@ -120,10 +120,10 @@ python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRreludropout.py run --name
 
 
 # new data human trb no 10x leaky conv layers + leaky dense
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeakyDenseRel.py run --name pad-leakydenserel-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky_dense_rel.py run --name pad-leakydenserel-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x leaky conv layers
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeaky.py run --name pad-leaky-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky.py run --name pad-leaky-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 
 
@@ -134,16 +134,16 @@ python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeaky.py run --name pad-
 
 
 # new data human trb no 10x leaky conv layers + leaky dense + less features
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeakyDenseRel.py run --name pad-leakydenserel-polmashydro-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "polarity,mass,hydrophil" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky_dense_rel.py run --name pad-leakydenserel-polmashydro-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "polarity,mass,hydrophil" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x leaky conv layers + less features
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeaky.py run --name pad-leaky-polmashydro-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "polarity,mass,hydrophil" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky.py run --name pad-leaky-polmashydro-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "polarity,mass,hydrophil" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x + less features
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-polmashydro-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "polarity,mass,hydrophil" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-polmashydro-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "polarity,mass,hydrophil" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x + less features alternative
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-tcrexfeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "basicity,helicity,hydrophob2,mutationstab" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-tcrexfeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "basicity,helicity,hydrophob2,mutationstab" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 
 
@@ -151,13 +151,13 @@ python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-tcrex
 ###
 
 # new data human trb no 10x leaky conv layers + leaky dense + more features
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeakyDenseRel.py run --name pad-leakydenserel-morefeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "charge,polarity,mass,hydrophil,hydrophob,surface,flexibility,transfer" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky_dense_rel.py run --name pad-leakydenserel-morefeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "charge,polarity,mass,hydrophil,hydrophob,surface,flexibility,transfer" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x leaky conv layers + more features
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeaky.py run --name pad-leaky-morefeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "charge,polarity,mass,hydrophil,hydrophob,surface,flexibility,transfer" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky.py run --name pad-leaky-morefeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "charge,polarity,mass,hydrophil,hydrophob,surface,flexibility,transfer" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x + more features
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-leaky-morefeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "charge,polarity,mass,hydrophil,hydrophob,surface,flexibility,transfer" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-leaky-morefeatures-b512-e30-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "charge,polarity,mass,hydrophil,hydrophob,surface,flexibility,transfer" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 
 
@@ -167,10 +167,10 @@ python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-leaky
 
 
 # new data human trb no 10x leaky conv layers + leaky dense + atchley
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeakyDenseRel.py run --name pad-leakydenserel-atchley-b512-e30-strat3-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "atchley1,atchley2,atchley3,atchley4,atchley5" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky_dense_rel.py run --name pad-leakydenserel-atchley-b512-e30-strat3-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "atchley1,atchley2,atchley3,atchley4,atchley5" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x leaky conv layers + atchley
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPaddingLeaky.py run --name pad-leaky-atchley-b512-e30-strat3-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "atchley1,atchley2,atchley3,atchley4,atchley5" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_leaky.py run --name pad-leaky-atchley-b512-e30-strat3-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "atchley1,atchley2,atchley3,atchley4,atchley5" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 
 

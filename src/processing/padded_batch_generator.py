@@ -3,73 +3,73 @@ from src.processing.batch_generator import BatchGenerator
 from src.processing.image_generator import ImageGenerator
 from src.processing.image_padding import ImagePadding
 from src.processing.sampler import Sampler
-from src.processing.zipper import Zipper, Unzipper
+from src.processing.zipper import Zipper, unzipper
 from src.processing.swapper import Swapper
 from src.processing.labeler import Labeler, LabelTrimmer
 from src.processing.filter import SizeFilter, PositiveFilter
-from src.processing.tee import Tee
+from src.processing.tee import tee
 from src.processing.inverse_map import NoOp
 
 
-def PaddedBatchGenerator(
-    dataStream,
-    featureBuilder,
-    negRatio,
-    batchSize,
-    pep1Range,
-    pep2Range,
-    inverseMap=NoOp(),
-    negativeStream=None,
-    cacheImages=True,
+def padded_batch_generator(
+    data_stream,
+    feature_builder,
+    neg_ratio,
+    batch_size,
+    pep1_range,
+    pep2_range,
+    inverse_map=NoOp(),
+    negative_stream=None,
+    cache_images=True,
     swap=False,
 ):
     """ Standard PaddedBatchGenerator """
-    width = pep1Range[1]
-    height = pep2Range[1]
+    width = pep1_range[1]
+    height = pep2_range[1]
 
-    sizeFilter = SizeFilter(dataStream, pep1Range, pep2Range)
-    input1, input2, input3 = Tee(sizeFilter, amount=3)
+    size_filter = SizeFilter(data_stream, pep1_range, pep2_range)
+    input1, input2, input3 = tee(size_filter, amount=3)
 
-    if not cacheImages:
+    if not cache_images:
         input1 = Sampler(input1)
 
     if swap:
         input1 = Swapper(input1)
 
-    input1 = inverseMap.input(input1)
-    posImages = ImageGenerator(input1, featureBuilder)
-    posOut = ImagePadding(posImages, width, height, padValue=0)
-    posOut = inverseMap.output(posOut)
+    input1 = inverse_map.input(input1)
+    pos_images = ImageGenerator(input1, feature_builder)
+    pos_out = ImagePadding(pos_images, width, height, pad_value=0)
+    pos_out = inverse_map.output(pos_out)
 
-    if cacheImages:
-        posOut = Sampler(posOut)
+    if cache_images:
+        pos_out = Sampler(pos_out)
 
-    labelTrimmer = LabelTrimmer(input2)
-    cdr3, epitope = Unzipper(labelTrimmer)
+    label_trimmer = LabelTrimmer(input2)
+    cdr3, epitope = unzipper(label_trimmer)
 
     # random CDR3
-    if negativeStream:
-        cdr3 = SizeFilter(negativeStream, pep1Range, hasLabel=False)
+    if negative_stream:
+        cdr3 = SizeFilter(negative_stream, pep1_range, has_label=False)
 
     sampler1 = Sampler(cdr3, infinite=True)
     sampler2 = Sampler(epitope, infinite=True)
     zipper = Zipper(sampler1, sampler2)
-    posFilter = PositiveFilter(zipper, positiveItems=input3, hasLabel=False)
+    pos_filter = PositiveFilter(zipper, positive_items=input3, has_label=False)
 
-    negativeLabeler = Labeler(posFilter, 0)
+    negative_labeler = Labeler(pos_filter, 0)
 
     if swap:
-        negativeLabeler = Swapper(negativeLabeler)
+        negative_labeler = Swapper(negative_labeler)
 
-    negativeLabeler = inverseMap.input(negativeLabeler)
-    negImageGen = ImageGenerator(negativeLabeler, featureBuilder)
-    negPadding = ImagePadding(negImageGen, width, height, padValue=0)
-    negPadding = inverseMap.output(negPadding)
+    negative_labeler = inverse_map.input(negative_labeler)
+    neg_image_gen = ImageGenerator(negative_labeler, feature_builder)
+    neg_padding = ImagePadding(neg_image_gen, width, height, pad_value=0)
+    neg_padding = inverse_map.output(neg_padding)
 
-    joiner = Joiner(posOut, negPadding, 1 - negRatio)
-    batchGenerator = BatchGenerator(joiner, batchSize)
+    joiner = Joiner(pos_out, neg_padding, 1 - neg_ratio)
+    batch_generator = BatchGenerator(joiner, batch_size)
 
-    return batchGenerator
+    return batch_generator
 
 
 # def PaddedBatchGenerator3(posStream, negStream, featureBuilder, negRatio, batchSize, pep1Range, pep2Range):
@@ -95,42 +95,42 @@ def PaddedBatchGenerator(
 #     return batchGenerator
 
 
-def PaddedBatchGenerator2(
-    posStream,
-    negStream,
-    featureBuilder,
-    negRatio,
-    batchSize,
-    pep1Range,
-    pep2Range,
+def padded_batch_generator2(
+    pos_stream,
+    neg_stream,
+    feature_builder,
+    neg_ratio,
+    batch_size,
+    pep1_range,
+    pep2_range,
     swap=False,
 ):
-    width = pep1Range[1]
-    height = pep2Range[1]
+    width = pep1_range[1]
+    height = pep2_range[1]
 
-    posSizeFilter = SizeFilter(posStream, pep1Range, pep2Range, hasLabel=True)
-    posFiltered1, posFiltered2 = Tee(posSizeFilter)
-    posSampler = Sampler(posFiltered1)
+    pos_size_filter = SizeFilter(pos_stream, pep1_range, pep2_range, has_label=True)
+    pos_filtered1, pos_filtered2 = tee(pos_size_filter)
+    pos_sampler = Sampler(pos_filtered1)
 
     if swap:
-        posSampler = Swapper(posSampler)
+        pos_sampler = Swapper(pos_sampler)
 
-    posImages = ImageGenerator(posSampler, featureBuilder)
-    posPadding = ImagePadding(posImages, width, height, padValue=0)
+    pos_images = ImageGenerator(pos_sampler, feature_builder)
+    pos_padding = ImagePadding(pos_images, width, height, pad_value=0)
 
-    negSizeFilter = SizeFilter(negStream, pep1Range, pep2Range, hasLabel=True)
-    negFilter = PositiveFilter(
-        negSizeFilter, positiveItems=posFiltered2, hasLabel=True, symmetric=True
+    neg_size_filter = SizeFilter(neg_stream, pep1_range, pep2_range, has_label=True)
+    neg_filter = PositiveFilter(
+        neg_size_filter, positive_items=pos_filtered2, has_label=True, symmetric=True
     )
-    negSampler = Sampler(negFilter)
+    neg_sampler = Sampler(neg_filter)
 
     if swap:
-        negSampler = Swapper(negSampler)
+        neg_sampler = Swapper(neg_sampler)
 
-    negImages = ImageGenerator(negSampler, featureBuilder)
-    negPadding = ImagePadding(negImages, width, height, padValue=0)
+    neg_images = ImageGenerator(neg_sampler, feature_builder)
+    neg_padding = ImagePadding(neg_images, width, height, pad_value=0)
 
-    joiner = Joiner(posPadding, negPadding, 1 - negRatio)
-    batchGenerator = BatchGenerator(joiner, batchSize, multipleInput=False)
+    joiner = Joiner(pos_padding, neg_padding, 1 - neg_ratio)
+    batch_generator = BatchGenerator(joiner, batch_size, multiple_input=False)
 
-    return batchGenerator
+    return batch_generator

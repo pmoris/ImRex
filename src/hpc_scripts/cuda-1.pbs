@@ -91,35 +91,35 @@ date
 echo "Arg 1: $1"
 
 # # human trb
-# python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-human-trb --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
+# python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-human-trb --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
 
-# python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b128-e40-f5-absdif-human-trb --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
+# python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b128-e40-f5-absdif-human-trb --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
 
 # # human trb-tra
-# python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-human-ab --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human.csv
+# python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-human-ab --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human.csv
 
-# python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b128-e40-f5-absdif-human-ab --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human.csv
+# python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b128-e40-f5-absdif-human-ab --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human.csv
 
 # # stratified
-# python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-strat4-absdif-human-trb --batch_size 512 --epochs 40 --nrFolds 4 --stratified --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
+# python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-strat4-absdif-human-trb --batch_size 512 --epochs 40 --nrFolds 4 --stratified --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
 
-# python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-strat4-absdif-human-ab --batch_size 512 --epochs 40 --nrFolds 4 --stratified --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human.csv
+# python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-strat4-absdif-human-ab --batch_size 512 --epochs 40 --nrFolds 4 --stratified --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human.csv
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b128-e40-strat4-absdif-human-trb --batch_size 128 --epochs 40 --nrFolds 4 --stratified --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b128-e40-strat4-absdif-human-trb --batch_size 128 --epochs 40 --nrFolds 4 --stratified --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb.csv
 
 
 
 # no 10x data
 
 # older dataset 30-10-18
-# python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-all-301018 --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_all_unique.csv
+# python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-all-301018 --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_all_unique.csv
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b128-e40-f5-absdif-all-301018 --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_all_unique.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b128-e40-f5-absdif-all-301018 --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_all_unique.csv
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-human-ab-301018 --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_tra_trb_human_unique.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-human-ab-301018 --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_tra_trb_human_unique.csv
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-human-trb-301018 --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_trb_human_unique.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-human-trb-301018 --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_trb_human_unique.csv
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b128-e40-f5-absdif-human-trb-301018 --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_trb_human_unique.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b128-e40-f5-absdif-human-trb-301018 --batch_size 128 --epochs 40 --nrFolds 5 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/30-10-18-slim/vdjdb_trb_human_unique.csv
 
 echo "End of job ${PBS_JOBNAME}"

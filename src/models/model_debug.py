@@ -26,14 +26,14 @@ class ModelDebug(Model):
         self.height = height
         self.channels = channels
 
-    def _buildModel(self):
+    def _build_model(self):
         model = Sequential()
 
-        inputShape = (self.width, self.height, self.channels)
+        input_shape = (self.width, self.height, self.channels)
         # WEIGHT_DECAY = 1e-6
         KERNEL_INIT = "he_normal"
 
-        def createConv(
+        def create_conv(
             depth,
             kernel_size=(3, 3),
             activation="relu",
@@ -50,21 +50,21 @@ class ModelDebug(Model):
                 **kwargs
             )
 
-        model.add(createConv(8, kernel_size=(3, 3), input_shape=inputShape))
+        model.add(create_conv(8, kernel_size=(3, 3), input_shape=input_shape))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
-        model.add(createConv(8, kernel_size=(3, 3)))
+        model.add(create_conv(8, kernel_size=(3, 3)))
         # model.add(Dropout(0.25))
         model.add(BatchNormalization())
 
-        # model.add(createConv(8, kernel_size=(3, 3)))
+        # model.add(create_conv(8, kernel_size=(3, 3)))
         # model.add(Dropout(0.4))
         # model.add(BatchNormalization())
-        # model.add(createConv(1, kernel_size=(1, 1)))
+        # model.add(create_conv(1, kernel_size=(1, 1)))
         # model.add(Dropout(0.25))
         # model.add(BatchNormalization())
 
-        model.add(createConv(NUM_CLASSES, (1, 1)))
+        model.add(create_conv(NUM_CLASSES, (1, 1)))
         model.add(BatchNormalization())
 
         model.add(GlobalAveragePooling2D())
@@ -76,12 +76,12 @@ class ModelDebug(Model):
 
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         from keras.optimizers import rmsprop
 
         return rmsprop()

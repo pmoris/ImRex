@@ -9,38 +9,53 @@ from src.processing.grouper import ShapeGrouper, GroupedAmountFilter, SizeGroupe
 from src.processing.sampler import GroupSampler, BatchSampler
 from src.processing.shaped_batch_sampler import ShapedBatchSampler
 from src.processing.labeler import Labeler, LabelTrimmer
-from src.processing.tee import Tee
+from src.processing.tee import tee
 from src.processing.stream import TransformStream, BatchStream
-from src.processing.zipper import Unzipper
+from src.processing.zipper import unzipper
+
+# from src.processing.filter import SizeFilter
 
 
+def nettcr_batch_generator(
+    data_stream,
+    neg_ratio,
+    batch_size,
+    # pep1Range,
+    # pep2Range,
+    min_amount,
+    # negativeStream=None,
+):
 
+    # sizeFilter = SizeFilter(dataStream, pep1Range, pep2Range)
+    # input1, input2 = Tee(sizeFilter)
+    input1, input2 = tee(data_stream)
 
-def NetTCRBatchGenerator(dataStream, negRatio, batchSize, minAmount):
-    input1, input2 = Tee(dataStream)
+    shape_grouper = ShapeGrouper(input1)
+    grouped_amount_filter = GroupedAmountFilter(shape_grouper, min_amount)
+    pos_image_gen = BlossumImageGenerator(grouped_amount_filter)
+    group_sampler = GroupSampler(pos_image_gen)
+    batch_sampler = BatchSampler(group_sampler)
 
-    shapeGrouper = ShapeGrouper(input1)
-    groupedAmountFilter = GroupedAmountFilter(shapeGrouper, minAmount)
-    posImageGen = BlossumImageGenerator(groupedAmountFilter)
-    groupSampler = GroupSampler(posImageGen)
-    batchSampler = BatchSampler(groupSampler)
+    label_trimmer = LabelTrimmer(input2)
+    peptides1, peptides2 = unzipper(label_trimmer)
 
-    labelTrimmer = LabelTrimmer(input2)
-    peptides1, peptides2 = Unzipper(labelTrimmer)
+    # # random CDR3
+    # if negativeStream:
+    #     peptides1 = SizeFilter(negativeStream, pep1Range, hasLabel=False)
 
-    peptides1Grouper = SizeGrouper(peptides1, containsLabel=False)
-    peptides2Grouper = SizeGrouper(peptides2, containsLabel=False)
-    shapedBatchSampler = ShapedBatchSampler(
-        peptides1Grouper, peptides2Grouper, checkStream=shapeGrouper
+    peptides1_grouper = SizeGrouper(peptides1, contains_label=False)
+    peptides2_grouper = SizeGrouper(peptides2, contains_label=False)
+    shaped_batch_sampler = ShapedBatchSampler(
+        peptides1_grouper, peptides2_grouper, check_stream=shape_grouper
     )
 
-    negativeLabeler = Labeler(shapedBatchSampler, 0)
-    negImageGen = BlossumImageGenerator(negativeLabeler)
+    negative_labeler = Labeler(shaped_batch_sampler, 0)
+    neg_image_gen = BlossumImageGenerator(negative_labeler)
 
-    negativeExtender = NetTCRBatchExtender(batchSampler, negImageGen, 1 - negRatio)
-    batchGenerator = BatchGenerator(negativeExtender, batchSize, multipleInput=True)
+    negative_extender = NetTCRBatchExtender(batch_sampler, neg_image_gen, 1 - neg_ratio)
+    batch_generator = BatchGenerator(negative_extender, batch_size, multiple_input=True)
 
-    return batchGenerator
+    return batch_generator
 
 
 class BlossumImageGenerator(TransformStream):
@@ -48,9 +63,9 @@ class BlossumImageGenerator(TransformStream):
         super().__init__(stream)
         self.features = dict()
         for aa in AMINO_ACIDS:
-            self.features[aa] = [self._getMatrixEntry(aa, x) for x in AMINO_ACIDS]
+            self.features[aa] = [self._get_matrix_entry(aa, x) for x in AMINO_ACIDS]
 
-    def _getMatrixEntry(self, aa1, aa2):
+    def _get_matrix_entry(self, aa1, aa2):
         i = MatrixInfo.blosum50.get((aa1, aa2))
         if i is not None:
             return i
@@ -70,26 +85,26 @@ class BlossumImageGenerator(TransformStream):
 
 
 class NetTCRBatchExtender(BatchStream):
-    def __init__(self, baseStream, extendStream, baseRatio):
+    def __init__(self, base_stream, extend_stream, base_ratio):
         super().__init__()
-        assert 0 <= baseRatio <= 1
-        self.baseStream = baseStream
-        self.extendStream = extendStream
-        self.baseRatio = baseRatio
+        assert 0 <= base_ratio <= 1
+        self.base_stream = base_stream
+        self.extend_stream = extend_stream
+        self.base_ratio = base_ratio
 
     def __len__(self):
-        return int(len(self.baseStream) // self.baseRatio)
+        return int(len(self.base_stream) // self.base_ratio)
 
-    def getBatch(self, batchSize, *args, **kwargs):
-        baseAmount = int(batchSize * self.baseRatio)
-        extendAmount = int(batchSize - baseAmount)
+    def get_batch(self, batch_size, *args, **kwargs):
+        base_amount = int(batch_size * self.base_ratio)
+        extend_amount = int(batch_size - base_amount)
 
-        base = self.baseStream.getBatch(baseAmount)
+        base = self.base_stream.get_batch(base_amount)
 
         samples = base[0][0]
         shape = tuple(len(sample) for sample in samples)
         # shape = base[0][0].shape[:-1]         # first element = [X, y], we select shape of X (without channels)
-        ext = self.extendStream.getBatch(extendAmount, shape=shape)
+        ext = self.extend_stream.get_batch(extend_amount, shape=shape)
 
         all = list()
         all.extend(base)

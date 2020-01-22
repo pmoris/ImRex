@@ -23,13 +23,13 @@ class ModelPPILitVDJdb(Model):
         self.width = width
         self.height = height
 
-    def _buildModel(self):
+    def _build_model(self):
         KERNEL_INIT = keras.initializers.he_normal
 
         input1 = keras.Input(shape=(self.width,))
         input2 = keras.Input(shape=(self.height,))
 
-        def featureExtraction(input):
+        def feature_extraction(input):
             embedding = Embedding(21, 128)(input)
             x = Conv1D(10, 10, padding="same", kernel_initializer=KERNEL_INIT())(
                 embedding
@@ -42,8 +42,8 @@ class ModelPPILitVDJdb(Model):
             out = LSTM(20)(x)
             return out
 
-        part1 = featureExtraction(input1)
-        part2 = featureExtraction(input2)
+        part1 = feature_extraction(input1)
+        part2 = feature_extraction(input2)
 
         merged_vector = keras.layers.concatenate([part1, part2], axis=-1)
         predictions = Dense(1, activation="sigmoid")(merged_vector)
@@ -51,12 +51,12 @@ class ModelPPILitVDJdb(Model):
         model = keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         from keras.optimizers import adam
 
         return adam()

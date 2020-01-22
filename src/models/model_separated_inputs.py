@@ -33,13 +33,13 @@ class ModelSeparatedInputs(Model):
         self.optimizer = optimizer
         self.include_lr = include_lr
 
-    def _buildModel(self):
+    def _build_model(self):
         KERNEL_INIT = keras.initializers.he_normal
 
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
 
-        def featureExtraction(input):
+        def feature_extraction(input):
             convolutions = list()
             convolutions.append(
                 Conv1D(
@@ -102,9 +102,10 @@ class ModelSeparatedInputs(Model):
             )(merged)
             return conv
 
-        part1 = featureExtraction(input1)
-        part2 = featureExtraction(input2)
+        part1 = feature_extraction(input1)
+        part2 = feature_extraction(input2)
 
+        # axis 1 = length = sequence concat
         concatenated = keras.layers.concatenate([part1, part2], axis=1)
 
         max_pool = GlobalMaxPooling1D()(concatenated)
@@ -117,12 +118,12 @@ class ModelSeparatedInputs(Model):
         model = keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         if self.optimizer == "rmsprop":
 
             from keras.optimizers import rmsprop

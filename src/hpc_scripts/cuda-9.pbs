@@ -93,29 +93,29 @@ echo "Arg 1: $1"
 # new data all species and no 10x
 
 # new data human trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-f10-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-f10-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human tra+trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-f10-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-f10-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 # new data all species no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-f10-absdif-all-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-f10-absdif-all-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
 
 # new data all species trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-f10-absdif-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-f10-absdif-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
 
 # stratification
 
 # new data human trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human tra+trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 # new data all species no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-strat3-absdif-all-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-strat3-absdif-all-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
 
 # new data all species trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioNetTCRrelu.py run --name pad-b512-e40-strat3-absdif-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_nettcr_relu.py run --name pad-b512-e40-strat3-absdif-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
 
 echo "End of job ${PBS_JOBNAME}"

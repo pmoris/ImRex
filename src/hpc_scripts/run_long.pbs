@@ -92,37 +92,37 @@ fi
 case "$1" in
         padding)
             shift
-            python scripts/scenarioPadding.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_padding.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         gap)
             shift
-            python scripts/scenarioGAP.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_gap.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         dense)
             shift
-            python scripts/scenarioDense.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_dense.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         ppi)
             shift
-            python scripts/scenarioPPI.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_ppi.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         nettcr)
             shift
-            python scripts/scenarioNetTCR.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_nettcr.py run --name "$PBS_JOBNAME" "$@"
             ;;
 
         ppilit)
             shift
-            python scripts/scenarioPPILit.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_ppi_lit.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         ppilitvdjdb)
             shift
-            python scripts/scenarioPPILitVDJdb.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_ppi_lit_vdjdb.py run --name "$PBS_JOBNAME" "$@"
             ;;
 
         *)

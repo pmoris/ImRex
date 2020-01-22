@@ -19,7 +19,7 @@ class Shuffler(Stream):
     def get(self, *args, **kwargs):
         return next(self.stream)
 
-    def onEvent(self, event):
+    def on_event(self, event):
         print(event)
         if event == "epoch_end":
             random.shuffle(self.data)

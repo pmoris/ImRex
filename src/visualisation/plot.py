@@ -57,11 +57,11 @@ sns.set_palette(palette)
 sns.set_style("whitegrid")
 
 
-def getOutputPath(dir, title, extension=".pdf"):
+def get_output_path(dir, title, extension=".pdf"):
     return os.path.join(dir, title + extension)
 
 
-def consolidateAll(directory, force=False):
+def consolidate_all(directory, force=False):
     # directory
     #   |- iteration 0
     #       |- metrics.csv
@@ -71,9 +71,9 @@ def consolidateAll(directory, force=False):
     #   |- iteration 1
     #       |- ...
     for file, col in FILES:
-        outputPath = os.path.join(directory, file)
+        output_path = os.path.join(directory, file)
 
-        if not force and os.path.exists(outputPath):
+        if not force and os.path.exists(output_path):
             continue
 
         consolidate(directory, file, col)
@@ -101,12 +101,12 @@ def consolidate(directory, file, col):
         dfs.append(df)
 
     print(file)
-    outputPath = os.path.join(directory, file)
+    output_path = os.path.join(directory, file)
 
     df_concat = pd.concat(dfs)
     if col is None:
         df_concat["type"] = os.path.basename(os.path.dirname(directory))
-        df_concat.to_csv(outputPath, index=False)
+        df_concat.to_csv(output_path, index=False)
         return
     elif col == "index":
         df_concat = df_concat.groupby(df_concat.index)
@@ -118,19 +118,19 @@ def consolidate(directory, file, col):
 
     result = pd.concat([df_means, df_std], axis=1, sort=False)
     result["type"] = os.path.basename(os.path.dirname(directory))
-    outputPath = os.path.join(directory, file)
-    result.to_csv(outputPath, index=False)
+    output_path = os.path.join(directory, file)
+    result.to_csv(output_path, index=False)
 
 
-def concatenateAll(directory, force=False):
+def concatenate_all(directory, force=False):
     for file, col in FILES:
         # Can't concatenate unagregated csv's
         if col is None:
             continue
 
-        outputPath = os.path.join(directory, file)
+        output_path = os.path.join(directory, file)
 
-        if not force and os.path.exists(outputPath):
+        if not force and os.path.exists(output_path):
             continue
 
         concatenate(directory, file)
@@ -152,13 +152,13 @@ def concatenate(directory, file):
         dfs.append(df)
 
     df_concat = pd.concat(dfs)
-    outputPath = os.path.join(directory, file)
-    df_concat.to_csv(outputPath, index=False)
+    output_path = os.path.join(directory, file)
+    df_concat.to_csv(output_path, index=False)
 
 
-def plotMetrics(directory):
-    metricsPath = os.path.join(directory, "metrics.csv")
-    metrics = pd.read_csv(metricsPath)
+def plot_metrics(directory):
+    metrics_path = os.path.join(directory, "metrics.csv")
+    metrics = pd.read_csv(metrics_path)
     for metric in [
         "AUC",
         "acc",
@@ -223,11 +223,11 @@ def plotMetrics(directory):
                 alpha=0.5,
             )
         sns_plot.get_figure().savefig(
-            getOutputPath(directory, metric), bbox_inches="tight"
+            get_output_path(directory, metric), bbox_inches="tight"
         )
 
 
-def plotRocPR(directory):
+def plot_roc_pr(directory):
 
     # define facet figure
     fig = plt.figure(
@@ -238,10 +238,10 @@ def plotRocPR(directory):
     ax2 = fig.add_subplot(gs[0, 1])
 
     # create roc plot
-    plotRoc(directory, ax=ax1)
+    plot_roc(directory, ax=ax1)
 
     # create precision-recall plot
-    plotPrecisionRecall(directory, ax=ax2)
+    plot_precision_recall(directory, ax=ax2)
 
     # add labels
     import string
@@ -257,19 +257,21 @@ def plotRocPR(directory):
         )
 
     for ax in fig.axes:
-        plt.setp(ax.get_legend().get_texts(), fontsize="10.5")  # "13")  # for legend text
+        plt.setp(
+            ax.get_legend().get_texts(), fontsize="10.5"
+        )  # "13")  # for legend text
         # plt.setp(ax.get_legend().get_title(), fontsize="11")  # "13")
         # ax.axis("equal")
 
-    fig.savefig(getOutputPath(directory, "roc-pr"), bbox_inches="tight")
+    fig.savefig(get_output_path(directory, "roc-pr"), bbox_inches="tight")
 
 
-def plotRoc(directory, ax=None):
-    rocPath = os.path.join(directory, "roc.csv")
-    roc = pd.read_csv(rocPath)
+def plot_roc(directory, ax=None):
+    roc_path = os.path.join(directory, "roc.csv")
+    roc = pd.read_csv(roc_path)
 
-    aucPath = os.path.join(directory, "auc.csv")
-    auc = pd.read_csv(aucPath)
+    auc_path = os.path.join(directory, "auc.csv")
+    auc = pd.read_csv(auc_path)
 
     labels = list()
     for tpe in auc.type.unique():
@@ -304,24 +306,24 @@ def plotRoc(directory, ax=None):
     sns_plot.plot([0, 1], [0, 1], "k--")
     if save:
         sns_plot.get_figure().savefig(
-            getOutputPath(directory, "roc"), bbox_inches="tight"
+            get_output_path(directory, "roc"), bbox_inches="tight"
         )
 
 
-def plotPrecisionRecall(directory, ax=None):
-    precisionRecallPath = os.path.join(directory, "precision_recall.csv")
-    precisionRecall = pd.read_csv(precisionRecallPath)
+def plot_precision_recall(directory, ax=None):
+    precision_recall_path = os.path.join(directory, "precision_recall.csv")
+    precision_recall = pd.read_csv(precision_recall_path)
 
     # Interpolation messes these up if the highest predictions are negative samples.
-    precisionRecall.at[0, "recall"] = 0
-    precisionRecall.at[0, "precision"] = 1
+    precision_recall.at[0, "recall"] = 0
+    precision_recall.at[0, "precision"] = 1
 
-    averagePrecisionPath = os.path.join(directory, "average_precision.csv")
-    averagePrecision = pd.read_csv(averagePrecisionPath)
+    average_precision_path = os.path.join(directory, "average_precision.csv")
+    average_precision = pd.read_csv(average_precision_path)
 
     labels = list()
-    for tpe in averagePrecision.type.unique():
-        df = averagePrecision[averagePrecision.type == tpe]
+    for tpe in average_precision.type.unique():
+        df = average_precision[average_precision.type == tpe]
         prec_mean = float(df.average_precision)
         prec_std = float(df.std_average_precision)
         labels.append(
@@ -336,7 +338,7 @@ def plotPrecisionRecall(directory, ax=None):
 
     plt.figure(figsize=(6.4, 6.4))
     sns_plot = sns.lineplot(
-        x="recall", y="precision", ci=None, data=precisionRecall, hue="type", ax=ax
+        x="recall", y="precision", ci=None, data=precision_recall, hue="type", ax=ax
     )
 
     sns_plot.set_title("Precision - Recall")
@@ -347,8 +349,8 @@ def plotPrecisionRecall(directory, ax=None):
     # sns_plot.set_ylim(-0.05, 1.05)
     # sns_plot.set_xlim(-0.05, 1.05)
 
-    for tpe in precisionRecall.type.unique():
-        df = precisionRecall[precisionRecall.type == tpe]
+    for tpe in precision_recall.type.unique():
+        df = precision_recall[precision_recall.type == tpe]
         sns_plot.fill_between(
             df.recall,
             df.precision - df.std_precision,
@@ -358,16 +360,16 @@ def plotPrecisionRecall(directory, ax=None):
 
     if save:
         sns_plot.get_figure().savefig(
-            getOutputPath(directory, "precision_recall"), bbox_inches="tight"
+            get_output_path(directory, "precision_recall"), bbox_inches="tight"
         )
 
 
-def plotPredictions(directory):
-    predictionsPath = os.path.join(directory, "predictions.csv")
-    if not os.path.exists(predictionsPath):
+def plot_predictions(directory):
+    predictions_path = os.path.join(directory, "predictions.csv")
+    if not os.path.exists(predictions_path):
         return
 
-    predictions = pd.read_csv(predictionsPath)
+    predictions = pd.read_csv(predictions_path)
     bins = np.linspace(0, 1, 41)
     plt.figure()
     sns_plot = sns.distplot(
@@ -384,22 +386,22 @@ def plotPredictions(directory):
     sns_plot.set_xlabel("Predicted probability")
     sns_plot.legend(["Negative", "Positive"], title=None)
     sns_plot.get_figure().savefig(
-        getOutputPath(directory, "predictions"), bbox_inches="tight"
+        get_output_path(directory, "predictions"), bbox_inches="tight"
     )
 
 
-def plotConfusionMatrix(directory, ax=None):
+def plot_confusion_matrix(directory, ax=None):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html#sphx-glr-auto-examples-model-selection-plot-confusion-matrix-py
     """
 
-    predictionsPath = os.path.join(directory, "predictions.csv")
-    if not os.path.exists(predictionsPath):
+    predictions_path = os.path.join(directory, "predictions.csv")
+    if not os.path.exists(predictions_path):
         return
 
-    predictions = pd.read_csv(predictionsPath)
+    predictions = pd.read_csv(predictions_path)
     y_true = predictions.y_true
     y_pred = [1 if p > 0.5 else 0 for p in predictions.y_pred]
 
@@ -470,25 +472,25 @@ def plotConfusionMatrix(directory, ax=None):
 
     if save:
         ax.get_figure().savefig(
-            getOutputPath(directory, "confusion_matrix"), bbox_inches="tight"
+            get_output_path(directory, "confusion_matrix"), bbox_inches="tight"
         )
 
 
-def plotAll(directory):
-    plotMetrics(directory)
-    plotRoc(directory)
-    plotPrecisionRecall(directory)
-    plotRocPR(directory)
-    plotPredictions(directory)
-    plotConfusionMatrix(directory)
+def plot_all(directory):
+    plot_metrics(directory)
+    plot_roc(directory)
+    plot_precision_recall(directory)
+    plot_roc_pr(directory)
+    plot_predictions(directory)
+    plot_confusion_matrix(directory)
 
 
-def plotCombined(directories):
-    plotCombinedFunction(directories, plotRoc, "ROC")
-    plotCombinedFunction(directories, plotPrecisionRecall, "Precision - Recall")
+def plot_combined(directories):
+    plot_combined_function(directories, plot_roc, "ROC")
+    plot_combined_function(directories, plot_precision_recall, "Precision - Recall")
 
 
-def plotCombinedFunction(directories, plotFunc, title):
+def plot_combined_function(directories, plot_func, title):
     cols = 2
     rows = math.ceil(len(directories) / 2)
     width = 6.4 * cols
@@ -499,9 +501,9 @@ def plotCombinedFunction(directories, plotFunc, title):
     f.suptitle(title, y=0.91, fontsize=20)
     for index, directory in enumerate(directories):
         ax = axarr[index // cols][index % cols]
-        plotFunc(directory, ax=ax)
+        plot_func(directory, ax=ax)
 
         subtitle = os.path.basename(os.path.normpath(directory))
         ax.set_title(subtitle)
 
-    f.savefig(getOutputPath("output", title), bbox_inches="tight")
+    f.savefig(get_output_path("output", title), bbox_inches="tight")

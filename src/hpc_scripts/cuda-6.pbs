@@ -91,20 +91,20 @@ date
 echo "Arg 1: $1"
 
 # new data human trb no 10x - early stopping
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-human-trb-no10x-earlystop --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-human-trb-no10x-earlystop --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x atchley
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --features "atchley1,atchley2,atchley3,atchley4,atchley5" --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --features "atchley1,atchley2,atchley3,atchley4,atchley5" --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human trb no 10x atchley - early stopping
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name pad-b512-e40-f10-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --early_stop True --features "atchley1,atchley2,atchley3,atchley4,atchley5" --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name pad-b512-e40-f10-absdif-human-trb-no10x-atchley --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --early_stop True --features "atchley1,atchley2,atchley3,atchley4,atchley5" --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 
 
 # new data human trb no 10x - 10x validation
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding10x.py run --name pad-b512-e40-f10-absdif-human-trb-10xval --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv --validation_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-10xonly.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_10x.py run --name pad-b512-e40-f10-absdif-human-trb-10xval --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv --validation_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-10xonly.csv
 
 # new data human trb atchley no 10x atchley - 10x validation
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding10x.py run --name pad-b512-e40-f10-absdif-human-trb-atchley-10xval --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --features "atchley1,atchley2,atchley3,atchley4,atchley5" --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv --validation_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-10xonly.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding_10x.py run --name pad-b512-e40-f10-absdif-human-trb-atchley-10xval --batch_size 512 --epochs 40 --nrFolds 10 --operator absdiff --features "atchley1,atchley2,atchley3,atchley4,atchley5" --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv --validation_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-10xonly.csv
 
 echo "End of job ${PBS_JOBNAME}"

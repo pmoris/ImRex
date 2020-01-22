@@ -22,15 +22,15 @@ class GroupSampler(Stream):
     def __init__(self, stream):
         super().__init__(stream)
         self.stream = stream
-        self.bins = stream.getGroups()  # materialize
+        self.bins = stream.get_groups()  # materialize
 
     def __len__(self):
         return self.stream.__len__()
 
     def get(self, *args, **kwargs):
         keys, weights = zip(*[(k, len(l)) for k, l in self.bins.items()])
-        binNr = random.choices(keys, weights=weights, k=1)[0]
-        return self.bins[binNr]
+        bin_nr = random.choices(keys, weights=weights, k=1)[0]
+        return self.bins[bin_nr]
 
 
 class BatchSampler(BatchStream):
@@ -41,11 +41,11 @@ class BatchSampler(BatchStream):
     def __len__(self):
         return self.stream.__len__()
 
-    def getBatch(self, batchSize, *args, **kwargs):
+    def get_batch(self, batch_size, *args, **kwargs):
         items = self.stream.get(*args, **kwargs)
 
-        if len(items) <= batchSize:
+        if len(items) <= batch_size:
             return items
 
-        batch = random.sample(items, batchSize)
+        batch = random.sample(items, batch_size)
         return batch

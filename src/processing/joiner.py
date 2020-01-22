@@ -11,21 +11,21 @@ class Joiner(BatchStream):
         self.ratio = ratio
 
     def __len__(self):
-        sourceLengths = [self.stream1.__len__(), self.stream2.__len__()]
-        if sourceLengths[0] is None:
-            return int(sourceLengths[1] // (1 - self.ratio))
-        elif sourceLengths[1] is None:
-            return int(sourceLengths[0] // self.ratio)
+        source_lengths = [self.stream1.__len__(), self.stream2.__len__()]
+        if source_lengths[0] is None:
+            return int(source_lengths[1] // (1 - self.ratio))
+        elif source_lengths[1] is None:
+            return int(source_lengths[0] // self.ratio)
         else:
             lengths = [
-                int(sourceLengths[1] // (1 - self.ratio)),
-                int(sourceLengths[0] // self.ratio),
+                int(source_lengths[1] // (1 - self.ratio)),
+                int(source_lengths[0] // self.ratio),
             ]
             return min(lengths)
 
-    def getBatch(self, batchSize, *args, **kwargs):
-        amount1 = int(self.ratio * batchSize)
-        amount2 = batchSize - amount1
+    def get_batch(self, batch_size, *args, **kwargs):
+        amount1 = int(self.ratio * batch_size)
+        amount2 = batch_size - amount1
 
         joined = list()
         for stream, amount in zip([self.stream1, self.stream2], [amount1, amount2]):

@@ -116,9 +116,9 @@ def ppi(
     outpath1: str,
     inpath2: str = None,
     outpath2: str = None,
-    sequencesPath: str = SEQUENCES_PATH,
+    sequences_path: str = SEQUENCES_PATH,
 ):
-    def getAccession(identifier):
+    def get_accession(identifier):
         if not identifier.startswith("uniprotkb:"):
             return None
         accession = identifier.split(":")[1]
@@ -126,8 +126,8 @@ def ppi(
         # accession = accession.split('-')[0]
         return accession
 
-    def getUrl(identifier):
-        accession = getAccession(identifier)
+    def get_url(identifier):
+        accession = get_accession(identifier)
         url = f"https://www.ebi.ac.uk/proteins/api/proteins/{accession}"
         # print(url)
         return url
@@ -138,7 +138,7 @@ def ppi(
             self.outpath = outpath
             self.data = ppi_trim(pd.read_csv(self.inpath, sep="\t"))
 
-        def getIdentifiers(self):
+        def get_identifiers(self):
             return set(chain(self.data[PPI_NAME1], self.data[PPI_NAME2]))
 
     datasets = [PpiDataset(inpath1, outpath1)]
@@ -146,14 +146,14 @@ def ppi(
         datasets.append(PpiDataset(inpath2, outpath2))
 
     identifiers = set(
-        identifier for dataset in datasets for identifier in dataset.getIdentifiers()
+        identifier for dataset in datasets for identifier in dataset.get_identifiers()
     )
     print("Unique identifiers: ", len(identifiers))
 
     sequences = list()
     failed = list()
 
-    def getResponseHandler(identifier):
+    def get_response_handler(identifier):
         def handler(response, **kwargs):
             if not response.ok:
                 tqdm.write(f"Failed request: {identifier}")
@@ -165,8 +165,8 @@ def ppi(
                 #     dataset.data = dataset.data.drop(dataset.data[(dataset.data[PPI_NAME1] == identifier) | (dataset.data[PPI_NAME2] == identifier)].index)
                 # dataset.data = dataset.data[dataset.data[name].str.equals(identifier)]
                 return
-            jsonData = response.json()
-            sequence = jsonData["sequence"]["sequence"]
+            json_data = response.json()
+            sequence = json_data["sequence"]["sequence"]
 
             sequences.append((identifier, sequence))
 
@@ -174,11 +174,11 @@ def ppi(
 
     session = FuturesSession(executor=ThreadPoolExecutor(max_workers=20))
 
-    def getRequest(identifier):
-        url = getUrl(identifier)
-        return session.get(url, hooks={"response": getResponseHandler(identifier)})
+    def get_request(identifier):
+        url = get_url(identifier)
+        return session.get(url, hooks={"response": get_response_handler(identifier)})
 
-    requests = [getRequest(identifier) for identifier in identifiers]
+    requests = [get_request(identifier) for identifier in identifiers]
 
     for r in tqdm(requests):
         r.result()
@@ -198,28 +198,28 @@ def ppi(
 
         dataset.data.to_csv(dataset.outpath, index=False, sep=";")
 
-    sequencesFrame = pd.DataFrame.from_records(
+    sequences_frame = pd.DataFrame.from_records(
         sequences, columns=["accession", "sequence"]
     )
-    sequencesFrame.to_csv(sequencesPath, index=False, sep=";")
+    sequences_frame.to_csv(sequences_path, index=False, sep=";")
 
 
-def ppi_trim(dataFrame):
+def ppi_trim(df):
     # filter on identifier columns
-    dataFrame = dataFrame.filter(items=PPI_NAMES)
+    df = df.filter(items=PPI_NAMES)
 
-    print("Rows:", len(dataFrame))
+    print("Rows:", len(df))
 
     # remove rows with missing identifiers/wrong format identifiers
-    dataFrame = dataFrame.loc[
-        dataFrame[PPI_NAME1].str.startswith("uniprotkb:")
-        & dataFrame[PPI_NAME2].str.startswith("uniprotkb:")
+    df = df.loc[
+        df[PPI_NAME1].str.startswith("uniprotkb:")
+        & df[PPI_NAME2].str.startswith("uniprotkb:")
     ]
-    dataFrame.drop_duplicates(PPI_NAMES, inplace=True)
+    df.drop_duplicates(PPI_NAMES, inplace=True)
 
-    print("Rows after filter id and remove duplicates:", len(dataFrame))
+    print("Rows after filter id and remove duplicates:", len(df))
 
-    return dataFrame
+    return df
 
 
 @bacli.command
@@ -228,7 +228,7 @@ def ppi2(
     outpath1: str = "PPI_positive.csv",
     inpath2: str = None,
     outpath2: str = "PPI_negative.csv",
-    sequencesPath: str = SEQUENCES_PATH,
+    sequences_path: str = SEQUENCES_PATH,
 ):
     # Index        Protein_1_ID         protein_2_ID
     # 1 NP_663777.1  NP_001233.1
@@ -245,7 +245,7 @@ def ppi2(
 
     for inpath, outpath in datasets:
         interactions = list()
-        toRemove = set()
+        to_remove = set()
 
         with open(inpath, "r") as file:
             header = file.readline()
@@ -266,9 +266,9 @@ def ppi2(
                         # assert sequence == sequences[id], f"Sequences should match: \n{sequence}\n{sequences[id]}"
                     else:
                         if len(sequence) > 6000:
-                            if id not in toRemove:
+                            if id not in to_remove:
                                 print(f"skipping sequence with length {len(sequence)}")
-                                toRemove.add(id)
+                                to_remove.add(id)
                         else:
                             sequences[id] = sequence
                 else:
@@ -279,14 +279,14 @@ def ppi2(
                 line = file.readline()
 
         interactions = filter(
-            lambda x: x[0] not in toRemove and x[1] not in toRemove, interactions
+            lambda x: x[0] not in to_remove and x[1] not in to_remove, interactions
         )
-        interactionsFrame = DataFrame.from_records(
+        interactions_frame = DataFrame.from_records(
             interactions, columns=[PPI_NAME1, PPI_NAME2]
         )
-        interactionsFrame.to_csv(outpath, index=False, sep=";")
+        interactions_frame.to_csv(outpath, index=False, sep=";")
 
-    sequencesFrame = DataFrame.from_records(
+    sequences_frame = DataFrame.from_records(
         list(sequences.items()), columns=["identifier", "sequence"]
     )
-    sequencesFrame.to_csv(sequencesPath, index=False, sep=";")
+    sequences_frame.to_csv(sequences_path, index=False, sep=";")

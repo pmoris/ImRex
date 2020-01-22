@@ -1,4 +1,4 @@
-from src.data.controlCDR3Source import ControlCDR3Source
+from src.data.control_cdr3_source import ControlCDR3Source
 
 
 def test_control_cdr3():

@@ -28,6 +28,7 @@ def decorator(func):
         # If no parameters given (only function)
         if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
             return func(*args, **kwargs)
+
         # If parameters given
         def decorator(f):
             return func(f, *args, **kwargs)

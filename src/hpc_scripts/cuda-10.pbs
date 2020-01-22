@@ -93,29 +93,29 @@ echo "Arg 1: $1"
 # new data all species and no 10x
 
 # new data human trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-f10-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-f10-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human tra+trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-f10-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-f10-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 # new data all species no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-f10-all-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-f10-all-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
 
 # new data all species trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-f10-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-f10-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
 
 # stratification
 
 # new data human trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-strat3-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-strat3-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 # new data human tra+trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-strat3-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-strat3-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 # new data all species no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-strat3-all-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-strat3-all-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-no10x.csv
 
 # new data all species trb no 10x
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-strat3-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-strat3-all-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-trb-no10x.csv
 
 echo "End of job ${PBS_JOBNAME}"

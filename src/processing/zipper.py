@@ -21,5 +21,5 @@ class Zipper(Stream):
         return items
 
 
-def Unzipper(stream):
+def unzipper(stream):
     return tuple(DataStream(l) for l in zip(*stream))

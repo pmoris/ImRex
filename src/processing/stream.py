@@ -8,12 +8,12 @@ class _Stream(object):
     def __len__(self):
         raise NotImplementedError
 
-    def sendEvent(self, event):
-        self.onEvent(event)
+    def send_event(self, event):
+        self.on_event(event)
         for source in self.sources:
-            source.sendEvent(event)
+            source.send_event(event)
 
-    def onEvent(self, event):
+    def on_event(self, event):
         pass
 
 
@@ -35,7 +35,7 @@ class BatchStream(_Stream):
     def __init__(self, *sources):
         super().__init__(*sources)
 
-    def getBatch(self, batchSize, *args, **kwargs):
+    def get_batch(self, batch_size, *args, **kwargs):
         raise NotImplementedError
 
 
@@ -43,15 +43,15 @@ class GroupedStream(_Stream):
     def __init__(self, *sources):
         super().__init__(*sources)
 
-    def getGroup(self, key):
-        return self.getGroups().get(key)
+    def get_group(self, key):
+        return self.get_groups().get(key)
 
     @lru_cache()
-    def getGroups(self):
+    def get_groups(self):
         raise NotImplementedError
 
     def __iter__(self):
-        return ((k, v) for k, v in self.getGroups().items())
+        return ((k, v) for k, v in self.get_groups().items())
 
 
 class TransformStream(Stream, GroupedStream, BatchStream):
@@ -69,13 +69,13 @@ class TransformStream(Stream, GroupedStream, BatchStream):
         item = self.stream.get(*args, **kwargs)
         return self.transform(item, *args, **kwargs)
 
-    def getGroups(self):
+    def get_groups(self):
         # item = [X, y] = [(pep1, pep2), y]
         return {
             k: [(self.transform(item)) for item in bin]
-            for k, bin in self.stream.getGroups().items()
+            for k, bin in self.stream.get_groups().items()
         }
 
-    def getBatch(self, batchSize, *args, **kwargs):
-        batch = self.stream.getBatch(batchSize, *args, **kwargs)
+    def get_batch(self, batch_size, *args, **kwargs):
+        batch = self.stream.get_batch(batch_size, *args, **kwargs)
         return ((self.transform(item)) for item in batch)

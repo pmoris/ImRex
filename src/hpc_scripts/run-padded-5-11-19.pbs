@@ -91,22 +91,22 @@ fi
 case "$1" in
         padding)
             shift
-            python scripts/scenarioPadding.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_padding.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         gap)
             shift
-            python scripts/scenarioGAP.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_gap.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         dense)
             shift
-            python scripts/scenarioDense.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_dense.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         nettcr)
             shift
-            python scripts/scenarioNetTCR.py run --name "$PBS_JOBNAME" "$@"
+            python scripts/scenario_nettcr.py run --name "$PBS_JOBNAME" "$@"
             ;;
         
         *)

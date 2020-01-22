@@ -14,8 +14,8 @@ DICT_PATH = "../data/PPI_sequences.csv"
 
 @lru_cache()
 class SequencesMap(object):
-    def __init__(self, dictPath=DICT_PATH):
-        data = pd.read_csv(dictPath, sep=";")
+    def __init__(self, dict_path=DICT_PATH):
+        data = pd.read_csv(dict_path, sep=";")
         self.map = {row[0]: row[1] for index, row in data.iterrows()}
 
     def get(self, key):
@@ -27,10 +27,10 @@ class PpiSource(DataSource):
     ID_A = "Unique identifier for interactor A"
     ID_B = "Unique identifier for interactor B"
 
-    def __init__(self, filepath, sequencesMap=SequencesMap(), label=None):
+    def __init__(self, filepath, sequences_map=SequencesMap(), label=None):
         super().__init__()
         self.filepath = filepath
-        self.sequencesMap = sequencesMap
+        self.sequences_map = sequences_map
         self.data = pd.read_csv(self.filepath, sep=";")
         self.label = label
 
@@ -41,10 +41,10 @@ class PpiSource(DataSource):
         # lengths = defaultdict(int)
 
         for index, row in self.data.iterrows():
-            idA = row[PpiSource.ID_A]
-            idB = row[PpiSource.ID_B]
-            pep1 = self.sequencesMap.get(idA)
-            pep2 = self.sequencesMap.get(idB)
+            id_a = row[PpiSource.ID_A]
+            id_b = row[PpiSource.ID_B]
+            pep1 = self.sequences_map.get(id_a)
+            pep2 = self.sequences_map.get(id_b)
 
             # lengths[len(pep1)] += 1
             # lengths[len(pep2)] += 1
@@ -58,5 +58,5 @@ class PpiSource(DataSource):
         #     print(k, v)
 
 
-posPpiSource = PpiSource(POS_PATH, SequencesMap(), label=1)
-# negPpiSource = PpiSource(NEG_PATH, SequencesMap())
+pos_ppi_source = PpiSource(POS_PATH, SequencesMap(), label=1)
+# neg_ppi_source = PpiSource(NEG_PATH, SequencesMap())

@@ -31,13 +31,13 @@ class ModelNetTCR(Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _buildModel(self):
+    def _build_model(self):
         KERNEL_INIT = keras.initializers.he_normal
 
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
 
-        def featureExtraction(input):
+        def feature_extraction(input):
             convolutions = list()
             convolutions.append(
                 Conv1D(
@@ -100,8 +100,8 @@ class ModelNetTCR(Model):
             )(merged)
             return conv
 
-        part1 = featureExtraction(input1)
-        part2 = featureExtraction(input2)
+        part1 = feature_extraction(input1)
+        part2 = feature_extraction(input2)
 
         concatenated = keras.layers.concatenate([part1, part2], axis=1)
 
@@ -114,12 +114,12 @@ class ModelNetTCR(Model):
         model = keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         from keras.optimizers import adam
 
         return adam()

@@ -10,21 +10,21 @@ from src.models.model import Model
 NUM_CLASSES = 1
 
 
-class ModelPaddedLeaky(Model):
+class ModelPaddedLeakyDenseRel(Model):
     def __init__(self, width, height, channels, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.width = width
         self.height = height
         self.channels = channels
 
-    def _buildModel(self):
+    def _build_model(self):
         model = Sequential()
 
-        inputShape = (self.width, self.height, self.channels)
+        input_shape = (self.width, self.height, self.channels)
         # WEIGHT_DECAY = 1e-6
         KERNEL_INIT = "he_normal"
 
-        def createConv(
+        def create_conv(
             depth,
             kernel_size=(3, 3),
             # activation="lrelu",
@@ -41,22 +41,22 @@ class ModelPaddedLeaky(Model):
                 **kwargs
             )
 
-        model.add(createConv(128, kernel_size=(3, 3), input_shape=inputShape))
+        model.add(create_conv(128, kernel_size=(3, 3), input_shape=input_shape))
         model.add(LeakyReLU(alpha=0.3))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
-        model.add(createConv(64, kernel_size=(3, 3)))
+        model.add(create_conv(64, kernel_size=(3, 3)))
         model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
 
-        model.add(createConv(128, kernel_size=(3, 3)))
+        model.add(create_conv(128, kernel_size=(3, 3)))
         model.add(LeakyReLU(alpha=0.3))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
-        model.add(createConv(64, kernel_size=(3, 3)))
+        model.add(create_conv(64, kernel_size=(3, 3)))
         model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
@@ -64,17 +64,18 @@ class ModelPaddedLeaky(Model):
         model.add(BatchNormalization())
 
         model.add(Flatten())
-        model.add(Dense(32, activation="tanh"))
+        model.add(Dense(32))
+        model.add(LeakyReLU(alpha=0.3))
         model.add(Dense(NUM_CLASSES, activation="sigmoid"))
 
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
+    def get_optimizer(self):
         from keras.optimizers import rmsprop
 
         return rmsprop()

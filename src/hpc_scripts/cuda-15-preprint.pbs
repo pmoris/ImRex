@@ -100,26 +100,26 @@ echo "Arg 1: $1"
 
 ### padded
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-f10-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 10 --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-f10-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 10 --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 #### smaller batch size
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-f10-absdif-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 10 --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b32-e40-f10-absdif-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 10 --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ### separated
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-f10-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-f10-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 #### smaller batch size
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b32-e40-f10-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b32-e40-f10-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 10 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 ## stratified
 
 ### padded
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 #### smaller batch size
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ### separated
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-strat3-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-strat3-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 #### smaller batch size
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b32-e40-strat3-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b32-e40-strat3-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 echo "End of job ${PBS_JOBNAME}"

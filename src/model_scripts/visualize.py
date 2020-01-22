@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 
 import src.bacli as bacli
-from src.bio.image import imageFromMatrix, imageFromMatrices
+from src.bio.image import image_from_matrix, image_from_matrices
 from src.bio.peptide_feature import (
     Charge,
     Hydrophilicity,
@@ -23,8 +23,8 @@ from src.bio.peptide_feature import (
     AtchleyFactor3,
     AtchleyFactor4,
     AtchleyFactor5,
-    parseFeatures,
-    parseOperator,
+    parse_features,
+    parse_operator,
     IsoelectricPoint,
 )
 from src.bio.util import subdirs
@@ -32,12 +32,12 @@ from src.config import PROJECT_ROOT
 from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.metric import metric
 from src.visualisation.plot import (
-    consolidateAll,
-    concatenateAll,
-    plotAll,
+    consolidate_all,
+    concatenate_all,
+    plot_all,
     # palette,
     cmap,
-    plotCombined,
+    plot_combined,
 )
 
 
@@ -53,24 +53,24 @@ dependencies = {
 
 
 @bacli.command
-def test(modelFile: str):
+def test(model_file: str):
     """ Debug function used to test commands out. """
     from keras.models import load_model
 
-    model = load_model(modelFile, custom_objects=dependencies)
+    model = load_model(model_file, custom_objects=dependencies)
     print(model.layers[0].get_weights())
 
 
 @bacli.command
-def render(modelFile: str):
+def render(model_file: str):
     """ Render dot representation of neural network. """
     from keras.models import load_model
     from keras.utils.vis_utils import plot_model
 
-    model = load_model(modelFile, compile=False)
+    model = load_model(model_file, compile=False)
     plot_model(
         model,
-        to_file=modelFile + ".pdf",
+        to_file=model_file + ".pdf",
         show_shapes=True,
         show_layer_names=True,
         rankdir="TB",
@@ -79,7 +79,7 @@ def render(modelFile: str):
 
 @bacli.command
 def activations(
-    modelFile: str,
+    model_file: str,
     epitope: str = None,
     cdr3: str = None,
     layer: str = "conv2d_1",
@@ -98,17 +98,17 @@ def activations(
         print("Supply epitope and cdr3")
         exit()
 
-    model = load_model(modelFile, compile=False)
+    model = load_model(model_file, compile=False)
     if vsc:
         model.summary(line_length=80)
         model = model.get_layer("sequential_1")
     model.summary(line_length=80)
     model.compile(loss="mse", optimizer="adam")
 
-    featuresList = parseFeatures(features)
-    operator = parseOperator(operator)
-    featureBuilder = CombinedPeptideFeatureBuilder(featuresList, operator)
-    image = featureBuilder.generateFeature([cdr3, epitope])
+    features_list = parse_features(features)
+    operator = parse_operator(operator)
+    feature_builder = CombinedPeptideFeatureBuilder(features_list, operator)
+    image = feature_builder.generate_feature([cdr3, epitope])
     padded, _ = ImagePadding(None, 20, 13).transform((image, None), padValue=0)
 
     x = np.array((padded,))
@@ -118,11 +118,11 @@ def activations(
 
 
 @bacli.command
-def summary(modelFile: str):
+def summary(model_file: str):
     """ Print summary of neural network. """
     from keras.models import load_model
 
-    model = load_model(modelFile, custom_objects=dependencies)
+    model = load_model(model_file, custom_objects=dependencies)
     model.summary(line_length=80)
 
 
@@ -149,7 +149,7 @@ def peptide(
     if cmyk:
         features.append(Hydrophilicity())
 
-    operator = parseOperator(operator)
+    operator = parse_operator(operator)
 
     for index, feature in enumerate(features):
         matrix = feature.image_matrix(cdr3, epitope, operator=operator)
@@ -160,16 +160,16 @@ def peptide(
         else:
             pixels = feature.image_matrix(cdr3, epitope, operator=operator)
 
-        img = imageFromMatrix(pixels, mode=mode, index=index)
+        img = image_from_matrix(pixels, mode=mode, index=index)
         layers.append((img, feature.name))
 
-    img = imageFromMatrices(*matrices, mode=mode)
+    img = image_from_matrices(*matrices, mode=mode)
     layers.append((img, "Combined"))
 
-    imgToPlot(layers, epitope, cdr3, "amino-acid-map.pdf")
+    img2plot(layers, epitope, cdr3, "amino-acid-map.pdf")
 
 
-def imgToPlot(layers, epitope, cdr3, name):
+def img2plot(layers, epitope, cdr3, name):
     fig = plt.figure(figsize=(12, 4))
     axes = fig.subplots(1, 5, sharey=True)
     for ax in axes.flat:
@@ -267,13 +267,13 @@ def metrics(directory: str, force: bool = False):
     #       |- average_precision.csv
     #   |- iteration 1
     #       |- ...
-    consolidateAll(directory, force=force)
-    plotAll(directory)
+    consolidate_all(directory, force=force)
+    plot_all(directory)
 
 
 @bacli.command
-def compare(rootDirectory: str, force: bool = False):
-    for directory in subdirs(rootDirectory):
+def compare(root_dir: str, force: bool = False):
+    for directory in subdirs(root_dir):
         if os.path.basename(directory).startswith("_"):
             print(
                 "Found directory:", directory, "which starts with underscore, skipping"
@@ -281,15 +281,15 @@ def compare(rootDirectory: str, force: bool = False):
             continue
 
         print(f"Consolidating metrics of {directory}")
-        consolidateAll(directory, force=force)
+        consolidate_all(directory, force=force)
 
-    print(f"Concatenating metrics of root: {rootDirectory}")
-    concatenateAll(rootDirectory, force=force)
+    print(f"Concatenating metrics of root: {root_dir}")
+    concatenate_all(root_dir, force=force)
 
     print("Plotting")
-    plotAll(rootDirectory)
+    plot_all(root_dir)
 
 
 @bacli.command
 def joinplot(directories: list):
-    plotCombined([d for d in directories if not os.path.basename(d).startswith("_")])
+    plot_combined([d for d in directories if not os.path.basename(d).startswith("_")])

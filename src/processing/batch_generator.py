@@ -5,22 +5,22 @@ from src.processing.stream import BatchStream
 
 
 class BatchGenerator(Sequence, BatchStream):
-    def __init__(self, batchStream, batchSize, multipleInput=False):
-        BatchStream.__init__(self, batchStream)
+    def __init__(self, batch_stream, batch_size, multiple_input=False):
+        BatchStream.__init__(self, batch_stream)
         Sequence.__init__(self)
-        self.batchStream = batchStream
-        self.batchSize = batchSize
-        self.multipleInput = multipleInput
+        self.batch_stream = batch_stream
+        self.batch_size = batch_size
+        self.multiple_input = multiple_input
 
-    def getBatch(self, batchSize, *args, **kwargs):
+    def get_batch(self, batch_size, *args, **kwargs):
         # print("Batch requested")
-        batch = self.batchStream.getBatch(batchSize, *args, **kwargs)
+        batch = self.batch_stream.get_batch(batch_size, *args, **kwargs)
         # transform from    (X1, y1), (X2, y2), ...
         #           to      (X1, X2, ...), (y1, y2, ...)
         # print(batch)
         X, y = list(zip(*batch))
         # print("Batch delivered")
-        if self.multipleInput:
+        if self.multiple_input:
             X = list(zip(*X))
             ret = [np.array(x) for x in X], np.array(y)
             # print(ret)
@@ -38,14 +38,14 @@ class BatchGenerator(Sequence, BatchStream):
             A batch
         """
         # print(f"\nStart batch {index}")
-        batch = self.getBatch(self.batchSize)
+        batch = self.get_batch(self.batch_size)
         # print(f"\nDone batch {index}")
         return batch
 
     def __len__(self):
-        return len(self.batchStream) // self.batchSize
+        return len(self.batch_stream) // self.batch_size
 
     def on_epoch_end(self):
         """Method called at the end of every epoch.
         """
-        self.sendEvent("epoch_end")
+        self.send_event("epoch_end")

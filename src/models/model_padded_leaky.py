@@ -1,7 +1,7 @@
 """ CNN model for recognizing generated peptides. """
 # import keras
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D  # , LeakyReLU
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D, LeakyReLU
 from keras.layers.normalization import BatchNormalization
 
 from src.models.model import Model
@@ -10,26 +10,24 @@ from src.models.model import Model
 NUM_CLASSES = 1
 
 
-class ModelPadded(Model):
-    def __init__(self, width, height, channels, optimizer, include_lr, *args, **kwargs):
+class ModelPaddedLeaky(Model):
+    def __init__(self, width, height, channels, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.width = width
         self.height = height
         self.channels = channels
-        self.optimizer = optimizer
-        self.include_lr = include_lr
 
-    def _buildModel(self):
+    def _build_model(self):
         model = Sequential()
 
-        inputShape = (self.width, self.height, self.channels)
+        input_shape = (self.width, self.height, self.channels)
         # WEIGHT_DECAY = 1e-6
         KERNEL_INIT = "he_normal"
 
-        def createConv(
+        def create_conv(
             depth,
             kernel_size=(3, 3),
-            activation="relu",
+            # activation="lrelu",
             padding="same",
             kernel_initializer=KERNEL_INIT,
             **kwargs
@@ -37,25 +35,29 @@ class ModelPadded(Model):
             return Conv2D(
                 depth,
                 kernel_size,
-                activation=activation,
+                # activation=activation,
                 padding=padding,
                 kernel_initializer=kernel_initializer,
                 **kwargs
             )
 
-        model.add(createConv(128, kernel_size=(3, 3), input_shape=inputShape))
+        model.add(create_conv(128, kernel_size=(3, 3), input_shape=input_shape))
+        model.add(LeakyReLU(alpha=0.3))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
-        model.add(createConv(64, kernel_size=(3, 3)))
+        model.add(create_conv(64, kernel_size=(3, 3)))
+        model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
 
-        model.add(createConv(128, kernel_size=(3, 3)))
+        model.add(create_conv(128, kernel_size=(3, 3)))
+        model.add(LeakyReLU(alpha=0.3))
         # model.add(Dropout(0.4))
         model.add(BatchNormalization())
-        model.add(createConv(64, kernel_size=(3, 3)))
+        model.add(create_conv(64, kernel_size=(3, 3)))
+        model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPool2D(pool_size=(2, 2)))
         model.add(Dropout(0.25))
         # model.add(Dropout(0.4))
@@ -67,32 +69,12 @@ class ModelPadded(Model):
 
         return model
 
-    def getLoss(self):
+    def get_loss(self):
         from keras.metrics import binary_crossentropy
 
         return binary_crossentropy
 
-    def getOptimizer(self):
-        if self.optimizer == "rmsprop":
+    def get_optimizer(self):
+        from keras.optimizers import rmsprop
 
-            from keras.optimizers import rmsprop
-
-            return rmsprop()
-
-        elif self.optimizer == "adam":
-
-            from keras.optimizers import Adam
-
-            if self.include_lr:
-                return Adam(lr=self.include_lr)
-            else:
-                return Adam()
-
-        elif self.optimizer == "SGD":
-
-            from keras.optimizers import SGD
-
-            if self.include_lr:
-                return SGD(lr=self.include_lr)
-            else:
-                return SGD()
+        return rmsprop()

@@ -99,22 +99,22 @@ echo "Arg 1: $1"
 
 #### adam
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-adam --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer adam --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-adam --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer adam --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### adam batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-adam --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer adam --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-adam --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer adam --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 #### adam slow
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-adam-slow --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer adam --learning_rate 0.0001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-adam-slow --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer adam --learning_rate 0.0001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 #### SGD
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 #### SGD slow
 
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 # human trb no10x
@@ -122,18 +122,18 @@ python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b5
 ## kfold
 
 ### padded
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-f10-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-f10-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 
 ### separated
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-f10-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-f10-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 10 --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 ## stratified
 
 ### padded
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_padding.py run --name padded-b512-e40-strat3-absdif-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 ### separated
-python ${PROJECT_ROOT}/src/model_scripts/scenarioSeparatedInputs.py run --name sep-b512-e40-strat3-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenario_separated_inputs.py run --name sep-b512-e40-strat3-human-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --early_stop True --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-trb-no10x.csv
 
 echo "End of job ${PBS_JOBNAME}"

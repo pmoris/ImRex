@@ -9,58 +9,58 @@ class Operator(object):
         return self.__class__.__name__ + "()"
 
     @lru_cache()
-    def min_op(self, peptideFeature):
+    def min_op(self, peptide_feature):
         raise NotImplementedError()
 
     @lru_cache()
-    def max_op(self, peptideFeature):
+    def max_op(self, peptide_feature):
         raise NotImplementedError()
 
     def matrix(self, v1, v2):
         raise NotImplementedError()
 
-    def scaledMatrix(self, matrix, upper, peptideFeature):
+    def scaled_matrix(self, matrix, upper, peptide_feature):
         return scale_matrix(
             matrix,
-            self.min_op(peptideFeature),
-            self.max_op(peptideFeature),
+            self.min_op(peptide_feature),
+            self.max_op(peptide_feature),
             upper=upper,
         )
 
-    def image_matrix(self, v1, v2, peptideFeature):
+    def image_matrix(self, v1, v2, peptide_feature):
         m = self.matrix(v1, v2)
-        return self.scaledMatrix(m, 255.0, peptideFeature)
+        return self.scaled_matrix(m, 255.0, peptide_feature)
 
-    def norm_matrix(self, v1, v2, peptideFeature):
+    def norm_matrix(self, v1, v2, peptide_feature):
         m = self.matrix(v1, v2)
-        return self.scaledMatrix(m, 1.0, peptideFeature)
+        return self.scaled_matrix(m, 1.0, peptide_feature)
 
-    def getAmountLayers(self):
+    def get_amount_layers(self):
         return 1
 
 
 @lru_cache()
 class ProductOperator(Operator):
     @lru_cache()
-    def min_op(self, peptideFeature):
+    def min_op(self, peptide_feature):
         """ The minimum if two values are multiplied """
         if (
-            peptideFeature.min < 0 and peptideFeature.max > 0
+            peptide_feature.min < 0 and peptide_feature.max > 0
         ):  # if result can be negative, minimum product is lowest * highest
-            return peptideFeature.min * peptideFeature.max
+            return peptide_feature.min * peptide_feature.max
         elif (
-            peptideFeature.min < 0 and peptideFeature.max < 0
+            peptide_feature.min < 0 and peptide_feature.max < 0
         ):  # if result positive from negatives, min is closest to zero multiplied
-            return peptideFeature.max * peptideFeature.max
+            return peptide_feature.max * peptide_feature.max
         else:  # if result positive from positives, minimum product is lowest * lowest
-            return peptideFeature.min * peptideFeature.min
+            return peptide_feature.min * peptide_feature.min
 
     @lru_cache()
-    def max_op(self, peptideFeature):
+    def max_op(self, peptide_feature):
         """ The maximum if two values are multiplied """
         return max(
-            peptideFeature.max * peptideFeature.max,
-            peptideFeature.min * peptideFeature.min,
+            peptide_feature.max * peptide_feature.max,
+            peptide_feature.min * peptide_feature.min,
         )
 
     def matrix(self, v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
@@ -95,11 +95,11 @@ class ProductOperator(Operator):
 @lru_cache()
 class LayeredOperator(Operator):
     @lru_cache()
-    def min_op(self, peptideFeature):
+    def min_op(self, peptide_feature):
         raise RuntimeError("min_op not defined for LayeredOperator")
 
     @lru_cache()
-    def max_op(self, peptideFeature):
+    def max_op(self, peptide_feature):
         raise RuntimeError("max_op not defined for LayeredOperator")
 
     def matrix(self, v1, v2):
@@ -111,41 +111,41 @@ class LayeredOperator(Operator):
         l3 = ProductOperator().matrix(v1, v2)
         return np.dstack([l1, l2, l3])
 
-    def scaledMatrix(self, matrix, upper, peptideFeature):
+    def scaled_matrix(self, matrix, upper, peptide_feature):
         l1 = scale_matrix(
             np.take(matrix, 0, axis=2),
-            peptideFeature.min,
-            peptideFeature.max,
+            peptide_feature.min,
+            peptide_feature.max,
             upper=upper,
         )
         l2 = scale_matrix(
             np.take(matrix, 1, axis=2),
-            peptideFeature.min,
-            peptideFeature.max,
+            peptide_feature.min,
+            peptide_feature.max,
             upper=upper,
         )
         l3 = scale_matrix(
             np.take(matrix, 2, axis=2),
-            ProductOperator().min_op(peptideFeature),
-            ProductOperator().max_op(peptideFeature),
+            ProductOperator().min_op(peptide_feature),
+            ProductOperator().max_op(peptide_feature),
             upper=upper,
         )
         scaled = np.dstack([l1, l2, l3])
         return scaled
 
-    def getAmountLayers(self):
+    def get_amount_layers(self):
         return 3
 
 
 @lru_cache()
 class AbsDifferenceOperator(Operator):
     @lru_cache()
-    def min_op(self, peptideFeature):
+    def min_op(self, peptide_feature):
         return 0
 
     @lru_cache()
-    def max_op(self, peptideFeature):
-        return abs(peptideFeature.max - peptideFeature.min)
+    def max_op(self, peptide_feature):
+        return abs(peptide_feature.max - peptide_feature.min)
 
     def matrix(self, v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
         """Compute the pairwise absolute difference between every element in two vectors.
@@ -175,12 +175,12 @@ class AbsDifferenceOperator(Operator):
 @lru_cache()
 class DifferenceOperator(Operator):
     @lru_cache()
-    def min_op(self, peptideFeature):
-        return peptideFeature.min - peptideFeature.max
+    def min_op(self, peptide_feature):
+        return peptide_feature.min - peptide_feature.max
 
     @lru_cache()
-    def max_op(self, peptideFeature):
-        return peptideFeature.max - peptideFeature.min
+    def max_op(self, peptide_feature):
+        return peptide_feature.max - peptide_feature.min
 
     def matrix(self, v1, v2):
         """ Use subtract rather than product """
