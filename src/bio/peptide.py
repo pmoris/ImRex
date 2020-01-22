@@ -1,6 +1,6 @@
 import random
 
-from src.bio.peptide_feature import Charge, Hydrophobicity, Polarity
+from src.bio.peptide_feature import Charge, Hydrophobicity, IsoelectricPoint
 from src.bio.util import AMINO_ACIDS
 
 
@@ -16,8 +16,8 @@ class Peptide(str):
     def getHyrdophobicityVector(self):
         return Hydrophobicity().calculate(self)
 
-    def getPolarityVector(self):
-        return Polarity().calculate(self)
+    def getIsoElectricVector(self):
+        return IsoelectricPoint().calculate(self)
 
     @staticmethod
     def random(length=10):

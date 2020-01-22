@@ -32,7 +32,7 @@ def run(
     min_group: int = 32,
     name: str = "",
     nrFolds: int = 5,
-    features: str = "hydrophob,polarity,mass,hydrophil,charge",
+    features: str = "hydrophob,isoelectric,mass,hydrophil,charge",
     operator: str = "best",  # can be: prod,diff,layer or best
     early_stop=False,
     data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",

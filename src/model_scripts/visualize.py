@@ -25,7 +25,7 @@ from src.bio.peptide_feature import (
     AtchleyFactor5,
     parseFeatures,
     parseOperator,
-    Polarity,
+    IsoelectricPoint,
 )
 from src.bio.util import subdirs
 from src.config import PROJECT_ROOT
@@ -208,7 +208,7 @@ def features():
         Charge(),
         Hydrophobicity(),
         Hydrophilicity(),
-        Polarity(),
+        IsoelectricPoint(),
         Mass(),
         Surface(),
         Flexibility(),
@@ -221,8 +221,8 @@ def features():
         AtchleyFactor4(),
         AtchleyFactor5(),
     ]
-    # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity()]
-    # features = [Charge(), Hydrophobicity(), Polarity(), Mass(), Hydrophilicity(), TCRexBasicity(), TCRexHelicity(), TCRexHydrophobicity(), TCRexMutationStability()]
+    # features = [Charge(), Hydrophobicity(), IsoelectricPoint(), Mass(), Hydrophilicity()]
+    # features = [Charge(), Hydrophobicity(), IsoelectricPoint(), Mass(), Hydrophilicity(), TCRexBasicity(), TCRexHelicity(), TCRexHydrophobicity(), TCRexMutationStability()]
     for f in features:
         print(f.name)
         values = list()

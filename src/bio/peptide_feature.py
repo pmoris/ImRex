@@ -200,8 +200,7 @@ class Hydrophobicity(PeptideFeature):
 
 
 @lru_cache()
-class Polarity(PeptideFeature):
-    # name = "Polarity"
+class IsoelectricPoint(PeptideFeature):
     name = "Isoelectric point"
 
     def _calculate(self, aa):
@@ -537,7 +536,7 @@ featuresMap = {
     "charge": Charge(),
     "hydrophob": Hydrophobicity(),
     "hydrophil": Hydrophilicity(),
-    "polarity": Polarity(),
+    "isoelectric": IsoelectricPoint(),
     "mass": Mass(),
     "surface": Surface(),
     "flexibility": Flexibility(),
