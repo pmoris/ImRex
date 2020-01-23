@@ -25,10 +25,10 @@ def run(
     val_split: float = None,
     epochs: int = 40,
     neg_ratio: float = 0.5,
-    min1: int = 10,
-    max1: int = 20,
-    min2: int = 8,
-    max2: int = 13,
+    min_length_cdr3: int = 10,
+    max_length_cdr3: int = 20,
+    min_length_epitope: int = 8,
+    max_length_epitope: int = 13,
     name: str = "",
     n_folds: int = 5,
     features: str = "hydrophob,isoelectric,mass,hydrophil,charge",
@@ -58,18 +58,23 @@ def run(
 
     inverse_map = InverseMap()
 
-    pep1_range = (min1, max1)
-    pep2_range = (min2, max2)
+    cdr3_range = (min_length_cdr3, max_length_cdr3)
+    epitope_range = (min_length_epitope, max_length_epitope)
 
     trainer = Trainer(epochs, lookup=inverse_map, include_early_stop=early_stop)
     model = ModelPaddedLeaky(
-        max1, max2, nameSuffix=name, channels=feature_builder.get_number_layers()
+        max_length_cdr3,
+        max_length_epitope,
+        nameSuffix=name,
+        channels=feature_builder.get_number_layers(),
     )
 
     if val_split is not None:
         train, val = splitter(data_source, ratio=val_split)
         if neg_ref:
-            negative_source = ControlCDR3Source()
+            negative_source = ControlCDR3Source(
+                min_length=min_length_cdr3, max_length=max_length_cdr3
+            )
             neg_train, neg_val = splitter(negative_source, ratio=val_split)
             iterations = [((train, neg_train), (val, neg_val))]
         else:
@@ -82,7 +87,9 @@ def run(
         folds = fold_splitter(data_source, n_folds)
         iterations = fold_iterator(folds)
         if neg_ref:
-            negative_source = ControlCDR3Source()
+            negative_source = ControlCDR3Source(
+                min_length=min_length_cdr3, max_length=max_length_cdr3
+            )
             neg_folds = fold_splitter(negative_source, n_folds)
             neg_iterations = fold_iterator(neg_folds)
             iterations = [
@@ -106,21 +113,21 @@ def run(
         print("val set", len(val))
 
         train_stream = padded_batch_generator(
-            train,
-            feature_builder,
-            neg_ratio,
-            batch_size,
-            pep1_range,
-            pep2_range,
+            data_stream=train,
+            feature_builder=feature_builder,
+            neg_ratio=neg_ratio,
+            batch_size=batch_size,
+            cdr3_range=cdr3_range,
+            epitope_range=epitope_range,
             negative_stream=neg_train,
         )
         val_stream = padded_batch_generator(
-            val,
-            feature_builder,
-            neg_ratio,
-            batch_size,
-            pep1_range,
-            pep2_range,
+            data_stream=val,
+            feature_builder=feature_builder,
+            neg_ratio=neg_ratio,
+            batch_size=batch_size,
+            cdr3_range=cdr3_range,
+            epitope_range=epitope_range,
             inverse_map=inverse_map,
             negative_stream=neg_val,
         )

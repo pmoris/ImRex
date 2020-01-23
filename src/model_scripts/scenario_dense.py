@@ -25,10 +25,10 @@ def run(
     val_split: float = None,
     epochs: int = 40,
     neg_ratio: float = 0.5,
-    min1: int = 10,
-    max1: int = 20,
-    min2: int = 8,
-    max2: int = 13,
+    min_length_cdr3: int = 10,
+    max_length_cdr3: int = 20,
+    min_length_epitope: int = 8,
+    max_length_epitope: int = 13,
     name: str = "",
     n_folds: int = 5,
     features: str = "hydrophob,isoelectric,mass,hydrophil,charge",
@@ -49,12 +49,15 @@ def run(
 
     inverse_map = InverseMap()
 
-    pep1_range = (min1, max1)
-    pep2_range = (min2, max2)
+    cdr3_range = (min_length_cdr3, max_length_cdr3)
+    epitope_range = (min_length_epitope, max_length_epitope)
 
     trainer = Trainer(epochs, lookup=inverse_map, include_early_stop=early_stop)
     model = ModelDense(
-        max1, max2, nameSuffix=name, channels=feature_builder.get_number_layers()
+        max_length_cdr3,
+        max_length_epitope,
+        nameSuffix=name,
+        channels=feature_builder.get_number_layers(),
     )
 
     if val_split is not None:
@@ -73,15 +76,20 @@ def run(
         print("batch size", batch_size)
 
         train_stream = padded_batch_generator(
-            train, feature_builder, neg_ratio, batch_size, pep1_range, pep2_range
+            data_stream=train,
+            feature_builder=feature_builder,
+            neg_ratio=neg_ratio,
+            batch_size=batch_size,
+            cdr3_range=cdr3_range,
+            epitope_range=epitope_range,
         )
         val_stream = padded_batch_generator(
-            val,
-            feature_builder,
-            neg_ratio,
-            batch_size,
-            pep1_range,
-            pep2_range,
+            data_stream=val,
+            feature_builder=feature_builder,
+            neg_ratio=neg_ratio,
+            batch_size=batch_size,
+            cdr3_range=cdr3_range,
+            epitope_range=epitope_range,
             inverse_map=inverse_map,
         )
 

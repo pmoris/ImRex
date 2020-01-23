@@ -16,18 +16,18 @@ def padded_batch_generator(
     feature_builder,
     neg_ratio,
     batch_size,
-    pep1_range,
-    pep2_range,
+    cdr3_range,
+    epitope_range,
     inverse_map=NoOp(),
     negative_stream=None,
     cache_images=True,
     swap=False,
 ):
     """ Standard PaddedBatchGenerator """
-    width = pep1_range[1]
-    height = pep2_range[1]
+    width = cdr3_range[1]
+    height = epitope_range[1]
 
-    size_filter = SizeFilter(data_stream, pep1_range, pep2_range)
+    size_filter = SizeFilter(data_stream, cdr3_range, epitope_range)
     input1, input2, input3 = tee(size_filter, amount=3)
 
     if not cache_images:
@@ -49,7 +49,7 @@ def padded_batch_generator(
 
     # random CDR3
     if negative_stream:
-        cdr3 = SizeFilter(negative_stream, pep1_range, has_label=False)
+        cdr3 = SizeFilter(negative_stream, cdr3_range, has_label=False)
 
     sampler1 = Sampler(cdr3, infinite=True)
     sampler2 = Sampler(epitope, infinite=True)
