@@ -1,4 +1,3 @@
-# from collections import defaultdict
 from functools import lru_cache
 
 import pandas as pd
@@ -6,10 +5,9 @@ import pandas as pd
 from src.data.data_source import DataSource
 
 
-POS_PATH = "../data/PPI_positive.csv"
-# NEG_PATH = "../data/PPI_negative.csv"
-
-DICT_PATH = "../data/PPI_sequences.csv"
+POS_PATH = "../data/raw/ppi/PPI_positive.csv"
+# NEG_PATH = "../data/raw/ppi/PPI_negative.csv"
+DICT_PATH = "../data/raw/ppi/PPI_sequences.csv"
 
 
 @lru_cache()
@@ -38,24 +36,16 @@ class PpiSource(DataSource):
         return len(self.data)
 
     def __iter__(self):
-        # lengths = defaultdict(int)
-
         for index, row in self.data.iterrows():
             id_a = row[PpiSource.ID_A]
             id_b = row[PpiSource.ID_B]
             pep1 = self.sequences_map.get(id_a)
             pep2 = self.sequences_map.get(id_b)
 
-            # lengths[len(pep1)] += 1
-            # lengths[len(pep2)] += 1
             if self.label is not None:
                 yield (pep1, pep2), self.label
             else:
                 yield (pep1, pep2)
-
-        # print("lengths")
-        # for k, v in sorted(lengths.items()):
-        #     print(k, v)
 
 
 pos_ppi_source = PpiSource(POS_PATH, SequencesMap(), label=1)

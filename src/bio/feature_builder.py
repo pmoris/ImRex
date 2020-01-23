@@ -30,9 +30,7 @@ class SinglePeptideFeatureBuilder(PeptideFeatureBuilder):
         self.feature = feature
 
     def generate_peptides_feature(self, pep1, pep2):
-        # print(pep1, pep2)
         matrix = self.feature.norm_matrix(pep1, pep2, self.operator)
-        # print(matrix)
         return np.expand_dims(matrix, axis=-1)
 
     def get_number_layers(self):

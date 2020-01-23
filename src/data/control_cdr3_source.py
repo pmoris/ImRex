@@ -20,13 +20,6 @@ class ControlCDR3Source(DataSource):
         return len(self.data)
 
     def __iter__(self, *args, **kwargs):
-
-        # lengths = defaultdict(int)
         for index, row in self.data.iterrows():
             pep = row["CDR3_beta"]
-            # lengths[len(pep)] += 1
             yield pep
-
-        # print("lengths")
-        # for k, v in sorted(lengths.items()):
-        #     print(k, v)

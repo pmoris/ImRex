@@ -1,107 +1,14 @@
-""" Preprocess data files with pandas """
+""" Preprocess ppi files """
 from itertools import chain
 
 import pandas as pd
 from requests_futures.sessions import (
     FuturesSession,
     ThreadPoolExecutor,
-    # ProcessPoolExecutor,
 )
 from tqdm import tqdm
 
 import src.bacli as bacli
-
-# from collections import defaultdict
-# from matplotlib import interactive
-
-
-@bacli.command
-def vdjdb(inpath: str, outpath: str):
-    """ preprocess vdjdb file. Filter on TRB """
-
-    data = pd.read_csv(inpath, sep="\t")
-
-    # filter rows on TRB
-    data = data.loc[data["gene"] == "TRB"]
-
-    # filter columns
-    columns = ["cdr3", "antigen.epitope"]
-    data = data.filter(items=columns)
-
-    data.to_csv(outpath, index=False, sep=";")
-
-
-@bacli.command
-def vdjdb_trb_human(inpath: str, outpath: str):
-    """ preprocess vdjdb file. Filter on TRB """
-
-    data = pd.read_csv(inpath, sep="\t")
-
-    # filter rows on TRB
-    data = data.loc[data["Gene"] == "TRB"]
-
-    # filter rows on human
-    data = data.loc[data["Species"] == "HomoSapiens"]
-
-    # filter columns
-    columns = ["CDR3", "Epitope"]
-    data = data.filter(items=columns)
-
-    # drop duplicates
-    data = data.drop_duplicates(["CDR3", "Epitope"])
-
-    data.to_csv(outpath, index=False, sep=";")
-
-
-@bacli.command
-def vdjdb_tra(inpath: str, outpath: str):
-    """ preprocess vdjdb file. Filter on TRA """
-
-    data = pd.read_csv(inpath, sep="\t")
-
-    # filter rows on TRB
-    data = data.loc[data["gene"] == "TRA"]
-
-    # filter columns
-    columns = ["cdr3", "antigen.epitope"]
-    data = data.filter(items=columns)
-
-    data.to_csv(outpath, index=False, sep=";")
-
-
-@bacli.command
-def vdjdb_hla(inpath: str, outpath: str):
-    """ preprocess vdjdb file. Take a subset with mhc.a = HLA-A* """
-
-    data = pd.read_csv(inpath, sep="\t")
-
-    print(data.set_index(["gene", "mhc.a"]).count(level="mhc.a"))
-
-    # filter rows on TRB
-    data = data.loc[data["gene"] == "TRB"]
-    data = data.loc[data["mhc.a"].str.startswith("HLA-A")]
-
-    print(data.set_index(["gene", "mhc.a"]).count(level="mhc.a"))
-
-    # filter columns
-    columns = ["cdr3", "antigen.epitope"]
-    data = data.filter(items=columns)
-
-    data.to_csv(outpath, index=False, sep=";")
-
-
-@bacli.command
-def vdjdb_all(inpath: str, outpath: str):
-    """ preprocess vdjdb file. No filtering """
-
-    data = pd.read_csv(inpath, sep="\t")
-
-    # filter columns
-    columns = ["cdr3", "antigen.epitope"]
-    data = data.filter(items=columns)
-
-    data.to_csv(outpath, index=False, sep=";")
-
 
 PPI_NAME1 = "Unique identifier for interactor A"
 PPI_NAME2 = "Unique identifier for interactor B"
@@ -129,7 +36,6 @@ def ppi(
     def get_url(identifier):
         accession = get_accession(identifier)
         url = f"https://www.ebi.ac.uk/proteins/api/proteins/{accession}"
-        # print(url)
         return url
 
     class PpiDataset(object):

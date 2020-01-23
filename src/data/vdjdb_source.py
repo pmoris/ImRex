@@ -1,5 +1,3 @@
-# from collections import defaultdict
-
 import pandas as pd
 
 from src.config import PROJECT_ROOT
@@ -37,6 +35,4 @@ class VdjdbSource(DataSource):
         for index, row in self.data.iterrows():
             pep1 = row[self.headers["cdr3_header"]]
             pep2 = row[self.headers["epitope_header"]]
-            # lengths1[len(pep1)] += 1
-            # lengths2[len(pep2)] += 1
             yield (pep1, pep2), 1
