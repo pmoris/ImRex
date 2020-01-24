@@ -61,7 +61,7 @@ class PeptideFeature(object):
         raise RuntimeError("generateMatch not implemented")
 
     def get_best_operator(self):
-        raise NotImplementedError()
+        return AbsDifferenceOperator()
 
     def get_max_feature_value(self):
         raise NotImplementedError()
@@ -113,7 +113,6 @@ class PeptideFeature(object):
         return np.asanyarray(values)
 
     def matrix(self, pep1, pep2, operator="best"):
-        """ By default implements matrix multiplication, but can be overridden """
         if operator == "best":
             operator = self.get_best_operator()
         m = operator.matrix(self.calculate(pep1), self.calculate(pep2))
@@ -142,9 +141,6 @@ class Charge(PeptideFeature):
 
     def _calculate(self, aa):
         return electrochem.charge(aa, self.ph)
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
     def generate_match(self, amino):
         """ This method matches pos to neg, neg to pos and neutral to neutral. """
@@ -181,9 +177,6 @@ class Hydrophobicity(PeptideFeature):
     def _calculate(self, aa):
         return ProtParamData.kd[aa]
 
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
-
     def generate_match(self, amino):
         """ This method selects a value close to the value of the aa. """
         acids, weights = zip(
@@ -205,9 +198,6 @@ class IsoelectricPoint(PeptideFeature):
 
     def _calculate(self, aa):
         return ProteinAnalysis(aa).isoelectric_point()
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
     def generate_match(self, amino):
         """ This method selects a value close to the value of the aa. """
@@ -232,9 +222,6 @@ class Mass(PeptideFeature):
         return molecular_weight(
             aa, seq_type="protein", circular=True
         )  # circular to not include water
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
     def generate_match(self, amino):
         """ This method selects a value close to the value of the aa. """
@@ -270,9 +257,6 @@ class Hydrophilicity(PeptideFeature):
 
     def _calculate(self, aa):
         return ProtParamData.hw[aa]
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
 
 @lru_cache()
@@ -363,9 +347,6 @@ class TCRexBasicity(PeptideFeature):
     def _calculate(self, aa):
         return TCREX_BASICITY[aa]
 
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
-
 
 @lru_cache()
 class TCRexHydrophobicity(PeptideFeature):
@@ -378,9 +359,6 @@ class TCRexHydrophobicity(PeptideFeature):
 
     def _calculate(self, aa):
         return TCREX_HYDROPHOBICITY[aa]
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
 
 @lru_cache()
@@ -395,9 +373,6 @@ class TCRexHelicity(PeptideFeature):
     def _calculate(self, aa):
         return TCREX_HELICITY[aa]
 
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
-
 
 @lru_cache()
 class TCRexMutationStability(PeptideFeature):
@@ -410,9 +385,6 @@ class TCRexMutationStability(PeptideFeature):
 
     def _calculate(self, aa):
         return TCREX_MUTATION_STABILITY[aa]
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
 
 # Sieve of Eratosthenes
@@ -464,9 +436,6 @@ class AtchleyFactor1(PeptideFeature):
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_1[aa]
 
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
-
 
 @lru_cache()
 class AtchleyFactor2(PeptideFeature):
@@ -479,9 +448,6 @@ class AtchleyFactor2(PeptideFeature):
 
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_2[aa]
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
 
 @lru_cache()
@@ -496,9 +462,6 @@ class AtchleyFactor3(PeptideFeature):
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_3[aa]
 
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
-
 
 @lru_cache()
 class AtchleyFactor4(PeptideFeature):
@@ -512,9 +475,6 @@ class AtchleyFactor4(PeptideFeature):
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_4[aa]
 
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
-
 
 @lru_cache()
 class AtchleyFactor5(PeptideFeature):
@@ -527,9 +487,6 @@ class AtchleyFactor5(PeptideFeature):
 
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_5[aa]
-
-    def get_best_operator(self):
-        return AbsDifferenceOperator()
 
 
 features_map = {
