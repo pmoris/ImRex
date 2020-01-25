@@ -37,7 +37,7 @@ class PeptideFeature(object):
     def __init__(self):
         pass
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         """ Return the associated value of the property for a given amino acid.
 
         Implemented by the feature subclasses.
@@ -71,7 +71,7 @@ class PeptideFeature(object):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         """Return a dictionary mapping all amino acids to the property.
 
         Most feature subclasses override this method and thus skip the _calculate() call.
@@ -92,7 +92,7 @@ class PeptideFeature(object):
     def min(self):
         return min(self.values.values())
 
-    def calculate(self, peptide):
+    def calculate(self, peptide: str) -> np.ndarray:
         """Return the associated value of the property for all amino acids in a given peptide sequence,
         and 0 when the amino acid is not found or invalid.
 
@@ -106,26 +106,87 @@ class PeptideFeature(object):
         Returns
         -------
         array
-            An array of property values (float/int).
+            An array of property values (type = np.float64).
         """
         values = [self.values.get(aa, 0) for aa in peptide]
         # or equivalently: values = [self._calculate(aa) for aa in peptide]
         return np.asanyarray(values)
 
-    def matrix(self, pep1, pep2, operator="best"):
+    def matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
+        """Computes the pairwise amino acid matrix of two amino acid sequences
+        using the given operator, for this amino acid property/feature.
+
+        Parameters
+        ----------
+        pep1 : str
+            First amino acid sequence
+        pep2 : str
+            Second amino acid sequence
+        operator : str, optional
+            The operator to use for combining the amino acid properties, by default "best".
+
+        Returns
+        -------
+        np.ndarray
+            The combined pairwise amino acid properties in matrix format.
+        """
         if operator == "best":
             operator = self.get_best_operator()
         m = operator.matrix(self.calculate(pep1), self.calculate(pep2))
         return m
 
-    def image_matrix(self, pep1, pep2, operator="best"):
+    def image_matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
+        """Computes the scaled pairwise amino acid matrix of two amino acid sequences
+        using the given operator, for this amino acid property/feature.
+
+        Elements are scaled between 0 and 1, where the minimum and maximum value
+        are defined by the smallest and largest value that the pairwise combination
+        of the amino acid property can take among all 20 amino acids
+        (i.e. not the minimum and maximum in the matrix under consideration).
+
+        Parameters
+        ----------
+        pep1 : str
+            First amino acid sequence
+        pep2 : str
+            Second amino acid sequence
+        operator : str, optional
+            The operator to use for combining the amino acid properties, by default "best".
+
+        Returns
+        -------
+        np.ndarray
+            The combined scaled (0-255) pairwise amino acid properties in matrix format.
+        """
         if operator == "best":
             operator = self.get_best_operator()
         return operator.image_matrix(
             self.calculate(pep1), self.calculate(pep2), self
         ).astype(np.uint8)
 
-    def norm_matrix(self, pep1, pep2, operator="best"):
+    def norm_matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
+        """Computes the normalized pairwise amino acid matrix of two amino acid sequences
+        using the given operator, for this amino acid property/feature.
+
+        Elements are normalized between 0 and 1, where the minimum and maximum value
+        are defined by the smallest and largest value that the pairwise combination
+        of the amino acid property can take among all 20 amino acids
+        (i.e. not the minimum and maximum in the matrix under consideration).
+
+        Parameters
+        ----------
+        pep1 : str
+            First amino acid sequence
+        pep2 : str
+            Second amino acid sequence
+        operator : str, optional
+            The operator to use for combining the amino acid properties, by default "best".
+
+        Returns
+        -------
+        np.ndarray
+            The combined normalized (0-1) pairwise amino acid properties in matrix format.
+        """
         if operator == "best":
             operator = self.get_best_operator()
         return operator.norm_matrix(self.calculate(pep1), self.calculate(pep2), self)
@@ -139,7 +200,7 @@ class Charge(PeptideFeature):
         super().__init__()
         self.ph = ph
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return electrochem.charge(aa, self.ph)
 
     def generate_match(self, amino):
@@ -171,10 +232,10 @@ class Hydrophobicity(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ProtParamData.kd
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ProtParamData.kd[aa]
 
     def generate_match(self, amino):
@@ -196,7 +257,7 @@ class Hydrophobicity(PeptideFeature):
 class IsoelectricPoint(PeptideFeature):
     name = "Isoelectric point"
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ProteinAnalysis(aa).isoelectric_point()
 
     def generate_match(self, amino):
@@ -218,7 +279,7 @@ class IsoelectricPoint(PeptideFeature):
 class Mass(PeptideFeature):
     name = "Mass"
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return molecular_weight(
             aa, seq_type="protein", circular=True
         )  # circular to not include water
@@ -252,10 +313,10 @@ class Hydrophilicity(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ProtParamData.hw
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ProtParamData.hw[aa]
 
 
@@ -273,10 +334,10 @@ class Surface(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ProtParamData.em
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ProtParamData.em[aa]
 
 
@@ -294,10 +355,10 @@ class Flexibility(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ProtParamData.Flex
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ProtParamData.Flex[aa]
 
 
@@ -315,10 +376,10 @@ class Transfer(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ProtParamData.ja
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ProtParamData.ja[aa]
 
 
@@ -328,7 +389,7 @@ class Prime(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return {aa: float(p) for aa, p in zip(AMINO_ACIDS, gen_primes())}
 
     def get_best_operator(self):
@@ -341,10 +402,10 @@ class TCRexBasicity(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return TCREX_BASICITY
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return TCREX_BASICITY[aa]
 
 
@@ -354,10 +415,10 @@ class TCRexHydrophobicity(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return TCREX_HYDROPHOBICITY
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return TCREX_HYDROPHOBICITY[aa]
 
 
@@ -367,10 +428,10 @@ class TCRexHelicity(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return TCREX_HELICITY
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return TCREX_HELICITY[aa]
 
 
@@ -380,10 +441,10 @@ class TCRexMutationStability(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return TCREX_MUTATION_STABILITY
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return TCREX_MUTATION_STABILITY[aa]
 
 
@@ -430,10 +491,10 @@ class AtchleyFactor1(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ATCHLEY_FACTOR_1
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ATCHLEY_FACTOR_1[aa]
 
 
@@ -443,10 +504,10 @@ class AtchleyFactor2(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ATCHLEY_FACTOR_2
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ATCHLEY_FACTOR_2[aa]
 
 
@@ -456,10 +517,10 @@ class AtchleyFactor3(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ATCHLEY_FACTOR_3
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ATCHLEY_FACTOR_3[aa]
 
 
@@ -469,10 +530,10 @@ class AtchleyFactor4(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ATCHLEY_FACTOR_4
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ATCHLEY_FACTOR_4[aa]
 
 
@@ -482,10 +543,10 @@ class AtchleyFactor5(PeptideFeature):
 
     @property
     @lru_cache()
-    def values(self):
+    def values(self) -> dict:
         return ATCHLEY_FACTOR_5
 
-    def _calculate(self, aa):
+    def _calculate(self, aa: str) -> float:
         return ATCHLEY_FACTOR_5[aa]
 
 
@@ -520,6 +581,24 @@ operators_map = {
 
 
 def parse_features(string):
+    """Return a list of peptide feature objects based on a string
+    of feature names.
+
+    Parameters
+    ----------
+    string : str
+        A string containing comma separated feature names.
+
+    Returns
+    -------
+    list
+        A list of peptide feature objects.
+
+    Raises
+    ------
+    e
+        Raises a value error if an unknown feature is encountered.
+    """
     names = [name.strip() for name in string.split(",")]
     try:
         return [features_map[name] for name in names]
@@ -529,4 +608,16 @@ def parse_features(string):
 
 
 def parse_operator(string):
+    """Returns an operator object based on the input name.
+
+    Parameters
+    ----------
+    string : str
+        A string descriptor of the desired operator.
+
+    Returns
+    -------
+    src.bio.operator.Operator
+        The operator object matching the input name.
+    """
     return operators_map[string]

@@ -16,24 +16,90 @@ class Operator(object):
     def max_op(self, peptide_feature):
         raise NotImplementedError()
 
-    def matrix(self, v1, v2):
+    def matrix(self, v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
+        """Combines two vectors of amino acid properties in a pairwise fashion, based on the operator.
+        Implemented by the specific child classes for each operator.
+
+        Parameters
+        ----------
+        v1 : np.ndarray
+            A vector of amino acid properties (obtained via bio.peptide_feature.calculate).
+        v2 : np.ndarray
+            A vector of amino acid properties (obtained via bio.peptide_feature.calculate).
+
+        Returns
+        -------
+        ndarray
+        """
         raise NotImplementedError()
 
-    def scaled_matrix(self, matrix, upper, peptide_feature):
+    def image_matrix(
+        self, v1: np.ndarray, v2: np.ndarray, peptide_feature,
+    ) -> np.ndarray:
+        """Returns a scaled pairwise combined amino acid property matrix for
+        the given sequences and amino acid property.
+
+        Elements are scaled between 0 and 255, where the minimum and maximum value
+        are defined by the smallest and largest value that the pairwise combination
+        of the amino acid property can take among all 20 amino acids
+        (i.e. not the minimum and maximum in the matrix under consideration).
+
+        Parameters
+        ----------
+        v1 : np.ndarray
+            A vector of amino acid properties (obtained via bio.peptide_feature.calculate).
+        v2 : np.ndarray
+            A vector of amino acid properties (obtained via bio.peptide_feature.calculate).
+        peptide_feature : bio.peptide_feature.PeptideFeature
+            the amino acid property, used to find the min and max possible value.
+
+        Returns
+        -------
+        ndarray
+            The combined and scaled (0-255) matrix with pairwise combinations of the amino acid values.
+        """
+        matrix = self.matrix(v1, v2)
+
         return scale_matrix(
-            matrix,
-            self.min_op(peptide_feature),
-            self.max_op(peptide_feature),
-            upper=upper,
+            matrix=matrix,
+            oldlower=self.min_op(peptide_feature),
+            oldupper=self.max_op(peptide_feature),
+            upper=255.0,
         )
 
-    def image_matrix(self, v1, v2, peptide_feature):
-        m = self.matrix(v1, v2)
-        return self.scaled_matrix(m, 255.0, peptide_feature)
+    def norm_matrix(
+        self, v1: np.ndarray, v2: np.ndarray, peptide_feature,
+    ) -> np.ndarray:
+        """Returns a normalized pairwise combined amino acid property matrix for
+        the given sequences and amino acid property.
 
-    def norm_matrix(self, v1, v2, peptide_feature):
-        m = self.matrix(v1, v2)
-        return self.scaled_matrix(m, 1.0, peptide_feature)
+        Elements are normalized between 0 and 1, where the minimum and maximum value
+        are defined by the smallest and largest value that the pairwise combination
+        of the amino acid property can take among all 20 amino acids
+        (i.e. not the minimum and maximum in the matrix under consideration).
+
+        Parameters
+        ----------
+        v1 : np.ndarray
+            A vector of amino acid properties (obtained via bio.peptide_feature.calculate).
+        v2 : np.ndarray
+            A vector of amino acid properties (obtained via bio.peptide_feature.calculate).
+        peptide_feature : bio.peptide_feature.PeptideFeature
+            the amino acid property, used to find the min and max possible value.
+
+        Returns
+        -------
+        ndarray
+            The combined and normalized (0-1) matrix with pairwise combinations of the amino acid values.
+        """
+        matrix = self.matrix(v1, v2)
+
+        return scale_matrix(
+            matrix=matrix,
+            oldlower=self.min_op(peptide_feature),
+            oldupper=self.max_op(peptide_feature),
+            upper=1.0,
+        )
 
     def get_amount_layers(self):
         return 1
@@ -114,14 +180,14 @@ class LayeredOperator(Operator):
     def scaled_matrix(self, matrix, upper, peptide_feature):
         l1 = scale_matrix(
             np.take(matrix, 0, axis=2),
-            peptide_feature.min,
-            peptide_feature.max,
+            oldlower=peptide_feature.min,
+            oldupper=peptide_feature.max,
             upper=upper,
         )
         l2 = scale_matrix(
             np.take(matrix, 1, axis=2),
-            peptide_feature.min,
-            peptide_feature.max,
+            oldlower=peptide_feature.min,
+            oldupper=peptide_feature.max,
             upper=upper,
         )
         l3 = scale_matrix(
