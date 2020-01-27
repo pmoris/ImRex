@@ -78,26 +78,7 @@ def test_charge():
     )
 
 
-features_list = [
-    peptide_feature.Charge(),
-    peptide_feature.Hydrophobicity(),
-    peptide_feature.Hydrophilicity(),
-    peptide_feature.IsoelectricPoint(),
-    peptide_feature.Mass(),
-    peptide_feature.Surface(),
-    peptide_feature.Flexibility(),
-    peptide_feature.Transfer(),
-    #  peptide_feature.Prime(),
-    peptide_feature.TCRexBasicity(),
-    peptide_feature.TCRexHelicity(),
-    peptide_feature.TCRexHydrophobicity(),
-    peptide_feature.TCRexMutationStability(),
-    peptide_feature.AtchleyFactor1(),
-    peptide_feature.AtchleyFactor2(),
-    peptide_feature.AtchleyFactor3(),
-    peptide_feature.AtchleyFactor4(),
-    peptide_feature.AtchleyFactor5(),
-]
+features_list = [i for i in peptide_feature.features_map.values() if i.name != "Prime"]
 
 
 def test__calculate():

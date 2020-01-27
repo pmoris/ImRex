@@ -104,34 +104,21 @@ def test_image_matrix():
         ),
     )
 
-    v1 = peptide_feature.Mass().calculate(AMINO_ACIDS)
-    v2 = v1
-
     # all features min/max
-    for i in [
-        peptide_feature.Charge(),
-        peptide_feature.Hydrophobicity(),
-        peptide_feature.Hydrophilicity(),
-        peptide_feature.IsoelectricPoint(),
-        peptide_feature.Mass(),
-        peptide_feature.Surface(),
-        peptide_feature.Flexibility(),
-        peptide_feature.Transfer(),
-        #  peptide_feature.Prime(),
-        peptide_feature.TCRexBasicity(),
-        peptide_feature.TCRexHelicity(),
-        peptide_feature.TCRexHydrophobicity(),
-        peptide_feature.TCRexMutationStability(),
-        peptide_feature.AtchleyFactor1(),
-        peptide_feature.AtchleyFactor2(),
-        peptide_feature.AtchleyFactor3(),
-        peptide_feature.AtchleyFactor4(),
-        peptide_feature.AtchleyFactor5(),
+    for feature in [
+        i for i in peptide_feature.features_map.values() if i.name != "Prime"
     ]:
 
+        v1 = feature.calculate(AMINO_ACIDS)
+        v2 = v1
         m = operator.ProductOperator().image_matrix(
-            v1=v1, v2=v2, peptide_feature=peptide_feature.Mass()
+            v1=v1, v2=v2, peptide_feature=feature
         )
+
+        print("\n\nMATRIX M\n\n")
+        print(m)
+        print(v1, v2)
+
         np.testing.assert_almost_equal(m.max(), 255.0)
         np.testing.assert_almost_equal(m.min(), 0.0)
 
@@ -194,32 +181,13 @@ def test_norm_matrix():
     )
 
     # all features min/max
-    v1 = peptide_feature.Mass().calculate(AMINO_ACIDS)
-    v2 = v1
-
-    for i in [
-        peptide_feature.Charge(),
-        peptide_feature.Hydrophobicity(),
-        peptide_feature.Hydrophilicity(),
-        peptide_feature.IsoelectricPoint(),
-        peptide_feature.Mass(),
-        peptide_feature.Surface(),
-        peptide_feature.Flexibility(),
-        peptide_feature.Transfer(),
-        #  peptide_feature.Prime(),
-        peptide_feature.TCRexBasicity(),
-        peptide_feature.TCRexHelicity(),
-        peptide_feature.TCRexHydrophobicity(),
-        peptide_feature.TCRexMutationStability(),
-        peptide_feature.AtchleyFactor1(),
-        peptide_feature.AtchleyFactor2(),
-        peptide_feature.AtchleyFactor3(),
-        peptide_feature.AtchleyFactor4(),
-        peptide_feature.AtchleyFactor5(),
+    for feature in [
+        i for i in peptide_feature.features_map.values() if i.name != "Prime"
     ]:
-
+        v1 = feature.calculate(AMINO_ACIDS)
+        v2 = v1
         m = operator.ProductOperator().norm_matrix(
-            v1=v1, v2=v2, peptide_feature=peptide_feature.Mass()
+            v1=v1, v2=v2, peptide_feature=feature
         )
         np.testing.assert_almost_equal(m.max(), 1.0)
         np.testing.assert_almost_equal(m.min(), 0.0)
@@ -241,3 +209,24 @@ def test_norm_matrix():
     x_scaled = x_std * (1 - 0) + 0
 
     np.testing.assert_array_almost_equal(m, x_scaled)
+
+
+def test_matrix_type():
+    """
+    In-place operations do not change the dtype of the container array. Since the desired normalized values are floats, the matrix need to have floating-point point dtype before the in-place operations are performed.
+
+    All peptide_feature.calculate methods, which proceed any Operator().matrix() methods, should return floats by default,
+    since all amino acid properties are floats.
+
+    This test simply loops through the different features and checks whether the generated matrices have the dtype
+
+    """
+    for feature in [
+        i for i in peptide_feature.features_map.values() if i.name != "Prime"
+    ]:
+        for operator_looper in []:
+
+            v1 = feature.calculate(AMINO_ACIDS)
+            v2 = v1
+            m = operator.operator_looper.matrix(v1=v1, v2=v2, peptide_feature=feature)
+            assert isinstance(m, np.float64)
