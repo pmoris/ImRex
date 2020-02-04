@@ -25,16 +25,19 @@ OUTDIR = PROJECT_ROOT / "models/models"
 
 
 def get_output_dir(base_name, iteration=None):
+    """Return and create the output directories that will hold the model (iteration) output."""
     if iteration is None:
-        ret = os.path.join(OUTDIR, base_name)
+        ret = OUTDIR / base_name
     else:
-        ret = os.path.join(OUTDIR, base_name, "iteration {}".format(iteration))
-    os.makedirs(ret, exist_ok=True)
+        ret = OUTDIR / base_name / f"iteration_{iteration}"
+    ret.mkdir(parents=True, exist_ok=True)
     return ret
 
 
 def get_output_path(base_name, file_name, iteration=None):
-    return os.path.join(get_output_dir(base_name, iteration), file_name)
+    """Return the output filepath to store the model (iteration)."""
+    output_path = get_output_dir(base_name, iteration) / file_name
+    return output_path
 
 
 def create_checkpointer(base_name, iteration):
