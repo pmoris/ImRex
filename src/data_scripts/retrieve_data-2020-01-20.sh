@@ -26,9 +26,9 @@ echo "Path used for raw vdjdb data directory: $(realpath ${VDJDB_RAW_DATA_PATH})
 echo -e "\nDownloading VDJdb data...\n"
 
 # download VDJdb files
-wget --timestamping -P ${VDJDB_RAW_DATA_PATH} https://github.com/antigenomics/vdjdb-db/releases/download/2019-08-08/vdjdb-2019-08-08.zip
+wget --timestamping -P ${VDJDB_RAW_DATA_PATH} https://github.com/antigenomics/vdjdb-db/releases/download/2020-01-20/vdjdb-2020-01-20.zip
 # extract files
-unzip -u -o "${VDJDB_RAW_DATA_PATH}/vdjdb-2019-08-08.zip" -d "${VDJDB_RAW_DATA_PATH}/vdjdb-2019-08-08"
+unzip -u -o "${VDJDB_RAW_DATA_PATH}/vdjdb-2020-01-20.zip" -d "${VDJDB_RAW_DATA_PATH}/vdjdb-2020-01-20"
 
 echo -e "\nDownloaded and extracted the VDJdb GitHub release to ${VDJDB_RAW_DATA_PATH}.\n"
 

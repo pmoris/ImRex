@@ -25,21 +25,22 @@ def run(
     name: str = "",
     n_folds: int = 5,
     early_stop=False,
-    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
+    data_path=PROJECT_ROOT
+    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
     stratified: bool = False,
 ):
 
     data_source = VdjdbSource(filepath=data_path)
 
     trainer = Trainer(epochs, include_early_stop=early_stop)
-    model = ModelNetTCR(nameSuffix=name)
+    model = ModelNetTCR(name_suffix=name)
 
     if val_split is not None:
         train, val = splitter(data_source, ratio=val_split)
         iterations = [(train, val)]
     else:
         fold_splitter = (
-            epitope_stratified_fold_splitter if stratified else random_fold_splitter
+            epitope_grouped_fold_splitter if stratified else random_fold_splitter
         )
         folds = fold_splitter(data_source, n_folds)
         iterations = fold_iterator(folds)

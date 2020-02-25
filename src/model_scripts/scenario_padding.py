@@ -34,7 +34,8 @@ def run(
     features: str = "hydrophob,isoelectric,mass,hydrophil,charge",  # can be any str listed in peptide_feature.featuresMap
     operator: str = "absdiff",  # can be: prod, diff, absdiff, layer or best
     early_stop=False,
-    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
+    data_path=PROJECT_ROOT
+    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
     neg_ref: bool = False,
     stratified: bool = False,
     optimizer: str = "rmsprop",

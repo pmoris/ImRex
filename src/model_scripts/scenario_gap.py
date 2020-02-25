@@ -35,7 +35,8 @@ def run(
     features: str = "hydrophob,isoelectric,mass,hydrophil,charge",
     operator: str = "best",  # can be: prod,diff,layer or best
     early_stop=False,
-    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
+    data_path=PROJECT_ROOT
+    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
     stratified: bool = False,
 ):
 

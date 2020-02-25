@@ -25,7 +25,8 @@ def run(
     name: str = "",
     n_folds: int = 3,
     early_stop=False,
-    data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
+    data_path=PROJECT_ROOT
+    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
 ):
 
     ppi_source_pos = VdjdbSource(data_path)

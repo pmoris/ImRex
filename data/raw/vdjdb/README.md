@@ -1,6 +1,6 @@
 # VDJdb dataset retrieval
 
-The files in this directory were retrieved from VDJdb ([https://vdjdb.cdr3.net](https://vdjdb.cdr3.net)] and the associated GitHub release page ([https://github.com/antigenomics/vdjdb-db/releases](https://github.com/antigenomics/vdjdb-db/releases)) on 21 November 2019. At this time, the last update to VDJdb had happened on 07 August 2019 (GitHub release `vdjdb-2019-08-08.zip`).
+The files in this directory were retrieved from VDJdb ([https://vdjdb.cdr3.net](https://vdjdb.cdr3.net)] and the associated GitHub release page ([https://github.com/antigenomics/vdjdb-db/releases](https://github.com/antigenomics/vdjdb-db/releases)). At this time, the last update to the VDJdb browser had happened on 07 August 2019 (GitHub release `vdjdb-2019-08-08.zip`).
 
 ## All analyses and scripts used in this project start from the normal `vdjdb.txt` file from the 2019-08-08 GitHub release!
 
@@ -15,11 +15,14 @@ See the [Jupyter notebook](../../../notebooks/vdjdb-statistics.ipynb) for a more
 
 **The `vdjdb.txt` file was used for all analyses.** This file contains all epitope-cdr3 pairs as separate entries (i.e. the "unpaired gene export" format when using the web export). The `vdjdb.slim.txt` version contains the same information as the standard file, apart from missing the `cdr3fix`, `meta` data and `method` columns, and having additional `j.start` and `v.end` columns instead (this information is normally contained inside the `cdr3fix` column). The `vdjdb_full.txt` version contains some additional information; among other things it uses a separate column for `cdr3.alpha` and `cdr3.beta` sequences.
 
-<!-- Because of these additional columns, the normal version contains more duplicate entries than the slim version. -->
-
 Note that while these three files all use the same type of header names, the order of the columns differs between the three versions, and not all columns are present in every file.
 
 Lastly, these files contain so called *spurious CDR3* entries, which are filtered out of the VDJdb web results by default.
+
+## GitHub release: [CONTENT] Jan'20 release
+
+- Source: [https://github.com/antigenomics/vdjdb-db/releases/tag/2020-01-20](https://github.com/antigenomics/vdjdb-db/releases/tag/2020-01-20)
+- Expected target folder: `vdjdb-2020-01-20.zip`
 
 ## VDJdb data browser
 
@@ -35,7 +38,91 @@ A dataset named `vdjdb-browser.tsv` containing CDR3-epitope pairs was retrieved 
 
 Note that datasets retrieved from the VDJdb data browser contain a different header format than the GitHub release (with additional capitalization and spaces), although the order of the CDR3 and epitope sequences is retained from the normal and full files described above (3 and 10 for CDR3 and epitope respectively).
 
-# Statistics for GitHub release vdjdb.txt
+# Statistics for GitHub release vdjdb.txt (Jan 2020)
+
+| Metric                                                         | Count                                                                                                                                       | Command                                                                                                                                        |
+|----------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| Total number of records                                        | 76164                                                                                                         | `tail -n +2 data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt  |  wc -l`                                                                                                         |
+| TRA records                                                    | 31244                                                                                     | `awk '$2 == "TRA" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | wc -l`                                                                                     |
+| TRB records                                                    | 44920                                                                                     | `awk '$2 == "TRB" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | wc -l`                                                                                     |
+| Unique TRA sequences                                           | 22352                                                                           | `awk '$2 == "TRA" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                           |
+| Unique TRB sequences                                           | 33977                                                                           | `awk '$2 == "TRB" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                           |
+| Unique CDR3 sequences                                          | 56327                                                                                     | `tail -n +2 data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -f3 | sort -u | wc -l`                                                                                       |
+| Unique epitope sequences                                       | 222                                                                                    | `tail -n +2 data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -f10 | sort -u | wc -l`                                                                                      |
+| Unique epitope sequences for TRA records                       | 188                                                                          | `awk '$2 == "TRA" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                          |
+| Unique epitope sequences for TRB records                       | 227                                                                          | `awk '$2 == "TRB" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                          |
+| Unique CDR3-epitope sequence pairs                             | 61555                                                                         | `tail -n +2 data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -d $'\t' -f3,10 | sort -u | wc -l`                                                                           |
+| Unique TRA-CDR3-epitope sequence pairs                         | 25166                                                                       | `awk '$2 == "TRA" { print ,data/raw/vdjdb/vdjdb-2020-01-20-summary.md0 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                        |
+| Unique TRB-CDR3-epitope sequence pairs                         | 36386                                                                       | `awk '$2 == "TRB" { print ,data/raw/vdjdb/vdjdb-2020-01-20-summary.md0 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                        |
+| Number of epitope sequences shared between TRA and TRB records | 154   | `comm -12 <(awk '$2 == "TRA" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) <(awk '$2 == "TRB" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) | wc -l` |
+| Number of CDR3 sequences shared between TRA and TRB records    | 2     | `comm -12 <(awk '$2 == "TRA" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) <(awk '$2 == "TRB" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) | wc -l`   |
+| Epitope distribution for the unique CDR3-epitope pairs         |                                 | `tail -n +2 data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -d $'\t' -f3,10 | sort -u | cut -f2 | sort | uniq -c | sort -nr | head -20`                                  |
+
+  24639 KLGGALQAK
+   6744 NLVPMVATV
+   6600 GILGFVFTL
+   3255 AVFDRKSDAK
+   1654 ELAGIGILTV
+   1501 RAKFKQLL
+   1190 GLCTLVAML
+   1088 IVTDFSVIK
+    819 RLRAEAQVK
+    685 LLWNGPMAV
+    617 LLLGIGILV
+    597 TTPESANL
+    597 SSLENFRAYV
+    586 SSYRRPVGI
+    564 FRDYVDRFYKTLRAEQASQE
+    548 PKYVKQNTLKLAT
+    530 CTPYDINQM
+    417 HGIRNASFI
+    383 ASNENMETM
+    334 KRWIILGLNK
+
+**Human-only records**
+
+| Metric                                                             | Count                                                                                                                                                                          | Command                                                                                                                                                                                                 |
+|--------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   Total number of records                                          | 68067                                                                                                                  | `awk '$6 == "HomoSapiens" { print }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt |  wc -l`                                                                                                                                         |
+|   TRA records                                                      | 28183                                                                                                 | `awk '$2 == "TRA" && $6 == "HomoSapiens"  { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | wc -l`                                                                                                                     |
+|   TRB records                                                      | 39884                                                                                                | `awk '$2 == "TRB" && $6 == "HomoSapiens"  { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | wc -l`                                                                                                                     |
+|   Unique TRA sequences                                             | 20373                                                                                      | `awk '$2 == "TRA" && $6 == "HomoSapiens"  { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                                                           |
+|   Unique TRB sequences                                             | 30852                                                                                      | `awk '$2 == "TRB" && $6 == "HomoSapiens"  { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                                                           |
+|   Unique CDR3 sequences                                            | 51223                                                                                               | `awk '$6 == "HomoSapiens" { print }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -f3 | sort -u | wc -l`                                                                                                                      |
+|   Unique epitope sequences                                         | 186                                                                                              | `awk '$6 == "HomoSapiens" { print }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -f10 | sort -u | wc -l`                                                                                                                     |
+|   Unique epitope sequences for TRA records                         | 126                                                                                      | `awk '$2 == "TRA" && $6 == "HomoSapiens" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                                                           |
+|   Unique epitope sequences for TRB records                         | 184                                                                                      | `awk '$2 == "TRB" && $6 == "HomoSapiens" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                                                           |
+|   Unique CDR3-epitope sequence pairs                               | 56181                                                                                   | `awk '$6 == "HomoSapiens" { print }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -d $'\t' -f3,10 | sort -u | wc -l`                                                                                                          |
+|   Unique TRA-CDR3-epitope sequence pairs                           | 23059                                                                                   | `awk '$2 == "TRA" && $6 == "HomoSapiens" { print $3,$10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                                                       |
+|   Unique TRB-CDR3-epitope sequence pairs                           | 33124                                                                                   | `awk '$2 == "TRB" && $6 == "HomoSapiens" { print $3,$10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u | wc -l`                                                                                                       |
+|   Number of epitope sequences shared between TRA and TRB records   | 124|`comm -12 <(awk '$2 == "TRA" && $6 == "HomoSapiens" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) <(awk '$2 == "TRB" && $6 == "HomoSapiens" { print $10 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) | wc -l`   |
+|   Number of CDR3 sequences shared between TRA and TRB records      | 2|`comm -12 <(awk '$2 == "TRA" && $6 == "HomoSapiens" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) <(awk '$2 == "TRB" && $6 == "HomoSapiens" { print $3 }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | sort -u) | wc -l`     |
+|   Epitope distribution for the unique CDR3-epitope pairs           |                             | `awk '$6 == "HomoSapiens" { print }' data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt | cut -d $'\t' -f3,10 | sort -u | cut -f2 | sort | uniq -c | sort -nr | head -20`                                                                 |
+
+  24367 KLGGALQAK
+   6680 NLVPMVATV
+   6531 GILGFVFTL
+   3222 AVFDRKSDAK
+   1642 ELAGIGILTV
+   1492 RAKFKQLL
+   1165 GLCTLVAML
+   1083 IVTDFSVIK
+    810 RLRAEAQVK
+    676 LLWNGPMAV
+    588 LLLGIGILV
+    562 FRDYVDRFYKTLRAEQASQE
+    534 PKYVKQNTLKLAT
+    334 KRWIILGLNK
+    240 GLIYNRMGAVTTEV
+    227 QARQMVQAMRTIGTHP
+    209 KAFSPEVIPMF
+    207 TPRVTGGGAM
+    203 VTEHDTLLY
+    203 CINGVCWTV
+
+
+
+# Statistics for GitHub release vdjdb.txt ([MAJOR UPDATE] Aug'19 release)
 
 ## vdjdb.txt
 
