@@ -101,27 +101,27 @@ echo "Arg 1: $1"
 #### SGD
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 #### SGD slow
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 #### rmsprop
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 
@@ -133,27 +133,27 @@ python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b3
 #### SGD
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 #### SGD slow
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 #### rmsprop
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 
@@ -166,28 +166,28 @@ python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b3
 #### SGD
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 #### SGD slow
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 40 --early_stop True  --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 40 --early_stop True  --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 
 #### rmsprop
 
 ##### 512 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 ##### 32 batch
-python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation relu --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
 
 
 echo "End of job ${PBS_JOBNAME}"

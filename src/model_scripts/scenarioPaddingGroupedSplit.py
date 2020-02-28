@@ -1,4 +1,6 @@
 """ Scenario for neural network. """
+import pandas as pd
+
 import src.bacli as bacli
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
 from src.bio.peptide_feature import parseFeatures, parseOperator
@@ -21,29 +23,56 @@ bacli.setDescription(__doc__)
 
 @bacli.command
 def run(
-    batch_size: int = 128,
-    val_split: float = None,
+    batch_size: int = 512,
     epochs: int = 40,
     neg_ratio: float = 0.5,
     min1: int = 10,
     max1: int = 20,
     min2: int = 8,
     max2: int = 13,
-    name: str = "",
+    name: str = "groupedSplit",
     nrFolds: int = 5,
     features: str = "hydrophob,polarity,mass,hydrophil,charge",
     operator: str = "absdiff",  # can be: prod, diff, absdiff, layer or best
     early_stop=False,
     data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
-    neg_ref: bool = False,
-    stratified: bool = False,
-    optimizer: str = "rmsprop",
-    learning_rate: bool = False,
-    dense_activation: str = "tanh",
 ):
 
     # print function arguments
     print(locals())
+
+    df = pd.read_csv(data_path, sep=";")
+
+    featuresList = parseFeatures(features)
+    operator = parseOperator(operator)
+    featureBuilder = CombinedPeptideFeatureBuilder(featuresList, operator)
+
+    print("features:", featuresList)
+    print("operator:", operator)
+
+    inverseMap = InverseMap()
+
+    pep1Range = (min1, max1)
+    pep2Range = (min2, max2)
+
+    trainer = Trainer(epochs, lookup=inverseMap, includeEarlyStop=early_stop)
+    model = ModelPadded(
+        max1, max2, nameSuffix=name, channels=featureBuilder.getNumberLayers()
+    )
+
+    # split data
+
+    # add label
+    df["y"] = 1
+
+    # shuffle data
+    df = df.sample()
+
+    FoldSplitter = EpitopeStratifiedFoldSplitter if stratified else RandomFoldSplitter
+    folds = FoldSplitter(dataSource, nrFolds)
+    iterations = FoldIterator(folds)
+
+    ##########
 
     dataSource = VdjdbSource(filepath=data_path)
 
@@ -66,12 +95,7 @@ def run(
 
     trainer = Trainer(epochs, lookup=inverseMap, includeEarlyStop=early_stop)
     model = ModelPadded(
-        max1,
-        max2,
-        nameSuffix=name,
-        channels=featureBuilder.getNumberLayers(),
-        optimizer=optimizer,
-        include_lr=learning_rate,
+        max1, max2, nameSuffix=name, channels=featureBuilder.getNumberLayers()
     )
 
     if val_split is not None:
@@ -112,21 +136,21 @@ def run(
         print("val set", len(val))
 
         trainStream = PaddedBatchGenerator(
-            dataStream=train,
-            featureBuilder=featureBuilder,
-            negRatio=neg_ratio,
-            batchSize=batch_size,
-            pep1Range=pep1Range,
-            pep2Range=pep2Range,
+            train,
+            featureBuilder,
+            neg_ratio,
+            batch_size,
+            pep1Range,
+            pep2Range,
             negativeStream=negTrain,
         )
         valStream = PaddedBatchGenerator(
-            dataStream=val,
-            featureBuilder=featureBuilder,
-            negRatio=neg_ratio,
-            batchSize=batch_size,
-            pep1Range=pep1Range,
-            pep2Range=pep2Range,
+            val,
+            featureBuilder,
+            neg_ratio,
+            batch_size,
+            pep1Range,
+            pep2Range,
             inverseMap=inverseMap,
             negativeStream=negVal,
         )

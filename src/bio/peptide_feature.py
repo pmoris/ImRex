@@ -2,8 +2,8 @@ from functools import lru_cache
 import random
 
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
-from Bio.SeqUtils import ProtParamData
 from Bio.SeqUtils import molecular_weight
+from Bio.SeqUtils import ProtParamData
 import numpy as np
 from pyteomics import electrochem
 
@@ -38,7 +38,23 @@ class PeptideFeature(object):
         pass
 
     def _calculate(self, aa):
-        """ return the associated value for a given amino acid """
+        """ Return the associated value of the property for a given amino acid.
+
+        Implemented by the feature subclasses.
+
+        Parameters
+        ----------
+        aa : string
+            amino acid
+
+        Returns
+        -------
+        float or int
+
+        Raises
+        ------
+        NotImplementedError
+        """
         raise NotImplementedError()
 
     def generateMatch(self, aa):
@@ -47,9 +63,23 @@ class PeptideFeature(object):
     def getBestOperator(self):
         raise NotImplementedError()
 
+    def get_max_feature_value(self):
+        raise NotImplementedError()
+
+    def get_min_feature_value(self):
+        raise NotImplementedError()
+
     @property
     @lru_cache()
     def values(self):
+        """Return a dictionary mapping all amino acids to the property.
+
+        Most feature subclasses override this method and thus skip the _calculate() call.
+
+        Returns
+        -------
+        dict
+        """
         return {aa: self._calculate(aa) for aa in AMINO_ACIDS}
 
     @property
@@ -66,7 +96,24 @@ class PeptideFeature(object):
         return self.values.get(aa, 0)
 
     def calculate(self, peptide):
-        values = [self.value(aa) for aa in peptide]
+        """Return the associated value of the property for all amino acids in a given peptide sequence,
+        and 0 when the amino acid is not found or invalid.
+
+        Is never overriden by a feature subclass.
+
+        Parameters
+        ----------
+        peptide : string
+            A peptide sequence for which the property should be calculated per amino acid.
+
+        Returns
+        -------
+        array
+            An array of property values (float/int).
+        """
+        # values = [self.value(aa) for aa in peptide]
+        values = [self.values.get(aa, 0) for aa in peptide]
+        # values = [self._calculate(aa) for aa in peptide]
         return np.asanyarray(values)
 
     def matrix(self, pep1, pep2, operator="best"):
@@ -169,7 +216,8 @@ class Hydrophobicity(PeptideFeature):
 
 @lru_cache()
 class Polarity(PeptideFeature):
-    name = "Polarity"
+    # name = "Polarity"
+    name = "Isoelectric point"
 
     def _calculate(self, aa):
         return ProteinAnalysis(aa).isoelectric_point()
@@ -219,7 +267,7 @@ class Mass(PeptideFeature):
 class Hydrophilicity(PeptideFeature):
     """Calculate the Hydrophilicity of the amino acids in a protein sequence.
 
-    hw = Hopp & Wood Proc. Natl. Acad. Sci. U.S.A. 78:3824-3828(1981). 
+    hw = Hopp & Wood Proc. Natl. Acad. Sci. U.S.A. 78:3824-3828(1981).
 
     Relies on biopython's Bio.SeqUtils.ProtParamData
     Source: https://biopython.org/DIST/docs/api/Bio.SeqUtils.ProtParamData-pysrc.html
@@ -420,6 +468,11 @@ def gen_primes():
 class AtchleyFactor1(PeptideFeature):
     name = "Atchley_factor_1"
 
+    @property
+    @lru_cache()
+    def values(self):
+        return ATCHLEY_FACTOR_1
+
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_1[aa]
 
@@ -430,6 +483,11 @@ class AtchleyFactor1(PeptideFeature):
 @lru_cache()
 class AtchleyFactor2(PeptideFeature):
     name = "Atchley_factor_2"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return ATCHLEY_FACTOR_2
 
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_2[aa]
@@ -442,6 +500,11 @@ class AtchleyFactor2(PeptideFeature):
 class AtchleyFactor3(PeptideFeature):
     name = "Atchley_factor_3"
 
+    @property
+    @lru_cache()
+    def values(self):
+        return ATCHLEY_FACTOR_3
+
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_3[aa]
 
@@ -453,6 +516,11 @@ class AtchleyFactor3(PeptideFeature):
 class AtchleyFactor4(PeptideFeature):
     name = "Atchley_factor_4"
 
+    @property
+    @lru_cache()
+    def values(self):
+        return ATCHLEY_FACTOR_4
+
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_4[aa]
 
@@ -463,6 +531,11 @@ class AtchleyFactor4(PeptideFeature):
 @lru_cache()
 class AtchleyFactor5(PeptideFeature):
     name = "Atchley_factor_5"
+
+    @property
+    @lru_cache()
+    def values(self):
+        return ATCHLEY_FACTOR_5
 
     def _calculate(self, aa):
         return ATCHLEY_FACTOR_5[aa]

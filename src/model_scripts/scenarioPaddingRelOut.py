@@ -5,7 +5,7 @@ from src.bio.peptide_feature import parseFeatures, parseOperator
 from src.config import PROJECT_ROOT
 from src.data.controlCDR3Source import ControlCDR3Source
 from src.data.vdjdbSource import VdjdbSource
-from src.models.modelPadded import ModelPadded
+from src.models.modelPaddedRelOut import ModelPaddedRelOut
 from src.neural.trainer import Trainer
 from src.processing.inverse_map import InverseMap
 from src.processing.kfolds import (
@@ -37,9 +37,6 @@ def run(
     data_path=PROJECT_ROOT / "data/interim/vdjdb-human-no10x.csv",
     neg_ref: bool = False,
     stratified: bool = False,
-    optimizer: str = "rmsprop",
-    learning_rate: bool = False,
-    dense_activation: str = "tanh",
 ):
 
     # print function arguments
@@ -65,13 +62,8 @@ def run(
     pep2Range = (min2, max2)
 
     trainer = Trainer(epochs, lookup=inverseMap, includeEarlyStop=early_stop)
-    model = ModelPadded(
-        max1,
-        max2,
-        nameSuffix=name,
-        channels=featureBuilder.getNumberLayers(),
-        optimizer=optimizer,
-        include_lr=learning_rate,
+    model = ModelPaddedRelOut(
+        max1, max2, nameSuffix=name, channels=featureBuilder.getNumberLayers()
     )
 
     if val_split is not None:
@@ -112,21 +104,21 @@ def run(
         print("val set", len(val))
 
         trainStream = PaddedBatchGenerator(
-            dataStream=train,
-            featureBuilder=featureBuilder,
-            negRatio=neg_ratio,
-            batchSize=batch_size,
-            pep1Range=pep1Range,
-            pep2Range=pep2Range,
+            train,
+            featureBuilder,
+            neg_ratio,
+            batch_size,
+            pep1Range,
+            pep2Range,
             negativeStream=negTrain,
         )
         valStream = PaddedBatchGenerator(
-            dataStream=val,
-            featureBuilder=featureBuilder,
-            negRatio=neg_ratio,
-            batchSize=batch_size,
-            pep1Range=pep1Range,
-            pep2Range=pep2Range,
+            val,
+            featureBuilder,
+            neg_ratio,
+            batch_size,
+            pep1Range,
+            pep2Range,
             inverseMap=inverseMap,
             negativeStream=negVal,
         )

@@ -1,0 +1,193 @@
+#!/bin/bash -l
+
+# Walltime: The maximum time a job can run before being stopped.
+# Format is HH:MM:SS
+#PBS -l walltime=10:00:00
+
+# Nodes have 2 GPUs and 28 cores each. The following makes sure that
+# no more than 2 jobs will ever land on the same node.
+#PBS -L tasks=1:lprocs=14
+
+# Specify GPU queue
+#PBS -l advres=gpu-reservation.202
+
+# Give your job a unique name
+### PBS -N cuda-0-padded-comparison
+
+# Make sure that the environment in which the job runs is the same as
+# the environment in which it was submitted.
+# Declares that all environment variables in the qsub commands
+# environment are to be exported to the batch job.
+#PBS -V
+
+# redirect standard output (-o) and error (-e) (optional)
+# if omitted, the name of the job (specified by -N) or
+# a generic name (name of the script followed by .o or .e and
+# job number) will be used
+### PBS -o ../../../models/vsc_logs/$PBS_JOBNAME_$PBS_JOBID.log
+### PBS -e ../../../models/vsc_logs/$PBS_JOBNAME_$PBS_JOBID.err
+
+# send mail notification (optional)
+#   a        when job is aborted
+#   b        when job begins
+#   e        when job ends
+#   M        your e-mail address (should default to email used to register on VSC)
+#PBS -m bea
+
+# Using PBS - Environment Variables :
+# When a batch job starts execution, a number of environment variables are
+# predefined, which include:
+#      Variables defined on the execution host.
+#      Variables exported from the submission host with
+#                -v (selected variables) and -V (all variables).
+#      Variables defined by PBS.
+#
+# The following reflect the environment where the user ran qsub:
+# PBS_O_HOST    The host where you ran the qsub command.
+# PBS_O_LOGNAME Your user ID where you ran qsub.
+# PBS_O_HOME    Your home directory where you ran qsub.
+# PBS_O_WORKDIR The working directory where you ran qsub.
+#
+# These reflect the environment where the job is executing:
+# PBS_ENVIRONMENT       Set to PBS_BATCH to indicate the job is a batch job,
+#         or to PBS_INTERACTIVE to indicate the job is a PBS interactive job.
+# PBS_O_QUEUE   The original queue you submitted to.
+# PBS_QUEUE     The queue the job is executing from.
+# PBS_JOBID     The job's PBS identifier.
+# PBS_JOBNAME   The job's name.
+
+
+# First load the appropriate cluster module
+# Then, activate the appropriate software packages
+module load TensorFlow/1.12.0-intel-2018b-GPU-Python-3.6.8-Keras-2.2.4
+
+# Go to the absolute path of the current working directory of the qsub command.
+cd "$PBS_O_WORKDIR"
+
+# Export the project root folder
+# PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." >/dev/null 2>&1 && pwd )"}
+export PROJECT_ROOT=$(readlink --canonicalize ../../) # old method
+# use `$(cd ../../.. ; pwd)` if you don't want to resolve symlinks
+
+# activate virtualenv
+# `.` is prefered over `source`
+# https://stackoverflow.com/questions/11027782/virtualenv-venv-bin-activate-vs-source-venv-bin-activate
+. ${PROJECT_ROOT}/deepTCR-env/bin/activate
+
+# specify which GPU to run on
+export CUDA_VISIBLE_DEVICES=0
+
+# suppress error when using multiprocessing
+export HDF5_USE_FILE_LOCKING=FALSE
+
+# indicate the amount of GPUS to use
+export GPUS=0
+
+# start of logging
+echo "Start of job: ${PBS_JOBNAME}"
+date
+
+# run the script
+echo "Arg 1: $1"
+
+
+
+# human tra+trb no10x
+
+## stratified
+
+### 30 epochs
+
+#### SGD
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+#### SGD slow
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+
+#### rmsprop
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e30-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e30-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 30 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+
+
+
+
+
+### 40 epochs
+
+#### SGD
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+#### SGD slow
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+
+#### rmsprop
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-e40-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-e40-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 40 --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+
+
+
+
+
+
+### early
+
+#### SGD
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x-SGD --batch_size 32 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+#### SGD slow
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x-SGD-slow --batch_size 32 --epochs 40 --early_stop True  --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer SGD --learning_rate 0.001 --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+
+
+#### rmsprop
+
+##### 512 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b512-early-strat3-absdif-human-tra-trb-no10x --batch_size 512 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+##### 32 batch
+python ${PROJECT_ROOT}/src/model_scripts/scenarioPadding.py run --name padded-b32-early-strat3-absdif-human-tra-trb-no10x --batch_size 32 --epochs 40 --early_stop True --nrFolds 3 --stratified True --features "hydrophob,polarity,mass,hydrophil,charge" --operator absdiff --optimizer rmsprop --dense_activation tanh --data_path ${PROJECT_ROOT}/data/interim/vdjdb-human-no10x.csv
+
+
+echo "End of job ${PBS_JOBNAME}"

@@ -33,10 +33,13 @@ cmap = paletteG(as_cmap=True)
 cmapI = paletteG(as_cmap=True, reverse=False)
 
 sns.set_style("darkgrid")
-# plt.rcParams.update({'font.size': 11})
+plt.rcParams.update({"font.size": 14})  # 20})
+# plt.rcParams["title_fontsize"] = 10
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = "Source Sans Pro"  # ['Fira Sans', 'Source Sans Pro']
 font = {"weight": "normal"}  # ,'size'   : 22}
+
+# plt.rcParams["figure.figsize"] = (20, 20)
 
 palette = sns.color_palette(
     [
@@ -227,7 +230,9 @@ def plotMetrics(directory):
 def plotRocPR(directory):
 
     # define facet figure
-    fig = plt.figure(constrained_layout=True, dpi=200, figsize=(12, 6))
+    fig = plt.figure(
+        constrained_layout=True, dpi=200, figsize=(12, 6)  # (13, 6)  # (16, 9)
+    )  # (12, 6))#(16, 9))
     gs = GridSpec(1, 2, figure=fig)
     ax1 = fig.add_subplot(gs[0, 0])
     ax2 = fig.add_subplot(gs[0, 1])
@@ -250,6 +255,11 @@ def plotRocPR(directory):
             size=20,
             weight="bold",
         )
+
+    for ax in fig.axes:
+        plt.setp(ax.get_legend().get_texts(), fontsize="10.5")  # "13")  # for legend text
+        # plt.setp(ax.get_legend().get_title(), fontsize="11")  # "13")
+        # ax.axis("equal")
 
     fig.savefig(getOutputPath(directory, "roc-pr"), bbox_inches="tight")
 
@@ -277,9 +287,13 @@ def plotRoc(directory, ax=None):
     sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
 
     sns_plot.set_title("ROC")
-    sns_plot.legend(labels, title=None, loc="lower right")
+    sns_plot.legend(
+        labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15)
+    )  # loc="lower right")
     sns_plot.set_xlabel("False Positive Rate")
     sns_plot.set_ylabel("True Positive Rate")
+    # sns_plot.set_ylim(-0.05, 1.05)
+    # sns_plot.set_xlim(-0.05, 1.05)
 
     for tpe in roc.type.unique():
         df = roc[roc.type == tpe]
@@ -326,10 +340,12 @@ def plotPrecisionRecall(directory, ax=None):
     )
 
     sns_plot.set_title("Precision - Recall")
-    sns_plot.legend(labels, title=None, loc="lower left")
+    sns_plot.legend(labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15))
+    # sns_plot.legend(labels, title=None, loc="lower left")
     sns_plot.set_xlabel("Recall")
     sns_plot.set_ylabel("Precision")
-    sns_plot.set_ylim(0, 1)
+    # sns_plot.set_ylim(-0.05, 1.05)
+    # sns_plot.set_xlim(-0.05, 1.05)
 
     for tpe in precisionRecall.type.unique():
         df = precisionRecall[precisionRecall.type == tpe]

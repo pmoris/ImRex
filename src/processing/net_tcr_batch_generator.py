@@ -13,10 +13,21 @@ from src.processing.tee import Tee
 from src.processing.stream import TransformStream, BatchStream
 from src.processing.zipper import Unzipper
 
+# from src.processing.filter import SizeFilter
 
 
+def NetTCRBatchGenerator(
+    dataStream,
+    negRatio,
+    batchSize,
+    # pep1Range,
+    # pep2Range,
+    minAmount,
+    # negativeStream=None,
+):
 
-def NetTCRBatchGenerator(dataStream, negRatio, batchSize, minAmount):
+    # sizeFilter = SizeFilter(dataStream, pep1Range, pep2Range)
+    # input1, input2 = Tee(sizeFilter)
     input1, input2 = Tee(dataStream)
 
     shapeGrouper = ShapeGrouper(input1)
@@ -27,6 +38,10 @@ def NetTCRBatchGenerator(dataStream, negRatio, batchSize, minAmount):
 
     labelTrimmer = LabelTrimmer(input2)
     peptides1, peptides2 = Unzipper(labelTrimmer)
+
+    # # random CDR3
+    # if negativeStream:
+    #     peptides1 = SizeFilter(negativeStream, pep1Range, hasLabel=False)
 
     peptides1Grouper = SizeGrouper(peptides1, containsLabel=False)
     peptides2Grouper = SizeGrouper(peptides2, containsLabel=False)

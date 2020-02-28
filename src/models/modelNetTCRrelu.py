@@ -6,7 +6,7 @@
 import keras
 from keras.layers import (
     Dense,
-    Dropout,
+    # Dropout,
     # Flatten,
     # Conv2D,
     # MaxPool2D,
@@ -27,11 +27,9 @@ NUM_CLASSES = 1
 LENGTH = 10
 
 
-class ModelSeparatedInputs(Model):
-    def __init__(self, optimizer, include_lr, *args, **kwargs):
+class ModelNetTCRrelu(Model):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.optimizer = optimizer
-        self.include_lr = include_lr
 
     def _buildModel(self):
         KERNEL_INIT = keras.initializers.he_normal
@@ -91,7 +89,7 @@ class ModelSeparatedInputs(Model):
             merged = keras.layers.concatenate(convolutions, axis=-1)
 
             # Add dropout and batch norm (not in paper)
-            merged = Dropout(0.25)(merged)
+            # merged = Dropout(0.25)(merged)
             merged = BatchNormalization()(merged)
             conv = Conv1D(
                 100,
@@ -105,15 +103,13 @@ class ModelSeparatedInputs(Model):
         part1 = featureExtraction(input1)
         part2 = featureExtraction(input2)
 
-        # axis 1 = length = sequence concat
         concatenated = keras.layers.concatenate([part1, part2], axis=1)
 
         max_pool = GlobalMaxPooling1D()(concatenated)
-        drop_out = Dropout(0.5)(max_pool)
-        batch_norm = BatchNormalization()(drop_out)
 
-        dense = Dense(10, activation="relu")(batch_norm)
-        predictions = Dense(1, activation="sigmoid")(dense)
+        dense = Dense(10, activation="relu")(max_pool)
+        # dense = Dropout(0.5)(dense)
+        predictions = Dense(1, activation="relu")(dense)
 
         model = keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
@@ -124,28 +120,6 @@ class ModelSeparatedInputs(Model):
         return binary_crossentropy
 
     def getOptimizer(self):
-        if self.optimizer == "rmsprop":
+        from keras.optimizers import adam
 
-            from keras.optimizers import rmsprop
-
-            return rmsprop()
-
-        elif self.optimizer == "adam":
-
-            from keras.optimizers import Adam
-
-            if self.include_lr:
-                return Adam(lr=self.include_lr)
-            else:
-                return Adam()
-
-        elif self.optimizer == "SGD":
-
-            from keras.optimizers import SGD
-
-            if self.include_lr:
-                return SGD(lr=self.include_lr)
-            else:
-                return SGD()
-
-        return rmsprop()
+        return adam()
