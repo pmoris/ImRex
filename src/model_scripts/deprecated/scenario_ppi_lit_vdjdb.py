@@ -4,7 +4,7 @@ from src.config import PROJECT_ROOT
 from src.data.vdjdb_source import VdjdbSource
 from src.models.model_ppi_lit_vdjdb import ModelPPILitVDJdb
 from src.neural.trainer import Trainer
-from src.processing.kfolds import fold_iterator, random_fold_splitter
+from src.processing.cv_folds import cv_splitter
 from src.processing.ppi_lit_generator import ppi_lit_generator  # , PPILitGenerator2
 from src.processing.splitter import splitter
 
@@ -35,14 +35,18 @@ def run(
     pep2_range = (min2, max2)
 
     trainer = Trainer(epochs, include_early_stop=early_stop)
-    model = ModelPPILitVDJdb(max1, max2, nameSuffix=name)
+    model = ModelPPILitVDJdb(max1, max2, name_suffix=name)
 
     if val_split is not None:
-        train, val = splitter(ppi_source_pos, ratio=val_split)
+        train, val = splitter(ppi_source_pos, test_size=val_split)
         iterations = [(train, val)]
     else:
-        folds = random_fold_splitter(ppi_source_pos, n_folds)
-        iterations = fold_iterator(folds)
+        iterations = cv_splitter(
+            data_source=ppi_source_pos,
+            n_folds=n_folds,
+            epitope_grouped=False,
+            run_name=None,
+        )
 
     for index, (train, val) in enumerate(iterations):
         print("Iteration:", index)

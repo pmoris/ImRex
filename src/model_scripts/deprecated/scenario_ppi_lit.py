@@ -4,7 +4,7 @@ from src.config import PROJECT_ROOT
 from src.data.ppi_source import PpiSource, SequencesMap
 from src.models.model_ppi_lit import ModelPPILit
 from src.neural.trainer import Trainer
-from src.processing.kfolds import fold_iterator, random_fold_splitter
+from src.processing.cv_folds import fold_iterator, k_fold_splitter
 from src.processing.ppi_lit_generator import ppi_lit_generator, ppi_lit_generator2
 from src.processing.splitter import splitter
 
@@ -35,22 +35,22 @@ def run(
     print("swap:", swap)
 
     trainer = Trainer(epochs, include_early_stop=early_stop)
-    model = ModelPPILit(max_len, max_len, nameSuffix=name)
+    model = ModelPPILit(max_len, max_len, name_suffix=name)
 
     if val_split is not None:
-        train, val = splitter(ppi_source_pos, ratio=val_split)
+        train, val = splitter(ppi_source_pos, test_size=val_split)
         if negative_path:
             ppi_source_neg = PpiSource(negative_path, sequences_map, label=0)
-            neg_train, neg_val = splitter(ppi_source_neg, ratio=val_split)
+            neg_train, neg_val = splitter(ppi_source_neg, test_size=val_split)
             iterations = [((train, neg_train), (val, neg_val))]
         else:
             iterations = [(train, val)]
     else:
-        folds = random_fold_splitter(ppi_source_pos, n_folds)
+        folds = k_fold_splitter(ppi_source_pos, n_folds)
         iterations = fold_iterator(folds)
         if negative_path:
             ppi_source_neg = PpiSource(negative_path, sequences_map, label=0)
-            neg_folds = random_fold_splitter(ppi_source_neg, n_folds)
+            neg_folds = k_fold_splitter(ppi_source_neg, n_folds)
             neg_iterations = fold_iterator(neg_folds)
             iterations = [
                 ((train, neg_train), (val, neg_val))

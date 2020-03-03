@@ -1,17 +1,17 @@
 """ CNN model for recognizing generated peptides. """
 # import keras
-from keras.models import Sequential
 from keras.layers import (
+    Activation,
+    Conv2D,
+    GlobalAveragePooling2D,
     #    Dense,
     #    Dropout,
     #    Flatten,
-    Conv2D,
     #    MaxPool2D,
     #    LeakyReLU,
-    GlobalAveragePooling2D,
-    Activation,
 )
 from keras.layers.normalization import BatchNormalization
+from keras.models import Sequential
 
 from src.models.model import Model
 

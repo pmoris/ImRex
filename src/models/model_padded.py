@@ -1,4 +1,6 @@
 """ CNN model for recognizing generated peptides. """
+from typing import Optional
+
 # import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D  # , LeakyReLU
@@ -13,22 +15,20 @@ NUM_CLASSES = 1
 class ModelPadded(Model):
     def __init__(
         self,
-        width,
-        height,
-        channels,
-        optimizer,
-        include_lr,
-        dense_activation="tanh",
+        width: int,
+        height: int,
+        channels: int,
+        optimizer: str,
+        learning_rate: Optional[bool] = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.width = width
         self.height = height
         self.channels = channels
         self.optimizer = optimizer
-        self.include_lr = include_lr
-        self.dense_activation = dense_activation
+        self.learning_rate = learning_rate
 
     def _build_model(self):
         model = Sequential()
@@ -43,7 +43,7 @@ class ModelPadded(Model):
             activation="relu",
             padding="same",
             kernel_initializer=KERNEL_INIT,
-            **kwargs
+            **kwargs,
         ):
             return Conv2D(
                 depth,
@@ -51,7 +51,7 @@ class ModelPadded(Model):
                 activation=activation,
                 padding=padding,
                 kernel_initializer=kernel_initializer,
-                **kwargs
+                **kwargs,
             )
 
         model.add(create_conv(128, kernel_size=(3, 3), input_shape=input_shape))
@@ -73,7 +73,7 @@ class ModelPadded(Model):
         model.add(BatchNormalization())
 
         model.add(Flatten())
-        model.add(Dense(32, activation=self.dense_activation))
+        model.add(Dense(32, activation="tanh"))  # relu?
         model.add(Dense(NUM_CLASSES, activation="sigmoid"))
 
         return model
@@ -86,16 +86,19 @@ class ModelPadded(Model):
     def get_optimizer(self):
         if self.optimizer == "rmsprop":
 
-            from keras.optimizers import rmsprop
+            from keras.optimizers import RMSprop
 
-            return rmsprop()
+            if self.learning_rate:
+                return RMSprop(learning_rate=self.learning_rate)
+            else:
+                return RMSprop()
 
         elif self.optimizer == "adam":
 
             from keras.optimizers import Adam
 
-            if self.include_lr:
-                return Adam(lr=self.include_lr)
+            if self.learning_rate:
+                return Adam(learning_rate=self.learning_rate)
             else:
                 return Adam()
 
@@ -103,7 +106,7 @@ class ModelPadded(Model):
 
             from keras.optimizers import SGD
 
-            if self.include_lr:
-                return SGD(lr=self.include_lr)
+            if self.learning_rate:
+                return SGD(llearning_rate=self.learning_rate)
             else:
                 return SGD()

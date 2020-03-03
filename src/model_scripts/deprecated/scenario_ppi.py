@@ -6,7 +6,7 @@ from src.config import PROJECT_ROOT
 from src.data.ppi_source import PpiSource, SequencesMap
 from src.models.model_ppi_padded import ModelPPIPadded
 from src.neural.trainer import Trainer
-from src.processing.kfolds import fold_iterator, random_fold_splitter
+from src.processing.cv_folds import fold_iterator, k_fold_splitter
 from src.processing.padded_batch_generator import (
     padded_batch_generator,
     padded_batch_generator2,
@@ -27,7 +27,7 @@ def run(
     max_len: int = 600,
     name: str = "",
     n_folds: int = 3,
-    features: str = "hydrophob,isoelectric,mass,hydrophil,charge",
+    features: str = "hydrophob,isoelectric,mass,hydrophil,charge",  # can be any str listed in peptide_feature.featuresMap
     operator: str = "best",  # can be: prod, diff, layer or best
     early_stop=False,
     data_path=PROJECT_ROOT / "data/raw/ppi/PPI_positive.csv",
@@ -51,23 +51,23 @@ def run(
 
     trainer = Trainer(epochs, include_early_stop=early_stop)
     model = ModelPPIPadded(
-        max_len, max_len, nameSuffix=name, channels=feature_builder.get_number_layers()
+        max_len, max_len, name_suffix=name, channels=feature_builder.get_number_layers()
     )
 
     if val_split is not None:
-        train, val = splitter(ppi_source_pos, ratio=val_split)
+        train, val = splitter(ppi_source_pos, test_size=val_split)
         if negative_path:
             ppi_source_neg = PpiSource(negative_path, sequences_map, label=0)
-            neg_train, neg_val = splitter(ppi_source_neg, ratio=val_split)
+            neg_train, neg_val = splitter(ppi_source_neg, test_size=val_split)
             iterations = [((train, neg_train), (val, neg_val))]
         else:
             iterations = [(train, val)]
     else:
-        folds = random_fold_splitter(ppi_source_pos, n_folds)
+        folds = k_fold_splitter(ppi_source_pos, n_folds)
         iterations = fold_iterator(folds)
         if negative_path:
             ppi_source_neg = PpiSource(negative_path, sequences_map, label=0)
-            neg_folds = random_fold_splitter(ppi_source_neg, n_folds)
+            neg_folds = k_fold_splitter(ppi_source_neg, n_folds)
             neg_iterations = fold_iterator(neg_folds)
             iterations = [
                 ((train, neg_train), (val, neg_val))

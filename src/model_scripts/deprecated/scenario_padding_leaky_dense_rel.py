@@ -5,14 +5,10 @@ from src.bio.peptide_feature import parse_features, parse_operator
 from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
-from src.models.model_padded_leaky import ModelPaddedLeaky
+from src.models.model_padded_leaky_dense_rel import ModelPaddedLeakyDenseRel
 from src.neural.trainer import Trainer
 from src.processing.inverse_map import InverseMap
-from src.processing.kfolds import (
-    epitope_stratified_fold_splitter,
-    fold_iterator,
-    random_fold_splitter,
-)
+from src.processing.cv_folds import cv_splitter
 from src.processing.padded_batch_generator import padded_batch_generator
 from src.processing.splitter import splitter
 
@@ -63,28 +59,26 @@ def run(
     epitope_range = (min_length_epitope, max_length_epitope)
 
     trainer = Trainer(epochs, lookup=inverse_map, include_early_stop=early_stop)
-    model = ModelPaddedLeaky(
+    model = ModelPaddedLeakyDenseRel(
         max_length_cdr3,
         max_length_epitope,
-        nameSuffix=name,
+        name_suffix=name,
         channels=feature_builder.get_number_layers(),
     )
 
     if val_split is not None:
-        train, val = splitter(data_source, ratio=val_split)
+        train, val = splitter(data_source, test_size=val_split)
         if neg_ref:
             negative_source = ControlCDR3Source(
                 min_length=min_length_cdr3, max_length=max_length_cdr3
             )
-            neg_train, neg_val = splitter(negative_source, ratio=val_split)
+            neg_train, neg_val = splitter(negative_source, test_size=val_split)
             iterations = [((train, neg_train), (val, neg_val))]
         else:
             iterations = [(train, val)]
 
     else:
-        fold_splitter = (
-            epitope_stratified_fold_splitter if stratified else random_fold_splitter
-        )
+        fold_splitter = epitope_grouped_fold_splitter if stratified else k_fold_splitter
         folds = fold_splitter(data_source, n_folds)
         iterations = fold_iterator(folds)
         if neg_ref:

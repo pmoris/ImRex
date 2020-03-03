@@ -1,35 +1,33 @@
-import os
-from pathlib import Path
-
-from keras.callbacks import Callback
-from keras.utils import multi_gpu_model
-import keras_metrics
+import logging
 import multiprocessing
+import os
+from typing import Optional
+
+from keras import callbacks
+from keras import metrics
+from keras.utils import multi_gpu_model
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
-    roc_curve,
     auc,
-    precision_recall_curve,
     average_precision_score,
+    precision_recall_curve,
+    roc_curve,
 )
 
-from src.metric import metric
-from src.config import PROJECT_ROOT
+from src.config import MODEL_DIR, PROJECT_ROOT, TENSORBOARD_DIR
+from src.processing.inverse_map import InverseMap
 
 
 NUMBER_OF_GPUS = int(os.environ["GPUS"])
-
-LOGDIR = PROJECT_ROOT / "models/logs"
-OUTDIR = PROJECT_ROOT / "models/models"
 
 
 def get_output_dir(base_name, iteration=None):
     """Return and create the output directories that will hold the model (iteration) output."""
     if iteration is None:
-        ret = OUTDIR / base_name
+        ret = MODEL_DIR / base_name
     else:
-        ret = OUTDIR / base_name / f"iteration_{iteration}"
+        ret = MODEL_DIR / base_name / f"iteration_{iteration}"
     ret.mkdir(parents=True, exist_ok=True)
     return ret
 
@@ -41,44 +39,42 @@ def get_output_path(base_name, file_name, iteration=None):
 
 
 def create_checkpointer(base_name, iteration):
-    from keras.callbacks import ModelCheckpoint
+    output_path = get_output_path(
+        base_name=base_name,
+        file_name=base_name + "-{epoch:02d}-{val_accuracy:.2f}.h5",
+        iteration=iteration,
+    )
 
-    output_path = get_output_path(base_name, base_name + ".h5", iteration=iteration)
-    return ModelCheckpoint(
-        output_path, monitor="val_loss", verbose=1, save_best_only=True, mode="min"
+    return callbacks.ModelCheckpoint(
+        filepath=output_path,
+        verbose=1,
+        # Path where to save the model
+        # The two parameters below mean that we will overwrite
+        # the current checkpoint if and only if
+        # the `val_loss` score has improved.
+        save_best_only=True,
+        monitor="val_loss",
+        mode="auto",  # For val_acc, this should be max, for val_loss this should be min, etc. In auto mode, the direction is automatically inferred from the name of the monitored quantity.
     )
 
 
 def create_tensorboard_callback(model_name):
-    from keras.callbacks import TensorBoard
+    logpath = TENSORBOARD_DIR / model_name
 
-    logpath = os.path.join(LOGDIR, model_name)
-
-    return TensorBoard(log_dir=logpath)
-
-
-def create_early_stopping(patience=5):
-    from keras.callbacks import EarlyStopping
-
-    return EarlyStopping(patience=patience)
+    return callbacks.TensorBoard(log_dir=logpath)
 
 
 def create_csv_logger(base_name, iteration):
-    from keras.callbacks import CSVLogger
-
-    output_path = get_output_path(base_name, "metrics.csv", iteration=iteration)
-    return CSVLogger(output_path)
-
-
-def create_LRR():
-    from keras.callbacks import ReduceLROnPlateau
-
-    return ReduceLROnPlateau(
-        monitor="loss", patience=3, verbose=1, factor=0.5, min_lr=0.0001
+    output_path = get_output_path(
+        base_name, "metrics-{epoch:02d}-{val_accuracy:.2f}.csv", iteration=iteration
     )
 
+    return callbacks.CSVLogger(output_path)
 
-class MetricCallback(Callback):
+
+class MetricCallback(callbacks.Callback):
+    """Callback template to compute average metrics after training."""
+
     def __init__(self, val_stream, base_name, iteration):
         super().__init__()
         self.val_stream = val_stream
@@ -210,42 +206,69 @@ class PredictionCallback(MetricCallback):
 
 
 def get_metrics():
-    return [
-        "accuracy",
-        metric.balanced_accuracy,
-        metric.mean_pred,
-        metric.AUC,
-        keras_metrics.precision(),
-        keras_metrics.recall(),
-    ]
+    return [metrics.accuracy, metrics.AUC, metrics.precision, metrics.recall]
+    # return [
+    #     "accuracy",
+    #     metric.balanced_accuracy,
+    #     metric.mean_pred,
+    #     metric.AUC,
+    #     keras_metrics.precision(),
+    #     keras_metrics.recall(),
+    # ]
 
 
 class Trainer(object):
+    """Object that can compile and train a keras model instance with callbacks."""
+
     def __init__(
-        self, epochs, include_LRR=False, lookup=None, include_early_stop=False
+        self,
+        epochs: int,
+        include_learning_rate_reduction: bool = False,
+        include_early_stop: bool = False,
+        lookup: Optional[InverseMap] = None,
     ):
+        """Initialise Trainer object.
+
+        Parameters
+        ----------
+        epochs : int
+            Number of epochs to train the model, passed to keras' Model.fit_generator().
+        include_learning_rate_reduction : bool, optional
+            Add callback to reduce learning rate when a metric has stopped improving, by default False
+        lookup : Optional[InverseMap], optional
+            [description], by default None
+        include_early_stop : bool, optional
+            [description], by default False
+        """
         self.epochs = epochs
-        self.include_LRR = include_LRR
+        self.include_learning_rate_reduction = include_learning_rate_reduction
         self.include_early_stop = include_early_stop
         self.histories = dict()
         self.base_name = None
         self.lookup = lookup  # Lookup map from feature to input (for traceability)
 
     def train(self, model, train_stream, val_stream, iteration=None):
+        logger = logging.getLogger(__name__)
+
         model_instance = model.new_instance()
 
         # Print summary once, and before converting to multi GPU
         if iteration == 0:
-            print("Training model:")
-            model_instance.summary()
+            logger.info("Training model:")
+            logger.info(model_instance.summary())
 
         if NUMBER_OF_GPUS > 1:
             model_instance = multi_gpu_model(model_instance, gpus=NUMBER_OF_GPUS)
 
         model_instance.compile(
-            loss=model.get_loss(),
             optimizer=model.get_optimizer(),
+            loss=model.get_loss(),
             metrics=get_metrics(),
+            loss_weights=None,
+            sample_weight_mode=None,
+            weighted_metrics=None,
+            target_tensors=None,
+            distribute=None,
         )
 
         if not self.base_name:
@@ -263,14 +286,34 @@ class Trainer(object):
         ]
 
         if self.include_early_stop:
-            callbacks.append(create_early_stopping())
+            callbacks.append(
+                callbacks.EarlyStopping(  # Stop training when `val_loss` is no longer improving
+                    monitor="val_loss",
+                    # "no longer improving" being defined as "no better than 1e-2 less"
+                    min_delta=1e-2,
+                    # "no longer improving" being further defined as "for at least 2 epochs"
+                    patience=5,
+                    verbose=1,
+                )
+            )
 
-        if self.include_LRR:
-            callbacks.append(create_LRR())
+        if self.include_learning_rate_reduction:
+            callbacks.append(
+                callbacks.ReduceLROnPlateau(
+                    monitor="val_loss",
+                    factor=0.2,  # factor by which the learning rate will be reduced. new_lr = lr * factor
+                    patience=5,  # number of epochs with no improvement after which learning rate will be reduced
+                    verbose=1,
+                    mode="auto",
+                    min_delta=0.0001,  # threshold for measuring the new optimum, to only focus on significant changes
+                    cooldown=1,  # number of epochs to wait before resuming normal operation after lr has been reduced
+                    min_lr=0,  # lower bound on the learning rate
+                )
+            )
 
-        print("Fitting CNN")
+        logger.info("Fitting CNN")
         workers = multiprocessing.cpu_count()
-        print(f"Using {workers} workers")
+        logger.info(f"Using {workers} workers")
         history = model_instance.fit_generator(
             generator=train_stream,
             epochs=self.epochs,
