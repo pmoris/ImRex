@@ -55,6 +55,8 @@ class GroupedStream(_Stream):
 
 
 class TransformStream(Stream, GroupedStream, BatchStream):
+    """ Iterable that transforms each element upon iteration. """
+
     def __init__(self, stream):
         super().__init__(stream)
         self.stream = stream

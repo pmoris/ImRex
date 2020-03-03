@@ -16,7 +16,7 @@ def cv_splitter(
     one_out: bool = False,
     shuffle: bool = True,
     run_name: Optional[str] = None,
-) -> Generator[Tuple[np.ndarray, np.ndarray, DataStream, DataStream], None, None]:
+) -> Generator[Tuple[DataStream, DataStream], None, None]:
     """Take a DataSource object, split it into folds and yield a tuple of train and test sets as DataStream objects.
 
     Depending on the provided type, the data will be split into k-folds (after shuffling) or
@@ -43,8 +43,7 @@ def cv_splitter(
     Yields
     -------
     Tuple
-        A tuple of np.ndarray indices (corresponding to the vdjdb dataframe) and DataStream objects,
-        for the train set and for the test set.
+        A tuple of DataStream objects, for the train set and for the test set.
     """
     logger = logging.getLogger(__name__)
 

@@ -55,7 +55,11 @@ def after(postprocess):
 
 
 def scale_matrix(
-    matrix, oldlower: float, oldupper: float, lower: float = 0.0, upper: float = 255.0
+    matrix: np.ndarray,
+    oldlower: float,
+    oldupper: float,
+    lower: float = 0.0,
+    upper: float = 255.0,
 ) -> np.ndarray:
     """Scales matrix inplace to new bounds, based on a provided initial minimum
     and maximum value. E.g. a matrix with combined pairwise amino acid features could be rescaled,
@@ -66,6 +70,10 @@ def scale_matrix(
     See: https://stackoverflow.com/questions/10149416/numpy-modify-array-in-place
     This is caused by the in-place operators. Statements like matrix = matrix + x, would not
     cause this behaviour.
+
+    Note: In-place operations do not change the dtype of the container array.
+    Since the desired scaled values are floats, 
+    the matrix needs to have the correct dtype before the in-place operations are performed.
 
     Note: sklearn.preprocessing.MinMaxScaler or optimized code like *= 255.0/image.max()
     (source: https://stackoverflow.com/questions/1735025/how-to-normalize-a-numpy-array-to-within-a-certain-range)
