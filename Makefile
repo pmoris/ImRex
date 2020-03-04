@@ -29,8 +29,8 @@ ifeq (True,$(HAS_CONDA))
 else
 	@echo ">>> Conda not detected, installing requirements inside virtualenv."
 	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
-	virtualenv $(PROJECT_NAME)
-	source $(PROJECT_NAME)/bin/activate
+	virtualenv -p python3 $(PROJECT_NAME)
+	. $(PROJECT_NAME)/bin/activate
 	pip install -r requirements.txt
 endif
 
