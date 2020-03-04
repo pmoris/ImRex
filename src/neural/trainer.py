@@ -255,7 +255,7 @@ class Trainer(object):
         # Print summary once, and before converting to multi GPU
         if iteration == 0:
             logger.info("Training model:")
-            logger.info(model_instance.summary())
+            model_instance.summary(print_fn=logger.info)
 
         if NUMBER_OF_GPUS > 1:
             model_instance = multi_gpu_model(model_instance, gpus=NUMBER_OF_GPUS)
