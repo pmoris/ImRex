@@ -21,9 +21,11 @@ class Zipper(Stream):
         return items
 
 
-def unzipper(stream: DataStream):
-    """ Split DataStream into separate DataStreams for each element
+def unzipper(stream: Stream):
+    """ Split Stream object into separate DataStreams for each element
     making up a single obervation.
+
+    Input can be a DataStream, TransformStream, etc.
 
     E.g. [
             ('CASGSGAEAFF', 'GILGFVFTL'),
@@ -38,8 +40,8 @@ def unzipper(stream: DataStream):
 
     Parameters
     ----------
-    stream : DataStream
-        The DataStream to unzip.
+    stream : Stream
+        The Stream to unzip.
 
     Returns
     -------
