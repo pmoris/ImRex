@@ -118,6 +118,38 @@ def activations(
 
 
 @bacli.command
+def cam(model_file: str, epitope, cdr3):
+    from keras.models import load_model
+    from vis.visualization import visualize_cam
+
+    model = load_model(model_file, custom_objects=dependencies)
+
+    # last layer is combination of previous one
+    originalLayer, title = getImage(epitope, cdr3, False, True, 'best')[-1]
+
+    # TODO make input
+    x = None
+
+    for modifier in [None, 'guided', 'relu']:
+        cam = visualize_cam(model,
+                            -1,
+                            None,
+                            x,
+                            penultimate_layer_idx=None,
+                            backprop_modifier=modifier,
+                            grad_modifier=None
+                            )
+        camLayer = image_from_matrix(cam)
+
+        if modifier is None:
+            modifier = 'vanilla'
+
+        layers = [(originalLayer, "input", "CMYK"), (camLayer, modifier, "jet")]
+
+        img2plot(layers, epitope, cdr3, "CAM.pdf")
+
+
+@bacli.command
 def summary(model_file: str):
     """ Print summary of neural network. """
     from keras.models import load_model
@@ -126,16 +158,11 @@ def summary(model_file: str):
     model.summary(line_length=80)
 
 
-@bacli.command
-def peptide(
-    epitope: str = None,
-    cdr3: str = None,
-    tensor: bool = False,
-    cmyk: bool = False,
-    operator: str = "best",
-):
-    """ Render peptide images. """
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+def getImage(epitope: str = None,
+             cdr3: str = None,
+             tensor: bool = False,
+             cmyk: bool = False,
+             operator: str = "best",):
 
     for pep in [epitope, cdr3]:
         print(pep)
@@ -161,17 +188,32 @@ def peptide(
             pixels = feature.image_matrix(cdr3, epitope, operator=operator)
 
         img = image_from_matrix(pixels, mode=mode, index=index)
-        layers.append((img, feature.name))
+        layers.append((img, feature.name, mode))
 
     img = image_from_matrices(*matrices, mode=mode)
-    layers.append((img, "Combined"))
+    layers.append((img, "Combined", mode))
+    return layers
+
+
+@bacli.command
+def peptide(
+    epitope: str = None,
+    cdr3: str = None,
+    tensor: bool = False,
+    cmyk: bool = False,
+    operator: str = "best",
+):
+    """ Render peptide images. """
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    layers = getImage(epitope, cdr3, tensor, cmyk, operator)
 
     img2plot(layers, epitope, cdr3, "amino-acid-map.pdf")
 
 
 def img2plot(layers, epitope, cdr3, name):
     fig = plt.figure(figsize=(12, 4))
-    axes = fig.subplots(1, 5, sharey=True)
+    axes = fig.subplots(1, len(layers), sharey=True)
     for ax in axes.flat:
         ax.set_yticks(range(len(cdr3)))
         ax.set_yticklabels(cdr3)
@@ -188,12 +230,12 @@ def img2plot(layers, epitope, cdr3, name):
     for ax in axes.flat:
         ax.label_outer()
 
-    for i, (layer, title) in enumerate(layers):
+    for i, (layer, title, cmap) in enumerate(layers):
         sub = axes[i]
         sub.set_title(title)
         rgb_im = layer.convert("RGB")
         pix = np.array(rgb_im)
-        sub.imshow(pix, origin="lower")
+        sub.imshow(pix, origin="lower", cmap=cmap)
         sub.grid(False)
         for spine in plt.gca().spines.values():
             spine.set_visible(False)
