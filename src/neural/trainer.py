@@ -15,7 +15,7 @@ from sklearn.metrics import (
     roc_curve,
 )
 
-from src.config import MODEL_DIR, PROJECT_ROOT, TENSORBOARD_DIR
+from src.config import MODEL_DIR, TENSORBOARD_DIR
 from src.processing.inverse_map import InverseMap
 
 
@@ -35,7 +35,7 @@ def get_output_dir(base_name, iteration=None):
 def get_output_path(base_name, file_name, iteration=None):
     """Return the output filepath to store the model (iteration)."""
     output_path = get_output_dir(base_name, iteration) / file_name
-    return output_path
+    return str(output_path.resolve())
 
 
 def create_checkpointer(base_name, iteration):
