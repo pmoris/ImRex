@@ -1,35 +1,52 @@
-from src.processing.joiner import Joiner
+import logging
+from typing import Optional, Tuple
+
+from src.bio.feature_builder import FeatureBuilder
 from src.processing.batch_generator import BatchGenerator
+from src.processing.data_stream import DataStream
+from src.processing.filter import PositiveFilter, SizeFilter
 from src.processing.image_generator import ImageGenerator
 from src.processing.image_padding import ImagePadding
-from src.processing.sampler import Sampler
-from src.processing.zipper import Zipper, unzipper
-from src.processing.swapper import Swapper
+from src.processing.inverse_map import InverseMap, NoOp
+from src.processing.joiner import Joiner
 from src.processing.labeler import Labeler, LabelTrimmer
-from src.processing.filter import SizeFilter, PositiveFilter
+from src.processing.sampler import Sampler
+from src.processing.swapper import Swapper
 from src.processing.tee import tee
-from src.processing.inverse_map import NoOp
+from src.processing.zipper import unzipper, Zipper
 
 
 def padded_batch_generator(
-    data_stream,
-    feature_builder,
-    neg_ratio,
-    batch_size,
-    cdr3_range,
-    epitope_range,
-    inverse_map=NoOp(),
-    negative_stream=None,
-    cache_images=True,
-    swap=False,
+    data_stream: DataStream,
+    feature_builder: FeatureBuilder,
+    neg_ratio: float,
+    batch_size: int,
+    cdr3_range: Optional[Tuple[int, int]] = None,
+    epitope_range: Optional[Tuple[int, int]] = None,
+    inverse_map: Optional[InverseMap] = NoOp(),
+    negative_stream: Optional[DataStream] = None,
+    cache_images: bool = True,
+    swap: bool = False,
 ):
     """ Standard PaddedBatchGenerator """
+
+    logger = logging.getLogger(__name__)
+
     width = cdr3_range[1]
     height = epitope_range[1]
 
-    size_filter = SizeFilter(data_stream, cdr3_range, epitope_range)
+    # filter on sequences on size
+    if cdr3_range and epitope_range:
+        size_filter = SizeFilter(data_stream, cdr3_range, epitope_range)
+        logger.info(f"Filtered CDR3 sequences to length: {cdr3_range}")
+        logger.info(f"Filtered epitope sequences to length: {epitope_range}")
+    else:
+        logger.info("No length filtering performed on sequences.")
+
+    # split into 3 streams: positive, negative and positive filter
     input1, input2, input3 = tee(size_filter, amount=3)
 
+    # create positive stream
     if not cache_images:
         input1 = Sampler(input1)
 
@@ -44,18 +61,26 @@ def padded_batch_generator(
     if cache_images:
         pos_out = Sampler(pos_out)
 
+    # Create negative stream
+
+    # remove class labels from stream
     label_trimmer = LabelTrimmer(input2)
+    # split cdr3 and epitope sequences into separate DataStreams
     cdr3, epitope = unzipper(label_trimmer)
 
-    # random CDR3
+    # if reference cdr3 was provided use it
     if negative_stream:
         cdr3 = SizeFilter(negative_stream, cdr3_range, has_label=False)
 
+    # sample random cdr3 and epitopes
     sampler1 = Sampler(cdr3, infinite=True)
     sampler2 = Sampler(epitope, infinite=True)
     zipper = Zipper(sampler1, sampler2)
+
+    # remove matches with existing positive pairs
     pos_filter = PositiveFilter(zipper, positive_items=input3, has_label=False)
 
+    # add negative class labels
     negative_labeler = Labeler(pos_filter, 0)
 
     if swap:
@@ -66,6 +91,7 @@ def padded_batch_generator(
     neg_padding = ImagePadding(neg_image_gen, width, height, pad_value=0)
     neg_padding = inverse_map.output(neg_padding)
 
+    # join positive and negatives
     joiner = Joiner(pos_out, neg_padding, 1 - neg_ratio)
     batch_generator = BatchGenerator(joiner, batch_size)
 

@@ -3,16 +3,13 @@ import datetime
 import logging
 
 import src.bacli as bacli
-from src.bio.feature_builder import CombinedPeptideFeatureBuilder
-from src.bio.peptide_feature import parse_features, parse_operator
 from src.config import LOG_DIR, PROJECT_ROOT
 from src.data.vdjdb_source import VdjdbSource
-from src.models.model_gap import ModelGAP
+from src.models.model_separated_inputs import ModelSeparatedInputs
 from src.neural.trainer import Trainer
 from src.processing.cv_folds import cv_splitter
-from src.processing.grouped_batch_generator import grouped_batch_generator
+from src.processing.net_tcr_batch_generator import nettcr_batch_generator
 from src.processing.splitter import splitter
-
 
 bacli.set_description(__doc__)
 
@@ -24,15 +21,16 @@ def run(
     neg_ratio: float = 0.5,
     val_split: float = None,  # the proportion of the dataset to include in the test split.
     epitope_grouped_cv: bool = False,
+    neg_shuffle_in_cv: bool = True,
     n_folds: int = 5,
-    min_group: int = 32,
     name: str = "",
-    features: str = "hydrophob,isoelectric,mass,hydrophil,charge",  # can be any str listed in peptide_feature.featuresMap
-    operator: str = "best",  # can be: prod,diff,layer or best
+    min_group: int = 32,
     early_stop=False,
     include_learning_rate_reduction: bool = False,
     data_path=PROJECT_ROOT
-    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
+    / "data/interim/vdjdb-2020-01-20/vdjdb-human-tra-trb-no10x.csv",
+    optimizer: str = "rmsprop",  # can be any of: rmsprop, adam or SGD
+    learning_rate: bool = False,
 ):
 
     # create run name by appending time and date
@@ -61,25 +59,23 @@ def run(
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
 
-    # get list of features and operator based on input arguments
-    features_list = parse_features(features)
-    operator = parse_operator(operator)
-    feature_builder = CombinedPeptideFeatureBuilder(features_list, operator)
-
     # check argument compatability
     if epitope_grouped_cv and val_split is not None:
         raise RuntimeError("Can't test epitope-grouped without k folds")
 
-    logger.info("features: " + str(features_list))
-    logger.info("operator: " + str(operator))
+    # logger.info("neg_ref: " + str(neg_ref))
     logger.info("epitope_grouped_cv: " + str(epitope_grouped_cv))
+    logger.info("neg_shuffle_in_cv: " + str(neg_shuffle_in_cv))
 
     trainer = Trainer(
         epochs,
         include_learning_rate_reduction=include_learning_rate_reduction,
         include_early_stop=early_stop,
     )
-    model = ModelGAP(name_suffix=name, channels=feature_builder.get_number_layers())
+
+    model = ModelSeparatedInputs(
+        optimizer=optimizer, learning_rate=learning_rate, name_suffix=name
+    )
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
 
@@ -102,16 +98,14 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_stream = grouped_batch_generator(
+        train_stream = nettcr_batch_generator(
             data_stream=train,
-            feature_builder=feature_builder,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,
         )
-        val_stream = grouped_batch_generator(
+        val_stream = nettcr_batch_generator(
             data_stream=val,
-            feature_builder=feature_builder,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,

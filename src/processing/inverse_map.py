@@ -26,6 +26,8 @@ class ForwardStream(Stream):
 
 
 class InverseMap(object):
+    """Lookup map from feature to input (for traceability)."""
+
     def __init__(self):
         self.map = dict()
         self.ins = list()

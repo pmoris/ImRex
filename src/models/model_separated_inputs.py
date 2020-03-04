@@ -1,25 +1,20 @@
 """ CNN model for recognizing generated peptides. """
+from typing import Optional
+
 # from keras import Model
 # from keras.layers import LeakyReLU
 # from keras.layers import Activation
 # from keras.regularizers import l2
 import keras
+import keras.initializers
 from keras.layers import (
+    Conv1D,
     Dense,
     Dropout,
-    # Flatten,
-    # Conv2D,
-    # MaxPool2D,
+    GlobalMaxPooling1D,
     Input,
-    Conv1D,
 )
 from keras.layers.normalization import BatchNormalization
-from keras.layers import (
-    # GlobalAveragePooling2D,
-    # GlobalMaxPooling2D,
-    GlobalMaxPooling1D,
-)
-import keras.initializers
 
 from src.models.model import Model
 
@@ -28,10 +23,12 @@ LENGTH = 10
 
 
 class ModelSeparatedInputs(Model):
-    def __init__(self, optimizer, include_lr, *args, **kwargs):
+    def __init__(
+        self, optimizer, learning_rate: Optional[bool] = None, *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.optimizer = optimizer
-        self.include_lr = include_lr
+        self.learning_rate = learning_rate
 
     def _build_model(self):
         KERNEL_INIT = keras.initializers.he_normal
@@ -116,6 +113,7 @@ class ModelSeparatedInputs(Model):
         predictions = Dense(1, activation="sigmoid")(dense)
 
         model = keras.Model(inputs=[input1, input2], outputs=predictions)
+
         return model
 
     def get_loss(self):
@@ -126,16 +124,19 @@ class ModelSeparatedInputs(Model):
     def get_optimizer(self):
         if self.optimizer == "rmsprop":
 
-            from keras.optimizers import rmsprop
+            from keras.optimizers import RMSprop
 
-            return rmsprop()
+            if self.learning_rate:
+                return RMSprop(learning_rate=self.learning_rate)
+            else:
+                return RMSprop()
 
         elif self.optimizer == "adam":
 
             from keras.optimizers import Adam
 
-            if self.include_lr:
-                return Adam(lr=self.include_lr)
+            if self.learning_rate:
+                return Adam(learning_rate=self.learning_rate)
             else:
                 return Adam()
 
@@ -143,9 +144,7 @@ class ModelSeparatedInputs(Model):
 
             from keras.optimizers import SGD
 
-            if self.include_lr:
-                return SGD(lr=self.include_lr)
+            if self.learning_rate:
+                return SGD(llearning_rate=self.learning_rate)
             else:
                 return SGD()
-
-        return rmsprop()

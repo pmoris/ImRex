@@ -59,8 +59,7 @@ clean:
 # ANALYSIS                                                                      #
 #################################################################################
 
-## Download dataset
-data-vdjdb: requirements
+data-vdjdb-aug-2019: requirements
 	@echo ">>> Downloading raw data."
 	bash src/data_scripts/retrieve_data.sh
 	@echo ">>> Creating summary statistics."
@@ -68,15 +67,38 @@ data-vdjdb: requirements
 	bash src/data_scripts/vdjdb-content-analyser-slim.sh data/raw/vdjdb/vdjdb-2019-08-08-vdjdb-slim-summary.md data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.slim.txt
 	bash src/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-browser-summary.md data/raw/vdjdb/vdjdb-browser.tsv
 
-# Preprocess vdjdb dataset
-preprocess-vdjdb:
-	# $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-all-species-tra-trb-non-paired.tsv -o data/interim/vdjdb-human.csv --species human
-	# $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-all-species-tra-trb-non-paired.tsv -o data/interim/vdjdb-human-trb.csv --tcr-chain TRB --species human
-	# $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human.csv --species human
-	# $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human-trb.csv --species human --tcr-chain TRB
+preprocess-vdjdb-aug-2019:
+	mkdir -p data/interim/vdjdb-2019-08-08/
+	# 2019-08-08 release: human TRB-only without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-no10x.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics
+	# 2019-08-08 release: human TRA+TRB without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv --species human --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics
+
+	# 2019-08-08 release: human TRB-only without spurious sequences and without any 10xgenomics entries + length filter
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-no10x-size.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
+	# 2019-08-08 release: human TRA+TRB without spurious sequences and without any 10xgenomics entries + length filter
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x-size.csv --species human --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
+
+	# 2019-08-08 release: all species TRB-only without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-allspecies-trb-no10x.csv --species all --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics
+	# 2019-08-08 release: all species TRA+TRB without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-allspecies-tra-trb-no10x.csv --species all --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics
+
+	# 2019-08-08 release: human TRB-only without spurious sequences and without any 10xgenomics and MHCI only
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --mhc MHCI
+
+	# 2019-08-08 release: human TRB-only without spurious sequences and only 10x data
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-10xonly.csv --species human --tcr-chain TRB --drop-spurious --keep-specific-references 10xgenomics
+
+preprocess-vdjdb-aug-2019-pre:
+	mkdir -p data/interim/vdjdb-2019-08-08/
+	## $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-all-species-tra-trb-non-paired.tsv -o data/interim/vdjdb-human.csv --species human
+	## $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-all-species-tra-trb-non-paired.tsv -o data/interim/vdjdb-human-trb.csv --tcr-chain TRB --species human
+	## $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human.csv --species human
+	## $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human-trb.csv --species human --tcr-chain TRB
 
 	# 08-08-2019 release: human TRA+TRB without spurious sequences and without the overabundant KLGGALQAK 10xgenomics epitope
-	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human.csv --species human --drop-spurious --remove-specific-epitope-reference KLGGALQAK 10xgenomics
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08-/vdjdb.txt -o data/interim/vdjdb-human.csv --species human --drop-spurious --remove-specific-epitope-reference KLGGALQAK 10xgenomics
 	# 08-08-2019 release: human TRB-only without spurious sequences and without the overabundant KLGGALQAK 10xgenomics epitope
 	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human-trb.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-epitope-reference KLGGALQAK 10xgenomics
 
@@ -105,11 +127,49 @@ preprocess-vdjdb:
 	# 08-08-2019 release: human TRA+TRB without spurious sequences and without any 10xgenomics entries + length filter
 	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human-no10x-size.csv --species human --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
 
-# Create interaction-map example
+## Download dataset
+data-vdjdb-jan-2020: requirements
+	@echo ">>> Downloading raw data."
+	bash src/data_scripts/retrieve_data-2020-01-20.sh
+	@echo ">>> Creating summary statistics."
+	bash src/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt
+	bash src/data_scripts/vdjdb-content-analyser-slim.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-slim-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.slim.txt
+	bash src/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-browser-summary.md data/raw/vdjdb/vdjdb-browser.tsv
+
+## Preprocess vdjdb dataset
+preprocess-vdjdb-jan-2020:
+	mkdir -p data/interim/vdjdb-2020-01-20/
+	# 2020-01-20 release: human TRB-only without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-human-trb-no10x.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics
+	# 2020-01-20 release: human TRA+TRB without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-human-tra-trb-no10x.csv --species human --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics
+
+	# 2020-01-20 release: human TRB-only without spurious sequences and without any 10xgenomics entries + length filter
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-human-trb-no10x-size.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
+	# 2020-01-20 release: human TRA+TRB without spurious sequences and without any 10xgenomics entries + length filter
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-human-tra-trb-no10x-size.csv --species human --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
+
+	# 2020-01-20 release: all species TRB-only without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-allspecies-trb-no10x.csv --species all --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics
+	# 2020-01-20 release: all species TRA+TRB without spurious sequences and without any 10xgenomics entries
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-allspecies-tra-trb-no10x.csv --species all --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics
+
+
+	# 2020-01-20 release: human TRB-only without spurious sequences and without any 10xgenomics and MHCI only
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-human-trb-mhci-no10x.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --mhc MHCI
+	# ?
+
+	# 2020-01-20 release: human TRB-only without spurious sequences and only 10x data
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-human-trb-10xonly.csv --species human --tcr-chain TRB --drop-spurious --keep-specific-references 10xgenomics
+
+	# 2020-01-20 release: human TRB-only and MHCI-only without spurious sequences and only 10x data
+	# $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt -o data/interim/vdjdb-2020-01-20/vdjdb-human-trb-mhci-10xonly.csv --species human --tcr-chain TRB --drop-spurious --keep-specific-references 10xgenomics --mhc MHCI
+
+## Create interaction-map example
 example-figure:
 	$(PYTHON_INTERPRETER) src/model_scripts/visualize.py peptide --epitope ELAGIGILTV --cdr3 CASSPGEGLYEQYF --operator absdiff --cmyk True
 
-# Summarise models
+## Summarise models
 model-summary:
 	find models/models/ -maxdepth 1 -type d -exec python src/model_scripts/visualize.py metrics {} \;
 	# echo "TODO: use find to gather all model directories, then exec {}+ python src/model_scripts/visualize.py metrics"
