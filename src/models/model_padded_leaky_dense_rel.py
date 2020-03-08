@@ -1,8 +1,15 @@
 """ CNN model for recognizing generated peptides. """
 # import keras
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D, LeakyReLU
-from keras.layers.normalization import BatchNormalization
+from tensorflow.keras.layers import (
+    BatchNormalization,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+    LeakyReLU,
+    MaxPool2D,
+)
+from tensorflow.keras.models import Sequential
 
 from src.models.model import Model
 
@@ -71,11 +78,11 @@ class ModelPaddedLeakyDenseRel(Model):
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
-        from keras.optimizers import rmsprop
+        from tensorflow.keras.optimizers import RMSprop
 
-        return rmsprop()
+        return RMSprop()

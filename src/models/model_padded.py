@@ -1,10 +1,15 @@
 """ CNN model for recognizing generated peptides. """
 from typing import Optional
 
-# import keras
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D  # , LeakyReLU
-from keras.layers.normalization import BatchNormalization
+from tensorflow.keras.layers import (
+    BatchNormalization,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+    MaxPool2D,
+)
+from tensorflow.keras.models import Sequential
 
 from src.models.model import Model
 
@@ -79,14 +84,14 @@ class ModelPadded(Model):
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
         if self.optimizer == "rmsprop":
 
-            from keras.optimizers import RMSprop
+            from tensorflow.keras.optimizers import RMSprop
 
             if self.learning_rate:
                 return RMSprop(learning_rate=self.learning_rate)
@@ -95,7 +100,7 @@ class ModelPadded(Model):
 
         elif self.optimizer == "adam":
 
-            from keras.optimizers import Adam
+            from tensorflow.keras.optimizers import Adam
 
             if self.learning_rate:
                 return Adam(learning_rate=self.learning_rate)
@@ -104,7 +109,7 @@ class ModelPadded(Model):
 
         elif self.optimizer == "SGD":
 
-            from keras.optimizers import SGD
+            from tensorflow.keras.optimizers import SGD
 
             if self.learning_rate:
                 return SGD(llearning_rate=self.learning_rate)

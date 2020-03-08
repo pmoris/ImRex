@@ -1,18 +1,17 @@
 """ CNN model for recognizing generated peptides. """
 # from keras.layers.normalization import BatchNormalization
 # from keras.regularizers import l2
-import keras
-from keras.layers import (
+import tensorflow
+from tensorflow.keras.layers import (
+    Activation,
+    Conv1D,
     Dense,
+    Embedding,
     # Dropout,
     # Flatten,
-    Conv1D,
-    MaxPool1D,
-    Embedding,
     LSTM,
-    Activation,
+    MaxPool1D,
 )
-import keras.initializers
 
 from src.models.model import Model
 
@@ -24,10 +23,10 @@ class ModelPPILitVDJdb(Model):
         self.height = height
 
     def _build_model(self):
-        KERNEL_INIT = keras.initializers.he_normal
+        KERNEL_INIT = tensorflow.keras.initializers.he_normal
 
-        input1 = keras.Input(shape=(self.width,))
-        input2 = keras.Input(shape=(self.height,))
+        input1 = tensorflow.keras.Input(shape=(self.width,))
+        input2 = tensorflow.keras.Input(shape=(self.height,))
 
         def feature_extraction(input):
             embedding = Embedding(21, 128)(input)
@@ -45,18 +44,18 @@ class ModelPPILitVDJdb(Model):
         part1 = feature_extraction(input1)
         part2 = feature_extraction(input2)
 
-        merged_vector = keras.layers.concatenate([part1, part2], axis=-1)
+        merged_vector = tensorflow.keras.layers.concatenate([part1, part2], axis=-1)
         predictions = Dense(1, activation="sigmoid")(merged_vector)
 
-        model = keras.Model(inputs=[input1, input2], outputs=predictions)
+        model = tensorflow.keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
-        from keras.optimizers import adam
+        from tensorflow.keras.optimizers import Adam
 
-        return adam()
+        return Adam()
