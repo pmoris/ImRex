@@ -79,7 +79,7 @@ def run(
         include_learning_rate_reduction=include_learning_rate_reduction,
         include_early_stop=early_stop,
     )
-    model = ModelGAP(name_suffix=name, channels=feature_builder.get_number_layers())
+    model = ModelGAP(name=name, channels=feature_builder.get_number_layers())
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
 

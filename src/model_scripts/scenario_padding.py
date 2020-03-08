@@ -103,7 +103,7 @@ def run(
     model = ModelPadded(
         width=max_length_cdr3,
         height=max_length_epitope,
-        name_suffix=run_name,
+        name=run_name,
         channels=feature_builder.get_number_layers(),
         optimizer=optimizer,
         learning_rate=learning_rate,

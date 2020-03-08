@@ -76,7 +76,7 @@ def run(
     )
 
     model = ModelSeparatedInputs(
-        optimizer=optimizer, learning_rate=learning_rate, name_suffix=name
+        optimizer=optimizer, learning_rate=learning_rate, name=name
     )
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
