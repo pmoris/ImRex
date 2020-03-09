@@ -278,11 +278,11 @@ class Trainer(object):
             create_checkpointer(model.base_name, iteration),
             create_csv_logger(model.base_name, iteration),
             create_tensorboard_callback(model.get_name(iteration)),
-            RocCallback(val_stream, model.base_name, iteration),
-            PrecisionRecallCallback(val_stream, model.base_name, iteration),
-            PredictionCallback(
-                val_stream, model.base_name, iteration, lookup=self.lookup
-            ),
+            # RocCallback(val_stream, model.base_name, iteration),
+            # PrecisionRecallCallback(val_stream, model.base_name, iteration),
+            # PredictionCallback(
+            #     val_stream, model.base_name, iteration, lookup=self.lookup
+            # ),
         ]
 
         if self.include_early_stop:
