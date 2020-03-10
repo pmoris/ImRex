@@ -126,6 +126,7 @@ def run(
             data_source=data_source,
             n_folds=n_folds,
             epitope_grouped=epitope_grouped_cv,
+            one_out=one_epitope_out_cv,
             run_name=run_name,
         )
 
@@ -139,6 +140,7 @@ def run(
                 data_source=negative_source,
                 n_folds=n_folds,
                 epitope_grouped=False,  # CDR3 reference cannot be grouped on epitope
+                one_epitope_out_cv=False,
                 run_name=neg_ref_fold_path,
             )
             iterations = [

@@ -25,7 +25,8 @@ def run(
     neg_ref: bool = False,  # whether to generate negatives from CDR3 reference sequences or by shuffling positive examples
     neg_ratio: float = 0.5,  # proportion of positive to negative samples.
     val_split: float = None,  # the proportion of the dataset to include in the test split.
-    epitope_grouped_cv: bool = False,
+    epitope_grouped_cv: bool = False,  # when val_split is None, indicates whether to use normal k-fold cv or an epitope-grouped cv
+    one_epitope_out_cv: bool = False,  # when val_split is None and epitope_grouped_cv is True, indicates whether to use leave-1-epitope-out cv
     n_folds: int = 5,
     # these lengths are used for both size filtering and padding. Should be compatible with any preprocessing steps.
     min_length_cdr3: int = 10,
@@ -116,6 +117,7 @@ def run(
             data_source=data_source,
             n_folds=n_folds,
             epitope_grouped=epitope_grouped_cv,
+            one_out=one_epitope_out_cv,
             run_name=run_name,
         )
 

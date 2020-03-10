@@ -23,7 +23,8 @@ def run(
     epochs: int = 40,
     neg_ratio: float = 0.5,  # proportion of positive to negative samples.
     val_split: float = None,  # the proportion of the dataset to include in the test split.
-    epitope_grouped_cv: bool = False,
+    epitope_grouped_cv: bool = False,  # when val_split is None, indicates whether to use normal k-fold cv or an epitope-grouped cv
+    one_epitope_out_cv: bool = False,  # when val_split is None and epitope_grouped_cv is True, indicates whether to use leave-1-epitope-out cv
     n_folds: int = 5,
     min_group: int = 32,
     name: str = "",  # name under which the model and log files will be stored, appended with the date-time.
@@ -81,6 +82,7 @@ def run(
             data_source=data_source,
             n_folds=n_folds,
             epitope_grouped=epitope_grouped_cv,
+            one_out=one_epitope_out_cv,
             run_name=run_name,
         )
 

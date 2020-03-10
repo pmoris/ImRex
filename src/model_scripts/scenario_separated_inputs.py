@@ -65,7 +65,7 @@ def run(
     )
 
     model = ModelSeparatedInputs(
-        optimizer=optimizer, learning_rate=learning_rate, name=name
+        name=name, optimizer=optimizer, learning_rate=learning_rate
     )
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
@@ -80,6 +80,7 @@ def run(
             data_source=data_source,
             n_folds=n_folds,
             epitope_grouped=epitope_grouped_cv,
+            one_out=one_epitope_out_cv,
             run_name=run_name,
         )
 
