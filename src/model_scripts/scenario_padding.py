@@ -22,26 +22,27 @@ bacli.set_description(__doc__)
 def run(
     batch_size: int = 128,
     epochs: int = 40,
-    neg_ref: bool = False,
-    neg_ratio: float = 0.5,
+    neg_ref: bool = False,  # whether to generate negatives from CDR3 reference sequences or by shuffling positive examples
+    neg_ratio: float = 0.5,  # proportion of positive to negative samples.
     val_split: float = None,  # the proportion of the dataset to include in the test split.
-    epitope_grouped_cv: bool = False,
-    neg_shuffle_in_cv: bool = True,
+    epitope_grouped_cv: bool = False,  # when val_split is None, indicates whether to use normal k-fold cv or an epitope-grouped cv
+    one_epitope_out_cv: bool = False,  # when val_split is None and epitope_grouped_cv is True, indicates whether to use leave-1-epitope-out cv
+    neg_shuffle_in_cv: bool = True,  # NOT USED
     n_folds: int = 5,
+    # these lengths are used for both size filtering and padding. Should be compatible with any preprocessing steps.
     min_length_cdr3: int = 10,
     max_length_cdr3: int = 20,
     min_length_epitope: int = 8,
     max_length_epitope: int = 13,
-    name: str = "",
+    name: str = "",  # name under which the model and log files will be stored, appended with the date-time.
     features: str = "hydrophob,isoelectric,mass,hydrophil,charge",  # can be any str listed in peptide_feature.featuresMap
     operator: str = "absdiff",  # can be: prod, diff, absdiff, layer or best
-    early_stop: bool = False,
-    include_learning_rate_reduction: bool = False,
+    early_stop: bool = False,  # whether to terminate model training when the performance metric stops improving (tf.keras.callbacks.EarlyStopping)
+    include_learning_rate_reduction: bool = False,  # whether to reduce the learning rate when the performance metric has stopped improving (tf.keras.callbacks.ReduceLROnPlateau)
     data_path=PROJECT_ROOT
-    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
+    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",  # input data csv, as supplied by preprocess_vdjdb
     optimizer: str = "rmsprop",  # can be any of: rmsprop, adam or SGD
-    learning_rate: bool = False,
-    # dense_activation: str = "tanh",
+    learning_rate: float = None,  # learning rate supplied to the selected optimizer
 ):
 
     # create run name by appending time and date

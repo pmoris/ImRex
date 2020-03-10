@@ -21,21 +21,22 @@ bacli.set_description(__doc__)
 def run(
     batch_size: int = 128,
     epochs: int = 40,
-    neg_ratio: float = 0.5,
+    neg_ratio: float = 0.5,  # proportion of positive to negative samples.
     val_split: float = None,  # the proportion of the dataset to include in the test split.
     epitope_grouped_cv: bool = False,
     n_folds: int = 5,
+    # these lengths are used for both size filtering and padding. Should be compatible with any preprocessing steps.
     min_length_cdr3: int = 10,
     max_length_cdr3: int = 20,
     min_length_epitope: int = 8,
     max_length_epitope: int = 13,
-    name: str = "",
+    name: str = "",  # name under which the model and log files will be stored, appended with the date-time.
     features: str = "hydrophob,isoelectric,mass,hydrophil,charge",  # can be any str listed in peptide_feature.featuresMap
     operator: str = "absdiff",  # can be: prod, diff, absdiff, layer or best
-    early_stop=False,
-    include_learning_rate_reduction: bool = False,
+    early_stop: bool = False,  # whether to terminate model training when the performance metric stops improving (tf.keras.callbacks.EarlyStopping)
+    include_learning_rate_reduction: bool = False,  # whether to reduce the learning rate when the performance metric has stopped improving (tf.keras.callbacks.ReduceLROnPlateau)
     data_path=PROJECT_ROOT
-    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
+    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",  # input data csv, as supplied by preprocess_vdjdb
 ):
 
     # create run name by appending time and date

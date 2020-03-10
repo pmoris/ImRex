@@ -594,7 +594,7 @@ def parse_features(string):
     e
         Raises a value error if an unknown feature is encountered.
     """
-    names = [name.strip() for name in string.split(",")]
+    names = [name.lower().strip() for name in string.split(",")]
     try:
         return [features_map[name] for name in names]
     except ValueError as e:
