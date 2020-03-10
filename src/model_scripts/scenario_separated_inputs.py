@@ -1,10 +1,10 @@
 """ Scenario for neural network. """
-import datetime
 import logging
 
 import src.bacli as bacli
-from src.config import LOG_DIR, PROJECT_ROOT
+from src.config import PROJECT_ROOT
 from src.data.vdjdb_source import VdjdbSource
+from src.model_scripts import pipeline
 from src.models.model_separated_inputs import ModelSeparatedInputs
 from src.neural.trainer import Trainer
 from src.processing.cv_folds import cv_splitter
@@ -36,24 +36,12 @@ def run(
     learning_rate: float = None,  # learning rate supplied to the selected optimizer
 ):
 
-    # create run name by appending time and date
-    run_name = name + datetime.datetime.now().strftime("_%Y-%m-%d_%H-%M-%S")
-    # create filepath for log
-    log_file = LOG_DIR / run_name
-    log_file = log_file.with_suffix(".log")
-    log_file.parent.mkdir(parents=True, exist_ok=True)
-    # create file logger
-    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(filename=log_file, level=logging.INFO, format=log_fmt)
-    # apply settings to root logger, so that loggers in modules can inherit both the file and console logger
-    logger = logging.getLogger()
-    # add console logger
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    console.setFormatter(logging.Formatter(log_fmt))
-    logger.addHandler(console)
+    # create logger and log file
+    run_name = pipeline.create_run_name(name)
+    pipeline.create_logger(name)
+    logger = logging.getLogger(__name__)
 
-    # log utilised function arguments that were used for logging purposes
+    # log utilised function arguments that were used
     logger.info(locals())
 
     # read (positive) data
