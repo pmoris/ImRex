@@ -5,14 +5,14 @@
 import keras
 import keras.initializers
 from keras.layers import (
+    Activation,
+    Conv1D,
     Dense,
     # Dropout,
-    # Flatten,
-    Conv1D,
-    MaxPool1D,
     Embedding,
+    # Flatten,
     LSTM,
-    Activation,
+    MaxPool1D,
 )
 
 from src.models.model import Model
@@ -25,13 +25,13 @@ class ModelPPILit(Model):
         self.height = height
 
     def _build_model(self):
-        WEIGHT_DECAY = 1e-6
+        # WEIGHT_DECAY = 1e-6
         KERNEL_INIT = keras.initializers.he_normal
 
         input1 = keras.Input(shape=(self.width,))
         input2 = keras.Input(shape=(self.height,))
 
-        def feature_extraction(input):
+        def feature_extraction(input):  # noqa: A002
             embedding = Embedding(21, 128)(input)
             x = Conv1D(10, 10, padding="valid", kernel_initializer=KERNEL_INIT())(
                 embedding

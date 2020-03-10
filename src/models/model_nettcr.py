@@ -4,22 +4,22 @@
 # from keras.layers import Activation
 # from keras.regularizers import l2
 import keras
+import keras.initializers
 from keras.layers import (
+    Conv1D,
     Dense,
     # Dropout,
     # Flatten,
     # Conv2D,
     # MaxPool2D,
     Input,
-    Conv1D,
 )
-from keras.layers.normalization import BatchNormalization
 from keras.layers import (
     # GlobalAveragePooling2D,
     # GlobalMaxPooling2D,
     GlobalMaxPooling1D,
 )
-import keras.initializers
+from keras.layers.normalization import BatchNormalization
 
 from src.models.model import Model
 
@@ -37,7 +37,7 @@ class ModelNetTCR(Model):
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
 
-        def feature_extraction(input):
+        def feature_extraction(input):  # noqa: A002
             convolutions = list()
             convolutions.append(
                 Conv1D(

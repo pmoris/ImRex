@@ -1,15 +1,15 @@
 import keras
 
 from src.definitions.amino_acid_properties import AMINO_ACIDS
-from src.processing.joiner import Joiner
 from src.processing.batch_generator import BatchGenerator
-from src.processing.sampler import Sampler
-from src.processing.zipper import Zipper, unzipper
-from src.processing.swapper import Swapper
+from src.processing.filter import PositiveFilter, SizeFilter
+from src.processing.joiner import Joiner
 from src.processing.labeler import Labeler, LabelTrimmer
-from src.processing.filter import SizeFilter, PositiveFilter
-from src.processing.tee import tee
+from src.processing.sampler import Sampler
 from src.processing.stream import TransformStream
+from src.processing.swapper import Swapper
+from src.processing.tee import tee
+from src.processing.zipper import unzipper, Zipper
 
 
 def ppi_lit_generator(

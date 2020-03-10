@@ -122,7 +122,7 @@ class RocCallback(MetricCallback):
         output_path = get_output_path(
             self.base_name, "auc.csv", iteration=self.iteration
         )
-        df = pd.DataFrame({"auc": [auc_value],})
+        df = pd.DataFrame({"auc": [auc_value]})
         df.to_csv(output_path, index=False)
 
         return
@@ -149,7 +149,7 @@ class PrecisionRecallCallback(MetricCallback):
         output_path = get_output_path(
             self.base_name, "average_precision.csv", iteration=self.iteration
         )
-        df = pd.DataFrame({"average_precision": [ap],})
+        df = pd.DataFrame({"average_precision": [ap]})
         df.to_csv(output_path, index=False)
 
         return

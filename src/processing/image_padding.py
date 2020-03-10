@@ -15,13 +15,17 @@ class ImagePadding(TransformStream):
         hor_padding = self.width - image.shape[0]
         ver_padding = self.height - image.shape[1]
 
-        hor_padding1 = int(hor_padding // 2)
-        hor_padding2 = hor_padding - hor_padding1
+        hor_padding_before = int(hor_padding // 2)
+        hor_padding_after = hor_padding - hor_padding_before
 
-        ver_padding1 = int(ver_padding // 2)
-        ver_padding2 = ver_padding - ver_padding1
+        ver_padding_before = int(ver_padding // 2)
+        ver_padding_after = ver_padding - ver_padding_before
 
-        padding = ((hor_padding1, hor_padding2), (ver_padding1, ver_padding2), (0, 0))
+        padding = (
+            (hor_padding_before, hor_padding_after),
+            (ver_padding_before, ver_padding_after),
+            (0, 0),
+        )
         # print(image)
         # print(image.shape)
         # print(padding)

@@ -5,10 +5,10 @@
 # from keras.layers import LeakyReLU
 # import keras.initializers
 from keras import Sequential
-from keras.layers import Dropout, Conv2D, MaxPool2D
-from keras.layers.normalization import BatchNormalization
 from keras.layers import Activation
+from keras.layers import Conv2D, Dropout, MaxPool2D
 from keras.layers import GlobalAveragePooling2D  # , GlobalMaxPooling2D
+from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 
 from src.models.model import Model

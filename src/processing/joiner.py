@@ -27,12 +27,11 @@ class Joiner(BatchStream):
         amount1 = int(self.ratio * batch_size)
         amount2 = batch_size - amount1
 
-        joined = list()
-        for stream, amount in zip([self.stream1, self.stream2], [amount1, amount2]):
-            for _ in range(amount):
-                item = stream.get(*args, **kwargs)
-                # print(item)
-                joined.append(item)
+        joined = [
+            stream.get(*args, **kwargs)
+            for stream, amount in zip([self.stream1, self.stream2], [amount1, amount2])
+            for _ in range(amount)
+        ]
 
         random.shuffle(joined)
         return joined

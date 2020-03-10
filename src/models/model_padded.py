@@ -1,10 +1,9 @@
 """ CNN model for recognizing generated peptides. """
 from typing import Optional
 
-# import keras
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D  # , LeakyReLU
+from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPool2D  # , LeakyReLU
 from keras.layers.normalization import BatchNormalization
+from keras.models import Sequential
 
 from src.models.model import Model
 

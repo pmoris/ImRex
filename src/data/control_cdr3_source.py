@@ -1,6 +1,7 @@
 import logging
-import pandas as pd
 from typing import Optional
+
+import pandas as pd
 
 from src.config import PROJECT_ROOT
 from src.data.data_source import DataSource

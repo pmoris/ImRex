@@ -1,17 +1,17 @@
 from functools import lru_cache
 import random
 
-from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.SeqUtils import molecular_weight
 from Bio.SeqUtils import ProtParamData
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
 import numpy as np
 from pyteomics import electrochem
 
 from src.bio.operator import (
-    ProductOperator,
-    LayeredOperator,
     AbsDifferenceOperator,
     DifferenceOperator,
+    LayeredOperator,
+    ProductOperator,
 )
 from src.definitions.amino_acid_properties import (
     AMINO_ACIDS,
@@ -20,11 +20,11 @@ from src.definitions.amino_acid_properties import (
     ATCHLEY_FACTOR_3,
     ATCHLEY_FACTOR_4,
     ATCHLEY_FACTOR_5,
-    TCREX_BASICITY,
-    TCREX_HYDROPHOBICITY,
-    TCREX_HELICITY,
-    TCREX_MUTATION_STABILITY,
     PH,
+    TCREX_BASICITY,
+    TCREX_HELICITY,
+    TCREX_HYDROPHOBICITY,
+    TCREX_MUTATION_STABILITY,
 )
 
 
@@ -82,19 +82,18 @@ class PeptideFeature(object):
         """
         return {aa: self._calculate(aa) for aa in AMINO_ACIDS}
 
-    @property
+    @property  # noqa: A003
     @lru_cache()
     def max(self):
         return max(self.values.values())
 
-    @property
+    @property  # noqa: A003
     @lru_cache()
     def min(self):
         return min(self.values.values())
 
     def calculate(self, peptide: str) -> np.ndarray:
-        """Return the associated value of the property for all amino acids in a given peptide sequence,
-        and 0 when the amino acid is not found or invalid.
+        """Return the associated value of the property for all amino acids in a given peptide sequence, and 0 when the amino acid is not found or invalid.
 
         Is never overriden by a feature subclass.
 
@@ -113,8 +112,7 @@ class PeptideFeature(object):
         return np.asanyarray(values)
 
     def matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
-        """Computes the pairwise amino acid matrix of two amino acid sequences
-        using the given operator, for this amino acid property/feature.
+        """Compute the pairwise amino acid matrix of two amino acid sequences using the given operator, for this amino acid property/feature.
 
         Parameters
         ----------
@@ -136,8 +134,7 @@ class PeptideFeature(object):
         return m
 
     def image_matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
-        """Computes the scaled pairwise amino acid matrix of two amino acid sequences
-        using the given operator, for this amino acid property/feature.
+        """Compute the scaled pairwise amino acid matrix of two amino acid sequences using the given operator, for this amino acid property/feature.
 
         Elements are scaled between 0 and 1, where the minimum and maximum value
         are defined by the smallest and largest value that the pairwise combination
@@ -165,8 +162,7 @@ class PeptideFeature(object):
         ).astype(np.uint8)
 
     def norm_matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
-        """Computes the normalized pairwise amino acid matrix of two amino acid sequences
-        using the given operator, for this amino acid property/feature.
+        """Compute the normalized pairwise amino acid matrix of two amino acid sequences using the given operator, for this amino acid property/feature.
 
         Elements are normalized between 0 and 1, where the minimum and maximum value
         are defined by the smallest and largest value that the pairwise combination
@@ -204,7 +200,7 @@ class Charge(PeptideFeature):
         return electrochem.charge(aa, self.ph)
 
     def generate_match(self, amino):
-        """ This method matches pos to neg, neg to pos and neutral to neutral. """
+        """ Match pos to neg, neg to pos and neutral to neutral. """
         CUTOFF = 0.5
 
         pos = [aa for aa, charge in self.values.items() if charge >= CUTOFF]
@@ -239,7 +235,7 @@ class Hydrophobicity(PeptideFeature):
         return ProtParamData.kd[aa]
 
     def generate_match(self, amino):
-        """ This method selects a value close to the value of the aa. """
+        """ Select a value close to the value of the aa. """
         acids, weights = zip(
             *[
                 (aa, abs(pow(v - self._calculate(amino), 2)))
@@ -261,7 +257,7 @@ class IsoelectricPoint(PeptideFeature):
         return ProteinAnalysis(aa).isoelectric_point()
 
     def generate_match(self, amino):
-        """ This method selects a value close to the value of the aa. """
+        """ Select a value close to the value of the aa. """
         acids, weights = zip(
             *[
                 (aa, abs(pow(v - self._calculate(amino), 2)))
@@ -285,7 +281,7 @@ class Mass(PeptideFeature):
         )  # circular to not include water
 
     def generate_match(self, amino):
-        """ This method selects a value close to the value of the aa. """
+        """ Select a value close to the value of the aa. """
         acids, weights = zip(
             *[
                 (aa, abs(pow(v - self._calculate(amino), 2)))
@@ -581,8 +577,7 @@ operators_map = {
 
 
 def parse_features(string):
-    """Return a list of peptide feature objects based on a string
-    of feature names.
+    """Return a list of peptide feature objects based on a string of feature names.
 
     Parameters
     ----------
@@ -608,7 +603,7 @@ def parse_features(string):
 
 
 def parse_operator(string):
-    """Returns an operator object based on the input name.
+    """Return an operator object based on the input name.
 
     Parameters
     ----------

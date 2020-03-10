@@ -1,8 +1,8 @@
 """ CNN model for recognizing generated peptides. """
 # import keras
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D  # , LeakyReLU
+from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPool2D  # , LeakyReLU
 from keras.layers.normalization import BatchNormalization
+from keras.models import Sequential
 
 from src.models.model import Model
 
@@ -18,7 +18,7 @@ class ModelPPIPadded(Model):
         model = Sequential()
 
         input_shape = (self.width, self.height, self.channels)
-        WEIGHT_DECAY = 1e-6
+        # WEIGHT_DECAY = 1e-6
         KERNEL_INIT = "he_normal"
 
         def create_conv(

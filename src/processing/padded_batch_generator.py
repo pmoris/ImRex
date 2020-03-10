@@ -28,8 +28,7 @@ def padded_batch_generator(
     cache_images: bool = True,
     swap: bool = False,
 ):
-    """ Standard PaddedBatchGenerator """
-
+    """ Standard PaddedBatchGenerator. """
     logger = logging.getLogger(__name__)
 
     width = cdr3_range[1]

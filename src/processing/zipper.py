@@ -22,21 +22,24 @@ class Zipper(Stream):
 
 
 def unzipper(stream: Stream):
-    """ Split Stream object into separate DataStreams for each element
-    making up a single obervation.
+    """ Split Stream object into separate DataStreams for each element making up a single obervation.
 
     Input can be a DataStream, TransformStream, etc.
 
-    E.g. [
+    E.g.
+
+         [
             ('CASGSGAEAFF', 'GILGFVFTL'),
             ('CASSPRDRPLEQYF', 'ELAGIGILTV'),
             ...
-         ]
+         ]  # noqa: RST203
+
     =>
+
         (
             ['CASGSGAEAFF','CASSPRDRPLEQYF',...],
             ['GILGFVFTL', 'ELAGIGILTV',...]
-        )
+        )   # noqa: RST203
 
     Parameters
     ----------

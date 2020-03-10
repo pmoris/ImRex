@@ -1,8 +1,8 @@
 """ CNN model for recognizing generated peptides. """
 # import keras
-from keras.models import Sequential
 from keras.layers import Dense, Flatten  # , Input, Dropout
 from keras.layers.normalization import BatchNormalization
+from keras.models import Sequential
 
 from src.models.model import Model
 
