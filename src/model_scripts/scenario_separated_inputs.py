@@ -90,17 +90,17 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_stream = separated_input_batch_generator(
+        train_data = separated_input_batch_generator(
             data_stream=train,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,
         )
-        val_stream = separated_input_batch_generator(
+        val_data = separated_input_batch_generator(
             data_stream=val,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,
         )
 
-        trainer.train(model, train_stream, val_stream, iteration=iteration)
+        trainer.train(model, train_data, val_data, iteration=iteration)
