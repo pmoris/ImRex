@@ -114,6 +114,12 @@ def padded_batch_generator(
 
 
 def get_generator(stream, length):
+    """Return a "batch" of joined (positive and negative) examples.
+    The "batch" size should be set to the length of the dataset, in order
+    to return a generator of the entire dataset, which is then fed into
+    a tf.data.DataSet.
+    """
+
     def generator():
         for el in stream.get_batch(length):
             yield el
