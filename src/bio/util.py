@@ -1,28 +1,27 @@
-import os
+from pathlib import Path
 
 import numpy as np
 
 
 # decorator annotation
 def decorator(func):
-    """
-    Decorator for decorator functions. Allows for syntax:
-    ```
+    """ Decorator for decorator functions.  # noqa: D401.
+
+    Allows for syntax:
+
     @decorator
     def foo(func, kwarg1=None):
-        pass
-    ```
+        pass    # noqa: RST3-1
+
     which works both when a parameter list is given when using the decorator foo or not.
-    ```
-    @foo
-    def bar():
-        pass
 
-    @foo(5)
-    def bar():
-        pass
+        @foo
+        def bar():
+            pass    # noqa: RST3-1
 
-    ```
+        @foo(5)
+        def bar():
+            pass    # noqa: RST3-1
 
     """
 
@@ -61,21 +60,21 @@ def scale_matrix(
     lower: float = 0.0,
     upper: float = 255.0,
 ) -> np.ndarray:
-    """Scales matrix inplace to new bounds, based on a provided initial minimum
-    and maximum value. E.g. a matrix with combined pairwise amino acid features could be rescaled,
+    """Scale matrix inplace to new bounds, based on a provided initial minimum and maximum value.
+
+    E.g. a matrix with combined pairwise amino acid features could be rescaled,
     while using the min and max combined value for all possible combinations among the existing 20 amino acids,
     rather than just the min and max that are present in the given matrix.
 
     Note: the matrix will be modified in-place, as well as returning it.
     See: https://stackoverflow.com/questions/10149416/numpy-modify-array-in-place
-    This is caused by the in-place operators. Statements like matrix = matrix + x, would not
-    cause this behaviour.
+    This is caused by the in-place operators. Statements like matrix = matrix + x, would not cause this behaviour.
 
     Note: In-place operations do not change the dtype of the container array.
-    Since the desired scaled values are floats, 
+    Since the desired scaled values are floats,
     the matrix needs to have the correct dtype before the in-place operations are performed.
 
-    Note: sklearn.preprocessing.MinMaxScaler or optimized code like *= 255.0/image.max()
+    Note: sklearn.preprocessing.MinMaxScaler or optimized code like `*= 255.0/image.max()`
     (source: https://stackoverflow.com/questions/1735025/how-to-normalize-a-numpy-array-to-within-a-certain-range)
     is not used, because in these implementations the old minimum and maximum values
     cannot be specified, but are automatically derived from the supplied data.
@@ -111,7 +110,5 @@ def scale_matrix(
 
 
 def subdirs(directory):
-    return filter(
-        lambda x: os.path.isdir(x),
-        [os.path.join(directory, subdir) for subdir in os.listdir(directory)],
-    )
+    """Return all subdirectories of a given directory path."""
+    return [x for x in Path("Documents").iterdir() if x.is_dir()]

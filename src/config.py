@@ -1,7 +1,4 @@
-"""Defines various global variables,
-such as the project root file path
-and a dictionary of amino acids.
-"""
+"""Defines various global variables, such as the project root file path and a dictionary of amino acids."""
 
 from pathlib import Path
 

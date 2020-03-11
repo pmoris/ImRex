@@ -1,9 +1,9 @@
-import os
-import math
 from functools import partial
+import math
+import os
 
-import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 import pandas as pd
@@ -27,10 +27,10 @@ def rgb(r, g, b):
     return r / 255.0, g / 255.0, b / 255.0
 
 
-paletteG = partial(sns.light_palette, rgb(0, 61, 100), reverse=True, input="rgb")
-gradientPalette = paletteG()
-cmap = paletteG(as_cmap=True)
-cmapI = paletteG(as_cmap=True, reverse=False)
+palette_g = partial(sns.light_palette, rgb(0, 61, 100), reverse=True, input="rgb")
+gradient_palette = palette_g()
+cmap = palette_g(as_cmap=True)
+cmap_i = palette_g(as_cmap=True, reverse=False)
 
 sns.set_style("darkgrid")
 plt.rcParams.update({"font.size": 14})  # 20})
@@ -57,8 +57,8 @@ sns.set_palette(palette)
 sns.set_style("whitegrid")
 
 
-def get_output_path(dir, title, extension=".pdf"):
-    return os.path.join(dir, title + extension)
+def get_output_path(directory, title, extension=".pdf"):
+    return os.path.join(directory, title + extension)
 
 
 def consolidate_all(directory, force=False):
@@ -391,12 +391,11 @@ def plot_predictions(directory):
 
 
 def plot_confusion_matrix(directory, ax=None):
-    """
-    This function prints and plots the confusion matrix.
+    """ Print and plot the confusion matrix.
+
     Normalization can be applied by setting `normalize=True`.
     source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html#sphx-glr-auto-examples-model-selection-plot-confusion-matrix-py
     """
-
     predictions_path = os.path.join(directory, "predictions.csv")
     if not os.path.exists(predictions_path):
         return
@@ -431,7 +430,7 @@ def plot_confusion_matrix(directory, ax=None):
     if normalize:
         cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
 
-    im = ax.imshow(cm, interpolation="nearest", cmap=cmapI)
+    im = ax.imshow(cm, interpolation="nearest", cmap=cmap_i)
     ax.figure.colorbar(im, ax=ax)
     # We want to show all ticks...
     ax.set(

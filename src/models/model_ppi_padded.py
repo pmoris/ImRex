@@ -23,7 +23,7 @@ class ModelPPIPadded(Model):
         model = Sequential()
 
         input_shape = (self.width, self.height, self.channels)
-        WEIGHT_DECAY = 1e-6
+        # WEIGHT_DECAY = 1e-6
         KERNEL_INIT = "he_normal"
 
         def create_conv(

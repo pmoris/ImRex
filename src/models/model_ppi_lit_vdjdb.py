@@ -28,7 +28,7 @@ class ModelPPILitVDJdb(Model):
         input1 = tensorflow.keras.Input(shape=(self.width,))
         input2 = tensorflow.keras.Input(shape=(self.height,))
 
-        def feature_extraction(input):
+        def feature_extraction(input):  # noqa: A002
             embedding = Embedding(21, 128)(input)
             x = Conv1D(10, 10, padding="same", kernel_initializer=KERNEL_INIT())(
                 embedding

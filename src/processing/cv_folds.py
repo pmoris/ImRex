@@ -41,7 +41,7 @@ def cv_splitter(
         If supplied, the generated folds will be saved to the data/processed directory under this name for logging purposes.
 
     Yields
-    -------
+    ------
     Tuple
         A tuple of DataStream objects, for the train set and for the test set.
     """
@@ -103,7 +103,7 @@ def cv_log_helper(
     data_source: DataSource,
     run_name: Optional[str] = None,
 ):
-    """Helper function that logs the information about the created folds and optionally exports them.
+    """Log information about the created folds and optionally exports them.
 
     Parameters
     ----------

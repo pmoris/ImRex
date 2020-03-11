@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.bio import peptide_feature, operator
+from src.bio import operator, peptide_feature
 from src.definitions.amino_acid_properties import AMINO_ACIDS
 
 

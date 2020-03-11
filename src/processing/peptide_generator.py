@@ -1,7 +1,7 @@
 import random
 
-from src.processing.stream import Stream
 from src.bio.peptide import Peptide
+from src.processing.stream import Stream
 
 
 class PeptideGenerator(Stream):

@@ -32,7 +32,7 @@ class ModelPadded(Model):
         self.width = width
         self.height = height
         self.channels = channels
-        self.optimizer = optimizer
+        self.optimizer = optimizer.lower()
         self.learning_rate = learning_rate
 
     def _build_model(self):
