@@ -247,7 +247,7 @@ class Trainer(object):
         self.base_name = None
         self.lookup = lookup  # Lookup map from feature to input (for traceability)
 
-    def train(self, model, train_stream, val_stream, iteration=None):
+    def train(self, model, train_data, val_data, iteration=None):
         logger = logging.getLogger(__name__)
 
         model_instance = model.new_instance()
@@ -315,11 +315,11 @@ class Trainer(object):
         workers = multiprocessing.cpu_count()
         logger.info(f"Using {workers} workers")
         history = model_instance.fit(
-            x=train_stream,
+            x=train_data,
             epochs=self.epochs,
             verbose=1,
             callbacks=callbacks,
-            validation_data=val_stream,
+            validation_data=val_data,
             class_weight=None,
             max_queue_size=2,
             workers=workers,
