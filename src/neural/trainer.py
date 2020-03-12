@@ -41,7 +41,7 @@ def get_output_path(base_name, file_name, iteration=None):
 def create_checkpointer(base_name, iteration):
     output_path = get_output_path(
         base_name=base_name,
-        file_name=base_name + "-{epoch:02d}-{val_accuracy:.2f}.h5",
+        file_name=base_name + "-epoch{epoch:02d}-valacc{val_accuracy:.2f}.h5",
         iteration=iteration,
     )
 
@@ -65,9 +65,7 @@ def create_tensorboard_callback(model_name):
 
 
 def create_csv_logger(base_name, iteration):
-    output_path = get_output_path(
-        base_name, "metrics-{epoch:02d}-{val_accuracy:.2f}.csv", iteration=iteration
-    )
+    output_path = get_output_path(base_name, "metrics.csv", iteration=iteration)
 
     return callbacks.CSVLogger(output_path)
 
