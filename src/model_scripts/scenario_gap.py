@@ -92,14 +92,14 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_stream = grouped_batch_generator(
+        train_data = grouped_batch_generator(
             data_stream=train,
             feature_builder=feature_builder,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,
         )
-        val_stream = grouped_batch_generator(
+        val_data = grouped_batch_generator(
             data_stream=val,
             feature_builder=feature_builder,
             neg_ratio=neg_ratio,
@@ -107,4 +107,4 @@ def run(
             min_amount=min_group,
         )
 
-        trainer.train(model, train_stream, val_stream, iteration=iteration)
+        trainer.train(model, train_data, val_data, iteration=iteration)

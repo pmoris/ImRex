@@ -5,16 +5,15 @@ from typing import Optional
 # from keras.layers import LeakyReLU
 # from keras.layers import Activation
 # from keras.regularizers import l2
-import keras
-import keras.initializers
-from keras.layers import (
+import tensorflow
+from tensorflow.keras.layers import (
+    BatchNormalization,
     Conv1D,
     Dense,
     Dropout,
     GlobalMaxPooling1D,
     Input,
 )
-from keras.layers.normalization import BatchNormalization
 
 from src.models.model import Model
 
@@ -31,7 +30,7 @@ class ModelSeparatedInputs(Model):
         self.learning_rate = learning_rate
 
     def _build_model(self):
-        KERNEL_INIT = keras.initializers.he_normal
+        KERNEL_INIT = tensorflow.keras.initializers.he_normal
 
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
@@ -85,7 +84,7 @@ class ModelSeparatedInputs(Model):
             )
 
             # Place them after each other (depth axis = channels = layer 2)
-            merged = keras.layers.concatenate(convolutions, axis=-1)
+            merged = tensorflow.keras.layers.concatenate(convolutions, axis=-1)
 
             # Add dropout and batch norm (not in paper)
             merged = Dropout(0.25)(merged)
@@ -103,7 +102,7 @@ class ModelSeparatedInputs(Model):
         part2 = feature_extraction(input2)
 
         # axis 1 = length = sequence concat
-        concatenated = keras.layers.concatenate([part1, part2], axis=1)
+        concatenated = tensorflow.keras.layers.concatenate([part1, part2], axis=1)
 
         max_pool = GlobalMaxPooling1D()(concatenated)
         drop_out = Dropout(0.5)(max_pool)
@@ -112,19 +111,19 @@ class ModelSeparatedInputs(Model):
         dense = Dense(10, activation="relu")(batch_norm)
         predictions = Dense(1, activation="sigmoid")(dense)
 
-        model = keras.Model(inputs=[input1, input2], outputs=predictions)
+        model = tensorflow.keras.Model(inputs=[input1, input2], outputs=predictions)
 
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
         if self.optimizer == "rmsprop":
 
-            from keras.optimizers import RMSprop
+            from tensorflow.keras.optimizers import RMSprop
 
             if self.learning_rate:
                 return RMSprop(learning_rate=self.learning_rate)
@@ -133,7 +132,7 @@ class ModelSeparatedInputs(Model):
 
         elif self.optimizer == "adam":
 
-            from keras.optimizers import Adam
+            from tensorflow.keras.optimizers import Adam
 
             if self.learning_rate:
                 return Adam(learning_rate=self.learning_rate)
@@ -142,7 +141,7 @@ class ModelSeparatedInputs(Model):
 
         elif self.optimizer == "SGD":
 
-            from keras.optimizers import SGD
+            from tensorflow.keras.optimizers import SGD
 
             if self.learning_rate:
                 return SGD(llearning_rate=self.learning_rate)

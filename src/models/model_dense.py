@@ -1,8 +1,10 @@
 """ CNN model for recognizing generated peptides. """
-# import keras
-from keras.layers import Dense, Flatten  # , Input, Dropout
-from keras.layers.normalization import BatchNormalization
-from keras.models import Sequential
+from tensorflow.keras.layers import (
+    BatchNormalization,
+    Dense,
+    Flatten,
+)  # , Input, Dropout
+from tensorflow.keras.models import Sequential
 
 from src.models.model import Model
 
@@ -36,11 +38,11 @@ class ModelDense(Model):
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
-        from keras.optimizers import rmsprop
+        from tensorflow.keras.optimizers import RMSprop
 
-        return rmsprop()
+        return RMSprop()

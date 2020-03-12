@@ -47,7 +47,7 @@ SCALE = 50
 
 dependencies = {
     "mean_pred": metric.mean_pred,
-    "AUC": metric.AUC,
+    "AUC": metric.auc,
     "balanced_accuracy": metric.balanced_accuracy,
 }
 

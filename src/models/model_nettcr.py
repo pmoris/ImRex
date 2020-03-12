@@ -3,9 +3,9 @@
 # from keras.layers import LeakyReLU
 # from keras.layers import Activation
 # from keras.regularizers import l2
-import keras
-import keras.initializers
-from keras.layers import (
+import tensorflow
+from tensorflow.keras.layers import (
+    BatchNormalization,
     Conv1D,
     Dense,
     # Dropout,
@@ -14,12 +14,11 @@ from keras.layers import (
     # MaxPool2D,
     Input,
 )
-from keras.layers import (
+from tensorflow.keras.layers import (
     # GlobalAveragePooling2D,
     # GlobalMaxPooling2D,
     GlobalMaxPooling1D,
 )
-from keras.layers.normalization import BatchNormalization
 
 from src.models.model import Model
 
@@ -32,7 +31,7 @@ class ModelNetTCR(Model):
         super().__init__(*args, **kwargs)
 
     def _build_model(self):
-        KERNEL_INIT = keras.initializers.he_normal
+        KERNEL_INIT = tensorflow.keras.initializers.he_normal
 
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
@@ -86,7 +85,7 @@ class ModelNetTCR(Model):
             )
 
             # Place them after each other (depth axis = channels = layer 2)
-            merged = keras.layers.concatenate(convolutions, axis=-1)
+            merged = tensorflow.keras.layers.concatenate(convolutions, axis=-1)
 
             # Add dropout and batch norm (not in paper)
             # merged = Dropout(0.25)(merged)
@@ -103,7 +102,7 @@ class ModelNetTCR(Model):
         part1 = feature_extraction(input1)
         part2 = feature_extraction(input2)
 
-        concatenated = keras.layers.concatenate([part1, part2], axis=1)
+        concatenated = tensorflow.keras.layers.concatenate([part1, part2], axis=1)
 
         max_pool = GlobalMaxPooling1D()(concatenated)
 
@@ -111,15 +110,15 @@ class ModelNetTCR(Model):
         # dense = Dropout(0.5)(dense)
         predictions = Dense(1, activation="sigmoid")(dense)
 
-        model = keras.Model(inputs=[input1, input2], outputs=predictions)
+        model = tensorflow.keras.Model(inputs=[input1, input2], outputs=predictions)
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
-        from keras.optimizers import adam
+        from tensorflow.keras.optimizers import Adam
 
-        return adam()
+        return Adam()

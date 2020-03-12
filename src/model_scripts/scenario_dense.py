@@ -111,7 +111,7 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_stream = padded_batch_generator(
+        train_data = padded_batch_generator(
             data_stream=train,
             feature_builder=feature_builder,
             neg_ratio=neg_ratio,
@@ -119,7 +119,7 @@ def run(
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
         )
-        val_stream = padded_batch_generator(
+        val_data = padded_batch_generator(
             data_stream=val,
             feature_builder=feature_builder,
             neg_ratio=neg_ratio,
@@ -129,4 +129,4 @@ def run(
             inverse_map=inverse_map,
         )
 
-        trainer.train(model, train_stream, val_stream, iteration=iteration)
+        trainer.train(model, train_data, val_data, iteration=iteration)

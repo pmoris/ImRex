@@ -3,9 +3,6 @@ import multiprocessing
 import os
 from typing import Optional
 
-from keras import callbacks
-from keras import metrics
-from keras.utils import multi_gpu_model
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
@@ -14,6 +11,9 @@ from sklearn.metrics import (
     precision_recall_curve,
     roc_curve,
 )
+from tensorflow.keras import callbacks
+from tensorflow.keras import metrics
+from tensorflow.keras.utils import multi_gpu_model
 
 from src.config import MODEL_DIR, TENSORBOARD_DIR
 from src.processing.inverse_map import InverseMap
@@ -41,7 +41,7 @@ def get_output_path(base_name, file_name, iteration=None):
 def create_checkpointer(base_name, iteration):
     output_path = get_output_path(
         base_name=base_name,
-        file_name=base_name + "-{epoch:02d}-{val_accuracy:.2f}.h5",
+        file_name=base_name + "-epoch{epoch:02d}-valacc{val_accuracy:.2f}.h5",
         iteration=iteration,
     )
 
@@ -65,9 +65,7 @@ def create_tensorboard_callback(model_name):
 
 
 def create_csv_logger(base_name, iteration):
-    output_path = get_output_path(
-        base_name, "metrics-{epoch:02d}-{val_accuracy:.2f}.csv", iteration=iteration
-    )
+    output_path = get_output_path(base_name, "metrics.csv", iteration=iteration)
 
     return callbacks.CSVLogger(output_path)
 
@@ -206,7 +204,7 @@ class PredictionCallback(MetricCallback):
 
 
 def get_metrics():
-    return [metrics.accuracy, metrics.AUC, metrics.precision, metrics.recall]
+    return [metrics.Accuracy(), metrics.AUC(), metrics.Precision(), metrics.Recall()]
     # return [
     #     "accuracy",
     #     metric.balanced_accuracy,
@@ -232,7 +230,7 @@ class Trainer(object):
         Parameters
         ----------
         epochs : int
-            Number of epochs to train the model, passed to keras' Model.fit_generator().
+            Number of epochs to train the model, passed to keras' Model.fit().
         include_learning_rate_reduction : bool, optional
             Add callback to reduce learning rate when a metric has stopped improving, by default False
         lookup : Optional[InverseMap], optional
@@ -247,7 +245,7 @@ class Trainer(object):
         self.base_name = None
         self.lookup = lookup  # Lookup map from feature to input (for traceability)
 
-    def train(self, model, train_stream, val_stream, iteration=None):
+    def train(self, model, train_data, val_data, iteration=None):
         logger = logging.getLogger(__name__)
 
         model_instance = model.new_instance()
@@ -278,11 +276,11 @@ class Trainer(object):
             create_checkpointer(model.base_name, iteration),
             create_csv_logger(model.base_name, iteration),
             create_tensorboard_callback(model.get_name(iteration)),
-            RocCallback(val_stream, model.base_name, iteration),
-            PrecisionRecallCallback(val_stream, model.base_name, iteration),
-            PredictionCallback(
-                val_stream, model.base_name, iteration, lookup=self.lookup
-            ),
+            # RocCallback(val_stream, model.base_name, iteration),
+            # PrecisionRecallCallback(val_stream, model.base_name, iteration),
+            # PredictionCallback(
+            #     val_stream, model.base_name, iteration, lookup=self.lookup
+            # ),
         ]
 
         if self.include_early_stop:
@@ -314,12 +312,12 @@ class Trainer(object):
         logger.info("Fitting CNN")
         workers = multiprocessing.cpu_count()
         logger.info(f"Using {workers} workers")
-        history = model_instance.fit_generator(
-            generator=train_stream,
+        history = model_instance.fit(
+            x=train_data,
             epochs=self.epochs,
             verbose=1,
             callbacks=callbacks,
-            validation_data=val_stream,
+            validation_data=val_data,
             class_weight=None,
             max_queue_size=2,
             workers=workers,

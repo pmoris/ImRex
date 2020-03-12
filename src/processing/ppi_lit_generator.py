@@ -1,4 +1,4 @@
-import keras
+from tensorflow import keras
 
 from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.processing.batch_generator import BatchGenerator

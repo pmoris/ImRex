@@ -1,5 +1,5 @@
-from keras.utils import Sequence
 import numpy as np
+from tensorflow.keras.utils import Sequence
 
 from src.processing.stream import BatchStream
 
