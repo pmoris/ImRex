@@ -117,6 +117,13 @@ def activations(
     # display_heatmaps(activations, padded, save=False)
 
 
+def makeInput(epitope, cdr3):
+    # TODO: implement
+    #  generate input image for epitope and cdr3 sequence
+    #  need to handle 'X' amino acid
+    return None
+
+
 @bacli.command
 def cam(model_file: str, epitope, cdr3):
     from keras.models import load_model
@@ -125,10 +132,9 @@ def cam(model_file: str, epitope, cdr3):
     model = load_model(model_file, custom_objects=dependencies)
 
     # last layer is combination of previous one
-    originalLayer, title = getImage(epitope, cdr3, False, True, 'best')[-1]
+    # originalLayer, title = getImage(epitope, cdr3, False, True, 'best')[-1]
 
-    # TODO make input
-    x = None
+    x = makeInput(epitope, cdr3)
 
     for modifier in [None, 'guided', 'relu']:
         cam = visualize_cam(model,
@@ -144,9 +150,56 @@ def cam(model_file: str, epitope, cdr3):
         if modifier is None:
             modifier = 'vanilla'
 
-        layers = [(originalLayer, "input", "CMYK"), (camLayer, modifier, "jet")]
+        layers = [
+            # (originalLayer, "input", "CMYK"),
+            (camLayer, modifier, "jet")
+        ]
 
         img2plot(layers, epitope, cdr3, "CAM.pdf")
+
+
+@bacli.command
+def predict_variations(model_file: str, epitope, cdr3):
+    from keras.models import load_model
+
+    model = load_model(model_file, custom_objects=dependencies)
+
+    samples = list()
+
+    # first sample is original
+    samples.append((epitope, cdr3))
+
+    # insert permutations of epitope
+    for i in range(len(epitope)):
+        var_epitope = epitope.copy()
+        var_epitope[i] = 'X'
+        samples.append((var_epitope, cdr3))
+
+    # insert permutations of cdr3
+    for i in range(len(epitope)):
+        var_cdr3 = cdr3.copy()
+        var_cdr3[i] = 'X'
+        samples.append((epitope, var_cdr3))
+
+    # generate input images for each sample
+    x = [makeInput(*sample) for sample in samples]
+
+    # get scores of model
+    predictions = model.predict_on_batch(x)
+
+    # output results
+    print("=============== All results ===============")
+    for sample, prediction in zip(samples, predictions):
+        print(sample[0], sample[1], prediction)
+
+    print("=============== Statistics ===============")
+    basePrediction = predictions[0]
+    mostDifferent = sorted(zip(samples, predictions), key=lambda el: abs(el[1] - basePrediction), reverse=True)[5]
+
+    print("Base prediction:", basePrediction)
+    print("5 Most deviating:")
+    for sample, prediction in mostDifferent:
+        print("\t", sample[0], sample[1], prediction)
 
 
 @bacli.command
