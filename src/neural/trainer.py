@@ -272,7 +272,7 @@ class Trainer(object):
         if not self.base_name:
             self.base_name = model.base_name
 
-        callbacks = [
+        callbacks_list = [
             create_checkpointer(model.base_name, iteration),
             create_csv_logger(model.base_name, iteration),
             create_tensorboard_callback(model.get_name(iteration)),
@@ -284,7 +284,7 @@ class Trainer(object):
         ]
 
         if self.include_early_stop:
-            callbacks.append(
+            callbacks_list.append(
                 callbacks.EarlyStopping(  # Stop training when `val_loss` is no longer improving
                     monitor="val_loss",
                     # "no longer improving" being defined as "no better than 1e-2 less"
@@ -296,7 +296,7 @@ class Trainer(object):
             )
 
         if self.include_learning_rate_reduction:
-            callbacks.append(
+            callbacks_list.append(
                 callbacks.ReduceLROnPlateau(
                     monitor="val_loss",
                     factor=0.2,  # factor by which the learning rate will be reduced. new_lr = lr * factor
@@ -316,7 +316,7 @@ class Trainer(object):
             x=train_data,
             epochs=self.epochs,
             verbose=1,
-            callbacks=callbacks,
+            callbacks=callbacks_list,
             validation_data=val_data,
             class_weight=None,
             max_queue_size=2,
