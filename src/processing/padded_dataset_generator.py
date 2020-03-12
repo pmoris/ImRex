@@ -26,24 +26,16 @@ def padded_dataset_generator(
 ):
     logger = logging.getLogger(__name__)
 
+    width = cdr3_range[1]
+    height = epitope_range[1]
+
     # filter on sequences on size
-    if cdr3_range and epitope_range:
-        width = cdr3_range[1]
-        height = epitope_range[1]
-        data_stream = SizeFilter(data_stream, cdr3_range, epitope_range)
-        logger.info(f"Filtered CDR3 sequences to length: {cdr3_range}")
-        logger.info(f"Filtered epitope sequences to length: {epitope_range}")
-    else:
-        sequence_pair, class_label = zip(*data_stream.data)
-        sequence_1, sequence_2 = zip(*sequence_pair)
-        width = len(max(list(sequence_1), key=len))
-        height = len(max(list(sequence_2), key=len))
-        logger.info(
-            f"No length filtering performed on sequences. Padding sequences up to {width} for cdr3 and {height} for epitope."
-        )
+    size_filter = SizeFilter(data_stream, cdr3_range, epitope_range)
+    logger.info(f"Filtered CDR3 sequences to length: {cdr3_range}")
+    logger.info(f"Filtered epitope sequences to length: {epitope_range}")
 
     # split into 3 streams: positive, negative and positive filter
-    input1, input2, input3 = tee(data_stream, amount=3)
+    input1, input2, input3 = tee(size_filter, amount=3)
 
     input1 = inverse_map.input(input1)
     pos_images = ImageGenerator(input1, feature_builder)
