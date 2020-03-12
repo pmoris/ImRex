@@ -27,10 +27,10 @@ ifeq (True,$(HAS_CONDA))
 	conda env create -f environment.yml
 	@echo ">>> New conda env created. Activate with:\nsource activate $(PROJECT_NAME)"
 else
-	@echo ">>> Conda not detected, installing requirements inside virtualenv."
-	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
+	@echo ">>> Conda not detected, installing requirements inside virtualenv. NOTE: cudatoolkit, cudnn and hdf5 need to be installed manually."
+	#$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
 	virtualenv $(PROJECT_NAME)
-	source $(PROJECT_NAME)/bin/activate
+	. $(PROJECT_NAME)/bin/activate
 	pip install -r requirements.txt
 endif
 
