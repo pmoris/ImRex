@@ -59,7 +59,7 @@ clean:
 # ANALYSIS                                                                      #
 #################################################################################
 
-data-vdjdb-aug-2019: requirements
+data-vdjdb-aug-2019:
 	@echo ">>> Downloading raw data."
 	bash src/data_scripts/retrieve_data.sh
 	@echo ">>> Creating summary statistics."
@@ -130,7 +130,7 @@ preprocess-vdjdb-aug-2019-pre:
 	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-human-no10x-size.csv --species human --tcr-chain all --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
 
 ## Download dataset
-data-vdjdb-jan-2020: requirements
+data-vdjdb-jan-2020:
 	@echo ">>> Downloading raw data."
 	bash src/data_scripts/retrieve_data-2020-01-20.sh
 	@echo ">>> Creating summary statistics."
