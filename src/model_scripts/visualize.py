@@ -9,7 +9,7 @@ import pandas as pd
 import seaborn as sns
 
 import src.bacli as bacli
-from src.bio.image import image_from_matrix, image_from_matrices
+from src.bio.image import image_from_matrix, image_from_matrices, image_from_tensor
 from src.bio.peptide_feature import (
     Charge,
     Hydrophilicity,
@@ -161,10 +161,13 @@ def cam(model_file: str, epitope, cdr3):
                             backprop_modifier=modifier,
                             grad_modifier=None
                             )
-        camLayer = image_from_matrix(cam)
+        # print(cam)
+        camLayer = image_from_tensor(cam, mode="RGB")
 
         if modifier is None:
             modifier = 'vanilla'
+
+        print(modifier)
 
         layers = [
             # (originalLayer, "input", "CMYK"),
@@ -285,7 +288,7 @@ def peptide(
 def img2plot(layers, epitope, cdr3, name):
     fig = plt.figure(figsize=(12, 4))
     axes = fig.subplots(1, len(layers), sharey=True)
-    for ax in axes.flat:
+    for ax in fig.get_axes():
         ax.set_yticks(range(len(cdr3)))
         ax.set_yticklabels(cdr3)
         ax.set_xticks(range(len(epitope)))
@@ -298,11 +301,11 @@ def img2plot(layers, epitope, cdr3, name):
     fig.text(0.5, 0.08, "Epitope", ha="center", va="center")
 
     # Hide x labels and tick labels for top plots and y ticks for right plots.
-    for ax in axes.flat:
+    for ax in fig.get_axes():
         ax.label_outer()
 
     for i, (layer, title, cmap) in enumerate(layers):
-        sub = axes[i]
+        sub = fig.get_axes()[i]
         sub.set_title(title)
         rgb_im = layer.convert("RGB")
         pix = np.array(rgb_im)
