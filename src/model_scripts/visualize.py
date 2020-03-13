@@ -1,4 +1,6 @@
 import os
+from copy import copy
+
 
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -45,26 +47,20 @@ from src.visualisation.plot import (
 OUTPUT_DIR = PROJECT_ROOT / "reports/figures"
 SCALE = 50
 
-dependencies = {
-    "mean_pred": metric.mean_pred,
-    "AUC": metric.auc,
-    "balanced_accuracy": metric.balanced_accuracy,
-}
-
 
 @bacli.command
 def test(model_file: str):
     """ Debug function used to test commands out. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
 
-    model = load_model(model_file, custom_objects=dependencies)
+    model = load_model(model_file)
     print(model.layers[0].get_weights())
 
 
 @bacli.command
 def render(model_file: str):
     """ Render dot representation of neural network. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
     from keras.utils.vis_utils import plot_model
 
     model = load_model(model_file, compile=False)
@@ -88,7 +84,7 @@ def activations(
     operator: str = "best",
 ):
     """ Display the activations of a model for a given input. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
     from keract import get_activations, display_activations  # , display_heatmaps
 
     from src.processing.image_padding import ImagePadding
@@ -121,15 +117,35 @@ def makeInput(epitope, cdr3):
     # TODO: implement
     #  generate input image for epitope and cdr3 sequence
     #  need to handle 'X' amino acid
-    return None
+    from src.bio.feature_builder import CombinedPeptideFeatureBuilder
+    from src.processing.image_generator import ImageGenerator
+    from src.processing.image_padding import ImagePadding
+    from src.processing.data_stream import DataStream
+
+    features = "hydrophob,isoelectric,mass,hydrophil,charge"
+    operator = "absdiff"
+    width = 20
+    height = 11
+
+    features_list = parse_features(features)
+    operator = parse_operator(operator)
+    feature_builder = CombinedPeptideFeatureBuilder(features_list, operator)
+
+    stream = DataStream([((cdr3, epitope), None)])
+
+    pos_images = ImageGenerator(stream, feature_builder)
+    pos_out = ImagePadding(pos_images, width, height, pad_value=0)
+
+    sample = pos_out.get()[0]
+    return sample
 
 
 @bacli.command
 def cam(model_file: str, epitope, cdr3):
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
     from vis.visualization import visualize_cam
 
-    model = load_model(model_file, custom_objects=dependencies)
+    model = load_model(model_file)
 
     # last layer is combination of previous one
     # originalLayer, title = getImage(epitope, cdr3, False, True, 'best')[-1]
@@ -141,7 +157,7 @@ def cam(model_file: str, epitope, cdr3):
                             -1,
                             None,
                             x,
-                            penultimate_layer_idx=None,
+                            penultimate_layer_idx=9,
                             backprop_modifier=modifier,
                             grad_modifier=None
                             )
@@ -160,9 +176,9 @@ def cam(model_file: str, epitope, cdr3):
 
 @bacli.command
 def predict_variations(model_file: str, epitope, cdr3):
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
 
-    model = load_model(model_file, custom_objects=dependencies)
+    model = load_model(model_file)
 
     samples = list()
 
@@ -171,21 +187,23 @@ def predict_variations(model_file: str, epitope, cdr3):
 
     # insert permutations of epitope
     for i in range(len(epitope)):
-        var_epitope = epitope.copy()
+        var_epitope = list(epitope)
         var_epitope[i] = 'X'
+        var_epitope = "".join(var_epitope)
         samples.append((var_epitope, cdr3))
 
     # insert permutations of cdr3
     for i in range(len(epitope)):
-        var_cdr3 = cdr3.copy()
+        var_cdr3 = list(cdr3)
         var_cdr3[i] = 'X'
+        var_cdr3 = "".join(var_cdr3)
         samples.append((epitope, var_cdr3))
 
     # generate input images for each sample
-    x = [makeInput(*sample) for sample in samples]
+    x = np.array([makeInput(*sample) for sample in samples])
 
     # get scores of model
-    predictions = model.predict_on_batch(x)
+    predictions = np.squeeze(model.predict_on_batch(x).numpy())
 
     # output results
     print("=============== All results ===============")
@@ -194,7 +212,7 @@ def predict_variations(model_file: str, epitope, cdr3):
 
     print("=============== Statistics ===============")
     basePrediction = predictions[0]
-    mostDifferent = sorted(zip(samples, predictions), key=lambda el: abs(el[1] - basePrediction), reverse=True)[5]
+    mostDifferent = sorted(zip(samples, predictions), key=lambda el: abs(el[1] - basePrediction), reverse=True)[:5]
 
     print("Base prediction:", basePrediction)
     print("5 Most deviating:")
@@ -205,9 +223,9 @@ def predict_variations(model_file: str, epitope, cdr3):
 @bacli.command
 def summary(model_file: str):
     """ Print summary of neural network. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
 
-    model = load_model(model_file, custom_objects=dependencies)
+    model = load_model(model_file)
     model.summary(line_length=80)
 
 
