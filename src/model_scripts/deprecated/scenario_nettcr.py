@@ -5,7 +5,9 @@ from src.data.vdjdb_source import VdjdbSource
 from src.models.model_nettcr import ModelNetTCR
 from src.neural.trainer import Trainer
 from src.processing.cv_folds import cv_splitter
-from src.processing.net_tcr_batch_generator import nettcr_batch_generator
+from src.processing.separated_input_batch_generator import (
+    separated_input_batch_generator,
+)
 from src.processing.splitter import splitter
 
 bacli.set_description(__doc__)
@@ -47,7 +49,11 @@ def run(
         print("val set", len(val))
         print("batch size", batch_size)
 
-        train_stream = nettcr_batch_generator(train, neg_ratio, batch_size, min_group)
-        val_stream = nettcr_batch_generator(val, neg_ratio, batch_size, min_group)
+        train_stream = separated_input_batch_generator(
+            train, neg_ratio, batch_size, min_group
+        )
+        val_stream = separated_input_batch_generator(
+            val, neg_ratio, batch_size, min_group
+        )
 
         trainer.train(model, train_stream, val_stream, iteration=index)

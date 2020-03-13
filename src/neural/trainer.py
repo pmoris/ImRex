@@ -3,9 +3,6 @@ import multiprocessing
 import os
 from typing import Optional
 
-from keras import callbacks
-from keras import metrics
-from keras.utils import multi_gpu_model
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
@@ -14,8 +11,11 @@ from sklearn.metrics import (
     precision_recall_curve,
     roc_curve,
 )
+from tensorflow.keras import callbacks
+from tensorflow.keras import metrics
+from tensorflow.keras.utils import multi_gpu_model
 
-from src.config import MODEL_DIR, PROJECT_ROOT, TENSORBOARD_DIR
+from src.config import MODEL_DIR, TENSORBOARD_DIR
 from src.processing.inverse_map import InverseMap
 
 
@@ -35,7 +35,7 @@ def get_output_dir(base_name, iteration=None):
 def get_output_path(base_name, file_name, iteration=None):
     """Return the output filepath to store the model (iteration)."""
     output_path = get_output_dir(base_name, iteration) / file_name
-    return str(output_path)
+    return str(output_path.resolve())
 
 
 def create_checkpointer(base_name, iteration):
@@ -206,7 +206,7 @@ class PredictionCallback(MetricCallback):
 
 
 def get_metrics():
-    return [metrics.accuracy, metrics.AUC, metrics.precision, metrics.recall]
+    return [metrics.Accuracy(), metrics.AUC(), metrics.Precision(), metrics.Recall()]
     # return [
     #     "accuracy",
     #     metric.balanced_accuracy,
@@ -232,7 +232,7 @@ class Trainer(object):
         Parameters
         ----------
         epochs : int
-            Number of epochs to train the model, passed to keras' Model.fit_generator().
+            Number of epochs to train the model, passed to keras' Model.fit().
         include_learning_rate_reduction : bool, optional
             Add callback to reduce learning rate when a metric has stopped improving, by default False
         lookup : Optional[InverseMap], optional
@@ -255,7 +255,7 @@ class Trainer(object):
         # Print summary once, and before converting to multi GPU
         if iteration == 0:
             logger.info("Training model:")
-            logger.info(model_instance.summary())
+            model_instance.summary(print_fn=logger.info)
 
         if NUMBER_OF_GPUS > 1:
             model_instance = multi_gpu_model(model_instance, gpus=NUMBER_OF_GPUS)
@@ -278,11 +278,11 @@ class Trainer(object):
             create_checkpointer(model.base_name, iteration),
             create_csv_logger(model.base_name, iteration),
             create_tensorboard_callback(model.get_name(iteration)),
-            RocCallback(val_stream, model.base_name, iteration),
-            PrecisionRecallCallback(val_stream, model.base_name, iteration),
-            PredictionCallback(
-                val_stream, model.base_name, iteration, lookup=self.lookup
-            ),
+            # RocCallback(val_stream, model.base_name, iteration),
+            # PrecisionRecallCallback(val_stream, model.base_name, iteration),
+            # PredictionCallback(
+            #     val_stream, model.base_name, iteration, lookup=self.lookup
+            # ),
         ]
 
         if self.include_early_stop:
@@ -314,8 +314,8 @@ class Trainer(object):
         logger.info("Fitting CNN")
         workers = multiprocessing.cpu_count()
         logger.info(f"Using {workers} workers")
-        history = model_instance.fit_generator(
-            generator=train_stream,
+        history = model_instance.fit(
+            x=train_stream,
             epochs=self.epochs,
             verbose=1,
             callbacks=callbacks,

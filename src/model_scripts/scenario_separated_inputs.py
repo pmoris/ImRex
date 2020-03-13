@@ -8,7 +8,9 @@ from src.data.vdjdb_source import VdjdbSource
 from src.models.model_separated_inputs import ModelSeparatedInputs
 from src.neural.trainer import Trainer
 from src.processing.cv_folds import cv_splitter
-from src.processing.net_tcr_batch_generator import nettcr_batch_generator
+from src.processing.separated_input_batch_generator import (
+    separated_input_batch_generator,
+)
 from src.processing.splitter import splitter
 
 bacli.set_description(__doc__)
@@ -34,7 +36,7 @@ def run(
 ):
 
     # create run name by appending time and date
-    run_name = name + datetime.datetime.now().strftime("_%Y%m%d_%H-%M-%S")
+    run_name = name + datetime.datetime.now().strftime("_%Y-%m-%d_%H-%M-%S")
     # create filepath for log
     log_file = LOG_DIR / run_name
     log_file = log_file.with_suffix(".log")
@@ -74,7 +76,7 @@ def run(
     )
 
     model = ModelSeparatedInputs(
-        optimizer=optimizer, learning_rate=learning_rate, name_suffix=name
+        optimizer=optimizer, learning_rate=learning_rate, name=name
     )
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
@@ -98,13 +100,13 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_stream = nettcr_batch_generator(
+        train_stream = separated_input_batch_generator(
             data_stream=train,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,
         )
-        val_stream = nettcr_batch_generator(
+        val_stream = separated_input_batch_generator(
             data_stream=val,
             neg_ratio=neg_ratio,
             batch_size=batch_size,

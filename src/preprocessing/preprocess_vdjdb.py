@@ -100,7 +100,15 @@ def create_parser():
         nargs="+",
         type=str,
         default=None,
-        help="Specify the sequence length restriction. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'",
+        help="Specify the sequence length restriction. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'. Do not use quotes.",
+    )
+    parser.add_argument(
+        "--downsample",
+        dest="downsample",
+        nargs="+",
+        type=str,
+        default=None,
+        help="Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 0.84 GILGFVFTL 0.80'. Do not use quotes.",
     )
     parser.add_argument(
         "-o",
@@ -126,8 +134,9 @@ def filter_vdjdb(
     specific_removal_references: list = None,
     keep_specific_references: list = None,
     length_restriction: list = None,
+    downsample: list = None,
 ):
-    """Filters relevant CDR3-epitope pairs from VDJdb files and returns a dataframe.
+    """Filter relevant CDR3-epitope pairs from VDJdb files and returns a dataframe.
 
     Parameters
     ----------
@@ -144,15 +153,21 @@ def filter_vdjdb(
     hla : str
         Specify which HLA type will be extracted: "all" (default) or a prefix such as "HLA-A".
     specific_removal_epitope_reference : list
-        Specify a specific epitope and reference to remove. E.g. 'KLGGALQAK 10xgenomics'".
+        Specify a specific epitope and reference to remove. E.g. 'KLGGALQAK 10xgenomics'", by default None
     specific_removal_references : list
-        Specify specific references to remove. E.g. '10xgenomics PMID#####'.
+        Specify specific references to remove. E.g. '10xgenomics PMID#####', by default None
     keep_specific_references : list
-        Specify specific references to keep. E.g. '10xgenomics PMID#####'.
+        Specify specific references to keep. E.g. '10xgenomics PMID#####', by default None
     length_restriction: list
-        Specify the sequence length restrictions. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'
-    """
+        Specify the sequence length restrictions. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13', by default None
+    Downsample: list
+        Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 0.84 GILGFVFTL 0.80', by default None
 
+    Returns
+    -------
+    DataFrame
+        The filtered vdjdb DataFrame.
+    """
     # setup logger
     logger = logging.getLogger(__name__)
 
@@ -283,6 +298,15 @@ def filter_vdjdb(
         )
     else:
         logger.info("Not filtering on sequence length...")
+
+    # Downsample epitopes
+    if downsample:
+        for epitope, fraction in zip(downsample[::2], downsample[1::2]):
+            df = df.drop(
+                df[df["antigen.epitope"] == epitope].sample(frac=float(fraction)).index
+            )
+            logger.info(f"Removed {float(fraction)} {epitope} observations.")
+        logger.info(f"After downsampling, there are {df.shape[0]} remaining entries...")
 
     # extract CDR3 and antigen sequence columns
     # columns = ["CDR3", "Epitope"]
@@ -427,6 +451,7 @@ if __name__ == "__main__":
         specific_removal_references=args.specific_removal_references,
         keep_specific_references=args.keep_specific_references,
         length_restriction=args.length_restriction,
+        downsample=args.downsample,
     )
 
     # save output

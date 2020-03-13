@@ -12,7 +12,9 @@ from src.models.model_padded import ModelPadded
 from src.neural.trainer import Trainer
 from src.processing.cv_folds import cv_splitter
 from src.processing.inverse_map import InverseMap
-from src.processing.padded_batch_generator import padded_batch_generator
+from src.processing.padded_dataset_generator import (
+    padded_dataset_generator,
+)  # from src.processing.padded_batch_generator import padded_batch_generator
 from src.processing.splitter import splitter
 
 bacli.set_description(__doc__)
@@ -45,7 +47,7 @@ def run(
 ):
 
     # create run name by appending time and date
-    run_name = name + datetime.datetime.now().strftime("_%Y%m%d_%H-%M-%S")
+    run_name = name + datetime.datetime.now().strftime("_%Y-%m-%d_%H-%M-%S")
     # create filepath for log
     log_file = LOG_DIR / run_name
     log_file = log_file.with_suffix(".log")
@@ -103,7 +105,7 @@ def run(
     model = ModelPadded(
         width=max_length_cdr3,
         height=max_length_epitope,
-        name_suffix=run_name,
+        name=run_name,
         channels=feature_builder.get_number_layers(),
         optimizer=optimizer,
         learning_rate=learning_rate,
@@ -173,19 +175,37 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_stream = padded_batch_generator(
+        # train_stream = padded_batch_generator(
+        #     data_stream=train,
+        #     feature_builder=feature_builder,
+        #     neg_ratio=neg_ratio,
+        #     batch_size=batch_size,
+        #     cdr3_range=cdr3_range,
+        #     epitope_range=epitope_range,
+        #     negative_stream=neg_train,
+        # )
+        # val_stream = padded_batch_generator(
+        #     data_stream=val,
+        #     feature_builder=feature_builder,
+        #     neg_ratio=neg_ratio,
+        #     batch_size=batch_size,
+        #     cdr3_range=cdr3_range,
+        #     epitope_range=epitope_range,
+        #     inverse_map=inverse_map,
+        #     negative_stream=neg_val,
+        # )
+
+        train_stream = padded_dataset_generator(
             data_stream=train,
             feature_builder=feature_builder,
-            neg_ratio=neg_ratio,
             batch_size=batch_size,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             negative_stream=neg_train,
         )
-        val_stream = padded_batch_generator(
+        val_stream = padded_dataset_generator(
             data_stream=val,
             feature_builder=feature_builder,
-            neg_ratio=neg_ratio,
             batch_size=batch_size,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,

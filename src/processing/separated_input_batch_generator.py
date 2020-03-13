@@ -16,7 +16,7 @@ from src.processing.zipper import unzipper
 # from src.processing.filter import SizeFilter
 
 
-def nettcr_batch_generator(
+def separated_input_batch_generator(
     data_stream,
     neg_ratio,
     batch_size,

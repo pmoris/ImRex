@@ -39,7 +39,7 @@ def run(
 ):
 
     # create run name by appending time and date
-    run_name = name + datetime.datetime.now().strftime("_%Y%m%d_%H-%M-%S")
+    run_name = name + datetime.datetime.now().strftime("_%Y-%m-%d_%H-%M-%S")
     # create filepath for log
     log_file = LOG_DIR / run_name
     log_file = log_file.with_suffix(".log")
@@ -95,7 +95,7 @@ def run(
     model = ModelDense(
         max_length_cdr3,
         max_length_epitope,
-        name_suffix=name,
+        name=name,
         channels=feature_builder.get_number_layers(),
     )
     logger.info(f"Built model {model.base_name}:")

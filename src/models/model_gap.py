@@ -1,15 +1,10 @@
 """ CNN model for recognizing generated peptides. """
-# import keras
-# import keras_metrics
-# from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
-# from keras.layers import LeakyReLU
-# import keras.initializers
-from keras import Sequential
-from keras.layers import Dropout, Conv2D, MaxPool2D
-from keras.layers.normalization import BatchNormalization
-from keras.layers import Activation
-from keras.layers import GlobalAveragePooling2D  # , GlobalMaxPooling2D
-from keras.regularizers import l2
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import Conv2D, Dropout, MaxPool2D
+from tensorflow.keras.layers import GlobalAveragePooling2D  # , GlobalMaxPooling2D
+from tensorflow.keras.regularizers import l2
 
 from src.models.model import Model
 
@@ -79,11 +74,11 @@ class ModelGAP(Model):
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
-        from keras.optimizers import rmsprop
+        from tensorflow.keras.optimizers import RMSprop
 
-        return rmsprop()
+        return RMSprop()
