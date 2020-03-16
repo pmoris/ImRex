@@ -1,6 +1,6 @@
 import os
 from copy import copy
-
+import itertools
 
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -177,8 +177,19 @@ def cam(model_file: str, epitope, cdr3):
         img2plot(layers, epitope, cdr3, "CAM.pdf")
 
 
+def perturbe(variables, symbol, amount):
+    """ Generate all possible combinations from list 'variables' where 'amount' places are set to 'symbol'. """
+    variables = list(variables)
+
+    for indices in itertools.combinations(range(len(variables)), amount):
+        variation = variables.copy()
+        for index in indices:
+            variation[index] = symbol
+        yield variation
+
+
 @bacli.command
-def predict_variations(model_file: str, epitope, cdr3):
+def predict_variations(model_file: str, epitope, cdr3, aa='X', perturbations: int=1):
     from tensorflow.keras.models import load_model
 
     model = load_model(model_file)
@@ -188,19 +199,16 @@ def predict_variations(model_file: str, epitope, cdr3):
     # first sample is original
     samples.append((epitope, cdr3))
 
-    # insert permutations of epitope
-    for i in range(len(epitope)):
-        var_epitope = list(epitope)
-        var_epitope[i] = 'X'
-        var_epitope = "".join(var_epitope)
-        samples.append((var_epitope, cdr3))
+    print(f"Generating variations with up to {perturbations} changes")
 
-    # insert permutations of cdr3
-    for i in range(len(epitope)):
-        var_cdr3 = list(cdr3)
-        var_cdr3[i] = 'X'
-        var_cdr3 = "".join(var_cdr3)
-        samples.append((epitope, var_cdr3))
+    variables = list(epitope + cdr3)
+    for amount in range(1, perturbations + 1):
+        for variation in perturbe(variables, aa, amount):
+            var_epitope = "".join(variation[:len(epitope)])
+            var_cdr3 = "".join(variation[len(epitope):])
+            samples.append((var_epitope, var_cdr3))
+
+    # TODO: Need to test what replacing with X does. It works, but I don't know which values are used.
 
     # generate input images for each sample
     x = np.array([makeInput(*sample) for sample in samples])
@@ -215,12 +223,18 @@ def predict_variations(model_file: str, epitope, cdr3):
 
     print("=============== Statistics ===============")
     basePrediction = predictions[0]
-    mostDifferent = sorted(zip(samples, predictions), key=lambda el: abs(el[1] - basePrediction), reverse=True)[:5]
+    mostDifferent = sorted(zip(samples, predictions), key=lambda el: el[1] - basePrediction, reverse=True)
 
     print("Base prediction:", basePrediction)
-    print("5 Most deviating:")
-    for sample, prediction in mostDifferent:
-        print("\t", sample[0], sample[1], prediction)
+    print("Most deviating (more positive):")
+    for sample, prediction in mostDifferent[:5]:
+        if prediction >= basePrediction:
+            print("\t", sample[0], sample[1], prediction)
+
+    print("Most deviating (more negative):")
+    for sample, prediction in reversed(mostDifferent[-5:]):
+        if prediction <= basePrediction:
+            print("\t", sample[0], sample[1], prediction)
 
 
 @bacli.command
