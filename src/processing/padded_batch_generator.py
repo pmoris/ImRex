@@ -21,7 +21,6 @@ def padded_batch_generator(
     data_stream: DataStream,
     feature_builder: FeatureBuilder,
     neg_ratio: float,
-    batch_size: int,
     cdr3_range: Tuple[int, int],
     epitope_range: Tuple[int, int],
     inverse_map: Optional[InverseMap] = NoOp(),
@@ -100,7 +99,7 @@ def padded_batch_generator(
             tf.TensorShape([]),  # class label
         ),
         output_types=(tf.float64, tf.int64),
-    ).batch(batch_size)
+    )
 
     return dataset
 

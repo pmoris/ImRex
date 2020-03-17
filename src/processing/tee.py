@@ -1,21 +1,22 @@
 from typing import List
 
 from src.processing.data_stream import DataStream
+from src.processing.stream import Stream
 
 
-def tee(stream: DataStream, amount: int = 2) -> List[DataStream]:
+def tee(stream: Stream, amount: int = 2) -> List[DataStream]:
     """ Replicates a given stream amount times.
 
-    Note that this will consume the provided DataStream, or
+    Note that this will consume the provided Stream, or
     in the case of for example Filter, will consume the underlying
-    DataStream object. This will cause get() or next() calls to
+    Stream object. This will cause get() or next() calls to
     raise a StopIteration error, but will not prevent loops or lists
     from being made.
 
     Parameters
     ----------
-    stream : DataStream
-        The DataStream to be replicated.
+    stream : Stream
+        The Stream object to be replicated.
     amount : int, optional
         The number of times it should be replicated, by default 2
 

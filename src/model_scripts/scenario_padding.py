@@ -12,7 +12,7 @@ from src.models.model_padded import ModelPadded
 from src.neural.trainer import Trainer
 from src.processing.cv_folds import cv_splitter
 from src.processing.inverse_map import InverseMap
-from src.processing.padded_batch_generator import padded_batch_generator
+from src.processing.padded_dataset_generator import padded_dataset_generator
 from src.processing.splitter import splitter
 
 bacli.set_description(__doc__)
@@ -164,43 +164,52 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_data = padded_batch_generator(
+        # from src.processing.padded_batch_generator import padded_batch_generator
+        # train_data = padded_batch_generator(
+        #     data_stream=train,
+        #     feature_builder=feature_builder,
+        #     neg_ratio=neg_ratio,
+        #     cdr3_range=cdr3_range,
+        #     epitope_range=epitope_range,
+        #     negative_stream=neg_train,
+        # )
+        # train_data_batched = train_data.batch(batch_size)
+
+        # val_data = padded_batch_generator(
+        #     data_stream=val,
+        #     feature_builder=feature_builder,
+        #     neg_ratio=neg_ratio,
+        #     cdr3_range=cdr3_range,
+        #     epitope_range=epitope_range,
+        #     inverse_map=inverse_map,
+        #     negative_stream=neg_val,
+        # )
+
+        train_data = padded_dataset_generator(
             data_stream=train,
             feature_builder=feature_builder,
-            neg_ratio=neg_ratio,
-            batch_size=batch_size,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             negative_stream=neg_train,
         )
-        val_data = padded_batch_generator(
+        val_data = padded_dataset_generator(
             data_stream=val,
             feature_builder=feature_builder,
-            neg_ratio=neg_ratio,
-            batch_size=batch_size,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             inverse_map=inverse_map,
             negative_stream=neg_val,
         )
 
-        # from src.processing.padded_dataset_generator import padded_dataset_generator
-        # train_data = padded_dataset_generator(
-        #     data_stream=train,
-        #     feature_builder=feature_builder,
-        #     batch_size=batch_size,
-        #     cdr3_range=cdr3_range,
-        #     epitope_range=epitope_range,
-        #     negative_stream=neg_train,
-        # )
-        # val_data = padded_dataset_generator(
-        #     data_stream=val,
-        #     feature_builder=feature_builder,
-        #     batch_size=batch_size,
-        #     cdr3_range=cdr3_range,
-        #     epitope_range=epitope_range,
-        #     inverse_map=inverse_map,
-        #     negative_stream=neg_val,
-        # )
+        # shuffle and batch train data
+        train_data = train_data.shuffle(
+            # buffer equals size of dataset, because positives and negatives are grouped
+            buffer_size=train_data.reduce(0, lambda x, _: x + 1).numpy(),
+            seed=42,
+            # reshuffle to make each epoch see a different order of examples
+            reshuffle_each_iteration=True,
+        ).batch(batch_size)
+        # batch validation data
+        val_data = val_data.batch(batch_size)
 
         trainer.train(model, train_data, val_data, iteration=iteration)
