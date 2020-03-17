@@ -19,8 +19,8 @@ def padded_dataset_generator(
     data_stream: DataStream,
     feature_builder: FeatureBuilder,
     batch_size: int,
-    cdr3_range: Optional[Tuple[int, int]] = None,
-    epitope_range: Optional[Tuple[int, int]] = None,
+    cdr3_range: Tuple[int, int],
+    epitope_range: Tuple[int, int],
     inverse_map: Optional[InverseMap] = NoOp(),
     negative_stream: Optional[DataStream] = None,
 ):

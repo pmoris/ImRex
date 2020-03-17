@@ -33,8 +33,7 @@ def test_tf_dataset_shuffle():
         feature_builder=feature_builder,
         neg_ratio=0.5,
         batch_size=5,
-        cdr3_range=None,
-        epitope_range=None,
+        epitope_range=(8, 11),
         negative_stream=None,
     )
 
@@ -69,8 +68,7 @@ def test_tf_dataset_shuffle_array():
         data_stream=data_stream,
         feature_builder=feature_builder,
         batch_size=5,
-        cdr3_range=None,
-        epitope_range=None,
+        epitope_range=(8, 11),
         negative_stream=None,
     )
 
