@@ -204,15 +204,16 @@ class PredictionCallback(MetricCallback):
 
 
 def get_metrics():
-    return [metrics.Accuracy(), metrics.AUC(), metrics.Precision(), metrics.Recall()]
-    # return [
-    #     "accuracy",
-    #     metric.balanced_accuracy,
-    #     metric.mean_pred,
-    #     metric.AUC,
-    #     keras_metrics.precision(),
-    #     keras_metrics.recall(),
-    # ]
+    return [
+        metrics.BinaryAccuracy(name="accuracy"),
+        metrics.AUC(name="auc"),
+        metrics.Precision(name="precision"),
+        metrics.Recall(name="recall"),
+        metrics.TruePositives(name="tp"),
+        metrics.FalsePositives(name="fp"),
+        metrics.TrueNegatives(name="tn"),
+        metrics.FalseNegatives(name="fn"),
+    ]
 
 
 class Trainer(object):
