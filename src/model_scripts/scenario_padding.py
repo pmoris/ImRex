@@ -150,6 +150,10 @@ def run(
                 )
             ]
 
+    # create directory to store generated datasets with positive and negative examples
+    output_dir = PROJECT_ROOT / "data/processed" / run_name
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     for iteration, (train, val) in enumerate(iterations):
 
         neg_train, neg_val = None, None
@@ -185,12 +189,19 @@ def run(
         #     negative_stream=neg_val,
         # )
 
+        # create output filepaths
+        train_fold_output, test_fold_output = (
+            output_dir / f"train_fold_{iteration}.csv",
+            output_dir / f"test_fold_{iteration}.csv",
+        )
+
         train_data = padded_dataset_generator(
             data_stream=train,
             feature_builder=feature_builder,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             negative_stream=neg_train,
+            export_path=train_fold_output,
         )
         val_data = padded_dataset_generator(
             data_stream=val,
@@ -199,6 +210,7 @@ def run(
             epitope_range=epitope_range,
             inverse_map=inverse_map,
             negative_stream=neg_val,
+            export_path=test_fold_output,
         )
 
         # shuffle and batch train data
