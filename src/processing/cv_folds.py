@@ -15,7 +15,6 @@ def cv_splitter(
     epitope_grouped: bool = False,
     one_out: bool = False,
     shuffle: bool = True,
-    run_name: Optional[str] = None,
 ) -> Generator[Tuple[DataStream, DataStream], None, None]:
     """Take a DataSource object, split it into folds and yield a tuple of train and test sets as DataStream objects.
 
@@ -37,8 +36,6 @@ def cv_splitter(
         Whether to perform a leave-one-epitope out cross-validation, by default False. Requires epitope_grouped to be True.
     shuffle : bool, optional
         Whether to shuffle the data before splitting it into folds, by default True.
-    run_name : str or None
-        If supplied, the generated folds will be saved to the data/processed directory under this name for logging purposes.
 
     Yields
     ------
@@ -90,7 +87,6 @@ def cv_splitter(
             test_index=test_index,
             iteration=iteration,
             data_source=data_source,
-            run_name=run_name,
         )
 
         yield DataStream(train), DataStream(test)
@@ -101,7 +97,6 @@ def cv_log_helper(
     test_index: np.ndarray,
     iteration: int,
     data_source: DataSource,
-    run_name: Optional[str] = None,
 ):
     """Log information about the created folds and optionally exports them.
 
@@ -115,8 +110,6 @@ def cv_log_helper(
         Current iteration of cross-validation.
     data_source : DataSource
         The underlying vdjdb data.
-    run_name : Optional[str], optional
-        If supplied, the generated folds will be saved to the data/processed directory under this name for logging purposes, by default None
     """
     logger = logging.getLogger(__name__)
 
@@ -125,28 +118,6 @@ def cv_log_helper(
         f"Fold {iteration}: train size: {len(train_index)} -- test size: {len(test_index)}"
     )
     # logger.info(f"Number of unique labels: {np.unique(test[:,1], return_counts=True)}")
-
-    # save folds in csv files
-    if run_name:
-        # create directory and files
-        output_dir = PROJECT_ROOT / "data/processed" / run_name
-        output_dir.mkdir(parents=True, exist_ok=True)
-        train_fold_output, test_fold_output = (
-            output_dir / f"train_fold_{iteration}.csv",
-            output_dir / f"test_fold_{iteration}.csv",
-        )
-
-        # create separate train and test dataframes and export them to csv
-        train_fold_df, test_fold_df = (
-            data_source.data.iloc[train_index],
-            data_source.data.iloc[test_index],
-        )
-        train_fold_df.to_csv(train_fold_output, sep=";", index=False)
-        test_fold_df.to_csv(test_fold_output, sep=";", index=False)
-
-        logger.info(
-            f"Saving train and test folds in:\n{train_fold_output}\n{test_fold_output}."
-        )
 
     # for non-cdr3 reference type data:
     if "antigen.epitope" in data_source.data.columns:
