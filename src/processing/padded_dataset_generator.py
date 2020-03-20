@@ -21,7 +21,7 @@ def padded_dataset_generator(
     cdr3_range: Tuple[int, int],
     epitope_range: Tuple[int, int],
     inverse_map: Optional[InverseMap] = NoOp(),
-    negative_stream: Optional[DataStream] = None,
+    negative_ref_stream: Optional[DataStream] = None,
     export_path: Optional[str] = None,
 ) -> tf.data.Dataset:
     """Create a tensorflow dataset with positive and negative 2d arrays.
@@ -41,10 +41,10 @@ def padded_dataset_generator(
         The minimum and maximum desired epitope sequence length.
     inverse_map : Optional[InverseMap], optional.
         An inverse map for retrieving the sequences associated with an array, by default NoOp().
-    negative_stream : Optional[DataStream], optional
+    negative_ref_stream : Optional[DataStream], optional
         An optional stream of reference cdr3 sequences, without epitope or label, by default None.
     export_path: Optional[str], optional.
-        Output path where csv with positive and negative sequences will be stored, by default None.
+        If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
 
     Returns
     -------
@@ -65,35 +65,42 @@ def padded_dataset_generator(
     logger.info(f"Filtered CDR3 sequences to length: {cdr3_range}")
     logger.info(f"Filtered epitope sequences to length: {epitope_range}")
 
-    # NOTE: SizeFilter is exhausted upon iteration/instantiation, so it is copied back into a DataStream.
+    # NOTE: SizeFilter is exhausted upon iteration/instantiation, so it is copied back into a DataStream to be re-used for negative example generation
     positive_stream = DataStream(size_filter)
 
     # split positive sequences and labels into separate tuples for later combining and export
     x_pos_seq, y_pos_seq = zip(*positive_stream)
     logger.info(f"Using {len(x_pos_seq)} positive examples.")
 
-    # Create negative sequences
+    # Create negatives by permuting cdr3 and epitopes sequence pairs
+    # These are retained throughout consecutive iterations of the tf DataSet, and thus epochs.
 
     # remove class labels
     label_trimmer = LabelTrimmer(positive_stream)
-    # split cdr3 and epitope sequences into separate DataStreams
-    cdr3, epitope = unzipper(label_trimmer)
-    # if reference cdr3 was provided use it
-    if negative_stream:
-        cdr3 = SizeFilter(negative_stream, cdr3_range, has_label=False)
 
-    # Create negatives by permuting cdr3 and epitopes sequence pairs
-    # These are retained throughout consecutive iterations of DataSet, and thus epochs.
-    # convert DataStreams to arrays
-    cdr3, epitope = np.array(list(cdr3)), np.array(list(epitope))
+    # split DataStream into two Streams
+    cdr3_stream, epitope_stream = unzipper(label_trimmer)
+
+    # if reference cdr3 was provided use it
+    if negative_ref_stream:
+        cdr3_stream = SizeFilter(negative_ref_stream, cdr3_range, has_label=False)
+
+    # convert DataStreams to np.arrays to allow shuffling and concatenation
+    cdr3_array, epitope_array = (
+        np.array(list(cdr3_stream)),
+        np.array(list(epitope_stream)),
+    )
+
     # create permutations
-    cdr3_permuted = np.random.permutation(cdr3)
-    epitope_permuted = np.random.permutation(epitope)
+    cdr3_permuted = np.random.permutation(cdr3_array)
+    epitope_permuted = np.random.permutation(epitope_array)
+
     # convert back into DataStreams to utilise zipper/filter functionality
     cdr3_permuted_stream, epitope_permuted_stream = (
         DataStream(cdr3_permuted),
         DataStream(epitope_permuted),
     )
+
     # combine sequences
     zipper = Zipper(cdr3_permuted_stream, epitope_permuted_stream)
 
@@ -104,14 +111,18 @@ def padded_dataset_generator(
 
     # create additional random pairs to even out the number of positive and negative examples
     while len(pos_filter) < len(positive_stream):
+
         # calculate how many new pairs are still required
         amount = len(positive_stream) - len(pos_filter)
+
         pos_filter = augment_pairs(
-            data_stream=pos_filter,
+            permuted_stream=pos_filter,
             amount=amount,
+            original_cdr3_array=cdr3_array,
+            original_epitope_array=epitope_array,
             positive_filter_set=positive_stream,
-            negative_stream=negative_stream,
             cdr3_range=cdr3_range,
+            negative_ref_stream=negative_ref_stream,
         )
 
     # add negative class labels
@@ -147,45 +158,45 @@ def padded_dataset_generator(
 
 
 def augment_pairs(
-    data_stream: DataStream,
+    permuted_stream: DataStream,
     amount: int,
+    original_cdr3_array: np.array,
+    original_epitope_array: np.array,
     positive_filter_set: DataStream,
     cdr3_range: Tuple[int, int] = None,
-    negative_stream: Optional[DataStream] = None,
+    negative_ref_stream: Optional[DataStream] = None,
 ) -> DataStream:
-    # split DataStream into two Streams
-    cdr3_permuted_stream, epitope_permuted_stream = unzipper(data_stream)
+    # split permuted DataStream into two Streams
+    cdr3_stream, epitope_stream = unzipper(permuted_stream)
 
-    # if reference cdr3 was provided use it
-    if negative_stream:
-        # assign negative_stream to a new DataStream object to reset exhausted iterator
-        negative_stream = DataStream(negative_stream)
-        cdr3_permuted_stream = SizeFilter(negative_stream, cdr3_range, has_label=False)
-
-    # convert to np.arrays to allow concatenation
-    cdr3_permuted, epitope_permuted = (
-        np.array(list(cdr3_permuted_stream)),
-        np.array(list(epitope_permuted_stream)),
+    # convert DataStreams to np.arrays to allow concatenation
+    cdr3_array, epitope_array = (
+        np.array(list(cdr3_stream)),
+        np.array(list(epitope_stream)),
     )
 
-    # create new permutations (it does not matter if the already permuted arrays or the original arrays are shuffled again)
-    cdr3_permuted_new = np.random.permutation(cdr3_permuted)[:amount]
-    epitope_permuted_new = np.random.permutation(epitope_permuted)[:amount]
+    # create new permutations from original arrays
+    cdr3_permuted_new = np.random.permutation(original_cdr3_array)[:amount]
+    epitope_permuted_new = np.random.permutation(original_epitope_array)[:amount]
 
     # concatenate old and new arrays and convert to DataStreams
-    cdr3_permuted_stream = DataStream(
-        np.concatenate([cdr3_permuted, cdr3_permuted_new])
-    )
+    cdr3_permuted_stream = DataStream(np.concatenate([cdr3_array, cdr3_permuted_new]))
     epitope_permuted_stream = DataStream(
-        np.concatenate([epitope_permuted, epitope_permuted_new])
+        np.concatenate([epitope_array, epitope_permuted_new])
     )
 
     # combine cdr3 and epitope sequences
     zipper = Zipper(cdr3_permuted_stream, epitope_permuted_stream)
 
+    # remove duplicates due to repeated shuffling
+    deduplicated_df = pd.DataFrame(zipper).drop_duplicates()
+    deduplicated_stream = DataStream(deduplicated_df.to_numpy().tolist())
+
     # remove matches with existing positive pairs
     pos_filter = DataStream(
-        PositiveFilter(zipper, positive_items=positive_filter_set, has_label=False)
+        PositiveFilter(
+            deduplicated_stream, positive_items=positive_filter_set, has_label=False
+        )
     )
 
     return pos_filter
@@ -195,4 +206,7 @@ def export_data(x_seq, y_seq, export_path):
     """Export dataset to csv. """
     df = pd.DataFrame(x_seq, columns=["cdr3", "antigen.epitope"])
     df["class"] = y_seq
+
+    logger = logging.getLogger(__name__)
+    logger.info(f"Saving train/test fold in: {export_path}")
     df.to_csv(export_path, sep=";", index=False)

@@ -24,7 +24,7 @@ def padded_batch_generator(
     cdr3_range: Tuple[int, int],
     epitope_range: Tuple[int, int],
     inverse_map: Optional[InverseMap] = NoOp(),
-    negative_stream: Optional[DataStream] = None,
+    negative_ref_stream: Optional[DataStream] = None,
     cache_images: bool = True,
     swap: bool = False,
 ):
@@ -65,8 +65,8 @@ def padded_batch_generator(
     cdr3, epitope = unzipper(label_trimmer)
 
     # if reference cdr3 was provided use it
-    if negative_stream:
-        cdr3 = SizeFilter(negative_stream, cdr3_range, has_label=False)
+    if negative_ref_stream:
+        cdr3 = SizeFilter(negative_ref_stream, cdr3_range, has_label=False)
 
     # sample random cdr3 and epitopes: repeated for every epoch
     sampler1 = Sampler(cdr3, infinite=True)
