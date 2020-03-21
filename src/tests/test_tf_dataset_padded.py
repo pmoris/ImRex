@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
 from src.bio.peptide_feature import parse_features, parse_operator
@@ -125,6 +126,38 @@ def test_tf_dataset_shuffle_array_neg_ref():
     iteration_2 = [i[1] for i in list(tf_dataset.as_numpy_iterator())]
 
     assert not all([all(a) for a in [i == j for i, j in zip(iteration_1, iteration_2)]])
+
+
+def test_output_shape():
+    """ Check if the tf DataSet object contains double the amount of examples of the correct shape (i.e. a negative example for every positive one)."""
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
+    )
+
+    data_stream = DataStream(data_source)
+
+    negative_source = ControlCDR3Source(
+        filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
+        min_length=10,
+        max_length=20,
+    )
+    negative_ref_stream = DataStream(negative_source)
+
+    tf_dataset = padded_dataset_generator(
+        data_stream=data_stream,
+        feature_builder=feature_builder,
+        cdr3_range=(10, 20),
+        epitope_range=(8, 11),
+        negative_ref_stream=negative_ref_stream,
+    )
+
+    assert len(list(tf_dataset.as_numpy_iterator())) == 2 * data_source.data.shape[0]
+
+    assert tf_dataset.element_spec == (
+        tf.TensorSpec(shape=(20, 11, len(features_list)), dtype=tf.float64, name=None),
+        tf.TensorSpec(shape=(), dtype=tf.int64, name=None),
+    )
 
 
 def test_augment_pairs_dedup():

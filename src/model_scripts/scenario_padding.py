@@ -1,4 +1,4 @@
-""" Scenario for neural network. """
+""" Scenario for neural network with interaction map input. """
 import logging
 
 import src.bacli as bacli
@@ -157,6 +157,7 @@ def run(
     for iteration, (train, val) in enumerate(iterations):
 
         neg_train, neg_val = None, None
+
         logger.info(f"Iteration: {iteration}")
         logger.info(f"batch size: {batch_size}")
         if neg_ref:
@@ -164,7 +165,6 @@ def run(
             val, neg_val = val
             logger.info(f"neg train set: {len(neg_train)}")
             logger.info(f"neg val set: {len(neg_val)}")
-
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
@@ -221,6 +221,7 @@ def run(
             # reshuffle to make each epoch see a different order of examples
             reshuffle_each_iteration=True,
         ).batch(batch_size)
+
         # batch validation data
         val_data = val_data.batch(batch_size)
 

@@ -1,31 +1,28 @@
 import logging
 from typing import Optional, Tuple
 
+from Bio.SubsMat import MatrixInfo
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from src.bio.feature_builder import FeatureBuilder
+from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.processing.data_stream import DataStream
 from src.processing.dataset_export import export_data
 from src.processing.filter import PositiveFilter, SizeFilter
-from src.processing.image_generator import ImageGenerator
-from src.processing.image_padding import ImagePadding
-from src.processing.inverse_map import InverseMap, NoOp
 from src.processing.labeler import Labeler, LabelTrimmer
+from src.processing.stream import TransformStream
 from src.processing.zipper import unzipper, Zipper
 
 
-def padded_dataset_generator(
+def separated_input_dataset_generator(
     data_stream: DataStream,
-    feature_builder: FeatureBuilder,
     cdr3_range: Tuple[int, int],
     epitope_range: Tuple[int, int],
-    inverse_map: Optional[InverseMap] = NoOp(),
     negative_ref_stream: Optional[DataStream] = None,
     export_path: Optional[str] = None,
-) -> tf.data.Dataset:
-    """Create a tensorflow dataset with positive and negative 2d interaction map arrays.
+):
+    """Create a tensorflow dataset with positive and negative blosum-encoded arrays.
 
     Can optionally export the positive and generated negative sequence pairs
     to a csv file.
@@ -34,17 +31,13 @@ def padded_dataset_generator(
     ----------
     data_stream : DataStream
         A DataStream of positive labeled cdr3-epitope sequence pairs.
-    feature_builder : FeatureBuilder
-        A FeatureBuilder object that can convert the sequences into pairwise interaction arrays.
     cdr3_range : Tuple[int, int]
         The minimum and maximum desired cdr3 sequence length.
-    epitope_range : Tuple[int, int].
+    epitope_range : Tuple[int, int]
         The minimum and maximum desired epitope sequence length.
-    inverse_map : Optional[InverseMap], optional.
-        An inverse map for retrieving the sequences associated with an array, by default NoOp().
     negative_ref_stream : Optional[DataStream], optional
         An optional stream of reference cdr3 sequences, without epitope or label, by default None.
-    export_path: Optional[str], optional.
+    export_path : Optional[str], optional
         If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
 
     Returns
@@ -55,9 +48,9 @@ def padded_dataset_generator(
     """
     logger = logging.getLogger(__name__)
 
-    # store maximum cdr3 and epitope sequence length as width and height of the 2d arrays
-    width = cdr3_range[1]
-    height = epitope_range[1]
+    # store maximum cdr3 and epitope sequence length as padding limits
+    cdr3_max = cdr3_range[1]
+    epitope_max = epitope_range[1]
 
     # create positive sequences
 
@@ -71,7 +64,6 @@ def padded_dataset_generator(
 
     # split positive sequences and labels into separate tuples for later combining and export
     x_pos_seq, y_pos_seq = zip(*positive_stream)
-    logger.info(f"Using {len(x_pos_seq)} positive examples.")
 
     # Create negatives by permuting cdr3 and epitopes sequence pairs
     # These are retained throughout consecutive iterations of the tf DataSet, and thus epochs.
@@ -82,7 +74,7 @@ def padded_dataset_generator(
     # split DataStream into two Streams
     cdr3_stream, epitope_stream = unzipper(label_trimmer)
 
-    # if reference cdr3 was provided use it
+    # # if reference cdr3 was provided use it
     if negative_ref_stream:
         cdr3_stream = SizeFilter(negative_ref_stream, cdr3_range, has_label=False)
 
@@ -123,7 +115,6 @@ def padded_dataset_generator(
             original_epitope_array=epitope_array,
             positive_filter_set=positive_stream,
             cdr3_range=cdr3_range,
-            negative_ref_stream=negative_ref_stream,
         )
 
     # add negative class labels
@@ -131,7 +122,7 @@ def padded_dataset_generator(
 
     # split negative sequences and labels into separate tuples for later combining and export
     x_neg_seq, y_neg_seq = zip(*negative_labeler)
-    logger.info(f"Using {len(x_neg_seq)} negative examples.")
+    # logger.info(f"Using {len(x_neg_seq)} negative examples.")
 
     # combine positive and negative examples into arrays with sequences and labels
     x_seq, y_seq = np.array(x_pos_seq + x_neg_seq), np.array(y_pos_seq + y_neg_seq)
@@ -143,19 +134,76 @@ def padded_dataset_generator(
     # Combine sequences and labels into DataStream again to utilise image generation functionality
     zipped = Zipper(DataStream(x_seq), DataStream(y_seq))
 
-    # create 2d input arrays and allow reverse lookup back to sequences
-    zipped = inverse_map.input(zipped)
-    image_gen = ImageGenerator(zipped, feature_builder)
-    image_padding = ImagePadding(image_gen, width, height, pad_value=0)
-    image_stream = inverse_map.output(image_padding)
+    # create BLOSUM encoded arrays
+    blosum_encoding = BlosumImageGenerator(zipped)
+
+    # pad with zero-columns
+    blosum_padding = BlosumPadding(blosum_encoding, cdr3_max, epitope_max, pad_value=0)
 
     # split stream back into separate sequence and label tuples for export to tf DataSet
-    x, y = zip(*image_stream)
+    x, y = zip(*blosum_padding)
+    x_cdr3, x_epitope = zip(*x)
 
     # convert into tf DataSet
-    dataset = tf.data.Dataset.from_tensor_slices((np.array(x), np.array(y)))
+    dataset = tf.data.Dataset.from_tensor_slices(
+        (np.array(x_cdr3), np.array(x_epitope), np.array(y))
+    )
 
     return dataset
+
+
+class BlosumImageGenerator(TransformStream):
+    def __init__(self, stream):
+        super().__init__(stream)
+        self.features = dict()
+        for aa in AMINO_ACIDS:
+            self.features[aa] = [self._get_matrix_entry(aa, x) for x in AMINO_ACIDS]
+
+    def _get_matrix_entry(self, aa1, aa2):
+        i = MatrixInfo.blosum50.get((aa1, aa2))
+        if i is not None:
+            return i
+        else:
+            return MatrixInfo.blosum50.get((aa2, aa1))
+
+    def transform(self, item, *args, **kwargs):
+        x, y = item
+        X = tuple(self.convert(xx) for xx in x)
+        return X, y
+
+    def convert(self, sequence):
+        array = np.array([self.features[aa] for aa in sequence])
+        return array
+
+
+class BlosumPadding(TransformStream):
+    def __init__(self, stream, max_length_cdr3, max_length_epitope, pad_value=0):
+        super().__init__(stream)
+        self.max_length_cdr3 = max_length_cdr3
+        self.max_length_epitope = max_length_epitope
+        self.pad_value = pad_value
+
+    def transform(self, item, *args, **kwargs):
+        sequence_tuple, label = item
+        cdr3_array, epitope_array = sequence_tuple
+
+        cdr3_padding = ((0, self.max_length_cdr3 - cdr3_array.shape[0]), (0, 0))
+        epitope_padding = (
+            (0, self.max_length_epitope - epitope_array.shape[0]),
+            (0, 0),
+        )
+
+        padded_cdr3_array = np.pad(
+            cdr3_array, cdr3_padding, mode="constant", constant_values=self.pad_value
+        )
+        padded_epitope_array = np.pad(
+            epitope_array,
+            epitope_padding,
+            mode="constant",
+            constant_values=self.pad_value,
+        )
+
+        return (padded_cdr3_array, padded_epitope_array), label
 
 
 def augment_pairs(
@@ -165,7 +213,6 @@ def augment_pairs(
     original_epitope_array: np.array,
     positive_filter_set: DataStream,
     cdr3_range: Tuple[int, int] = None,
-    negative_ref_stream: Optional[DataStream] = None,
 ) -> DataStream:
     # split permuted DataStream into two Streams
     cdr3_stream, epitope_stream = unzipper(permuted_stream)
