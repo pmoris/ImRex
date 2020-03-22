@@ -1,8 +1,9 @@
 """Functions to create pipelines for different model scenarios."""
 import datetime
 import logging
+from pathlib import Path
 
-from src.config import LOG_DIR
+from src.neural.trainer import get_output_path
 
 
 def create_run_name(name):
@@ -13,9 +14,9 @@ def create_run_name(name):
 
 def create_logger(run_name):
     # create filepath for log
-    log_file = LOG_DIR / run_name
-    log_file = log_file.with_suffix(".log")
-    log_file.parent.mkdir(parents=True, exist_ok=True)
+    log_file = get_output_path(
+        base_name=run_name, file_name=Path(run_name).with_suffix(".log")
+    )
     # create file logger
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(filename=log_file, level=logging.INFO, format=log_fmt)

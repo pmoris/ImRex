@@ -58,8 +58,9 @@ def create_checkpointer(base_name, iteration):
     )
 
 
-def create_tensorboard_callback(model_name):
-    logpath = TENSORBOARD_DIR / model_name
+def create_tensorboard_callback(base_name, iteration):
+    logpath = TENSORBOARD_DIR / base_name / f"iteration_{iteration}"
+    logpath.parent.mkdir(parents=True, exist_ok=True)
 
     return callbacks.TensorBoard(log_dir=logpath)
 
@@ -276,7 +277,7 @@ class Trainer(object):
         callbacks_list = [
             create_checkpointer(model.base_name, iteration),
             create_csv_logger(model.base_name, iteration),
-            create_tensorboard_callback(model.get_name(iteration)),
+            create_tensorboard_callback(model.base_name, iteration),
             # RocCallback(val_stream, model.base_name, iteration),
             # PrecisionRecallCallback(val_stream, model.base_name, iteration),
             # PredictionCallback(

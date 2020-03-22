@@ -21,12 +21,6 @@ class Model(object):
     def new_instance(self):
         return self._build_model()
 
-    def get_name(self, iteration=None):
-        name = self.name
-        if iteration is not None:
-            name += " ({})".format(str(iteration))
-        return name
-
     def get_optimizer(self):
         raise NotImplementedError
 

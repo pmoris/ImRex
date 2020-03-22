@@ -7,7 +7,7 @@ from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.model_scripts import pipeline
 from src.models.model_separated_inputs import ModelSeparatedInputs
-from src.neural.trainer import Trainer
+from src.neural.trainer import get_output_path, Trainer
 from src.processing.cv_folds import cv_splitter
 from src.processing.separated_input_dataset_generator import (
     separated_input_dataset_generator,
@@ -125,10 +125,6 @@ def run(
                 )
             ]
 
-    # create directory to store generated datasets with positive and negative examples
-    output_dir = PROJECT_ROOT / "data/processed" / run_name
-    output_dir.mkdir(parents=True, exist_ok=True)
-
     for iteration, (train, val) in enumerate(iterations):
 
         neg_train, neg_val = None, None
@@ -143,10 +139,18 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        # create output filepaths
+        # retrieve model output directory and create data directory to store generated datasets with positive and negative examples
         train_fold_output, test_fold_output = (
-            output_dir / f"train_fold_{iteration}.csv",
-            output_dir / f"test_fold_{iteration}.csv",
+            get_output_path(
+                base_name=run_name,
+                file_name=f"train_fold_{iteration}.csv",
+                iteration=iteration,
+            ),
+            get_output_path(
+                base_name=run_name,
+                file_name=f"test_fold_{iteration}.csv",
+                iteration=iteration,
+            ),
         )
 
         train_data = separated_input_dataset_generator(

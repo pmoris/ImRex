@@ -5,4 +5,3 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIR = PROJECT_ROOT / "models/models"
 TENSORBOARD_DIR = PROJECT_ROOT / "models/tensorboard_logs"
-LOG_DIR = PROJECT_ROOT / "models/logs"
