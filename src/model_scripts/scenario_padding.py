@@ -200,7 +200,7 @@ def run(
             feature_builder=feature_builder,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
-            negative_stream=neg_train,
+            negative_ref_stream=neg_train,
             export_path=train_fold_output,
         )
         val_data = padded_dataset_generator(
@@ -209,7 +209,7 @@ def run(
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             inverse_map=inverse_map,
-            negative_stream=neg_val,
+            negative_ref_stream=neg_val,
             export_path=test_fold_output,
         )
 

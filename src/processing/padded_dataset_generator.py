@@ -123,7 +123,6 @@ def padded_dataset_generator(
             original_epitope_array=epitope_array,
             positive_filter_set=positive_stream,
             cdr3_range=cdr3_range,
-            negative_ref_stream=negative_ref_stream,
         )
 
     # add negative class labels
@@ -165,7 +164,6 @@ def augment_pairs(
     original_epitope_array: np.array,
     positive_filter_set: DataStream,
     cdr3_range: Tuple[int, int] = None,
-    negative_ref_stream: Optional[DataStream] = None,
 ) -> DataStream:
     # split permuted DataStream into two Streams
     cdr3_stream, epitope_stream = unzipper(permuted_stream)

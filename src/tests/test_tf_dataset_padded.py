@@ -177,7 +177,6 @@ def test_augment_pairs_dedup():
             (("FFFFFFFFFFFFF", "FFFFFFFFF"), 1),
         ]
     )
-    negative_ref_stream = None
     label_trimmer = LabelTrimmer(stream)
     stream = DataStream(label_trimmer)
 
@@ -195,7 +194,6 @@ def test_augment_pairs_dedup():
             original_epitope_array=epitope_array,
             positive_filter_set=DataStream([]),
             cdr3_range=(0, 30),
-            negative_ref_stream=negative_ref_stream,
         )
 
     assert len(stream) == 36
@@ -217,7 +215,6 @@ def test_augment_pairs_dedup_pos():
             (("FFFFFFFFFFFFF", "FFFFFFFFF"), 1),
         ]
     )
-    negative_ref_stream = None
     label_trimmer = LabelTrimmer(positive_stream)
     trimmer = DataStream(label_trimmer)
 
@@ -250,7 +247,6 @@ def test_augment_pairs_dedup_pos():
             original_epitope_array=epitope_array,
             positive_filter_set=positive_stream,
             cdr3_range=(0, 30),
-            negative_ref_stream=negative_ref_stream,
         )
 
     assert len(pos_filter) == 30
