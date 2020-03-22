@@ -91,7 +91,7 @@ def run(
     model = ModelDebug(
         width=max_length_cdr3,
         height=max_length_epitope,
-        name=name,
+        name=run_name,
         channels=feature_builder.get_number_layers(),
     )
     logger.info(f"Built model {model.base_name}:")
