@@ -44,7 +44,7 @@ def run(
 
     # create logger and log file
     run_name = pipeline.create_run_name(name)
-    pipeline.create_logger(name)
+    pipeline.create_logger(run_name)
     logger = logging.getLogger(__name__)
 
     # log utilised function arguments that were used
