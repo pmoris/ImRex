@@ -127,7 +127,6 @@ def run(
             n_folds=n_folds,
             epitope_grouped=epitope_grouped_cv,
             one_out=one_epitope_out_cv,
-            run_name=run_name,
         )
 
         # if a negative reference set is provided, use it
@@ -141,7 +140,6 @@ def run(
                 n_folds=n_folds,
                 epitope_grouped=False,  # CDR3 reference cannot be grouped on epitope
                 one_epitope_out_cv=False,
-                run_name=neg_ref_fold_path,
             )
             iterations = [
                 ((train, neg_train), (val, neg_val))
