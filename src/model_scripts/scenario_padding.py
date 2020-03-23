@@ -27,7 +27,7 @@ def run(
     val_split: float = None,  # the proportion of the dataset to include in the test split.
     epitope_grouped_cv: bool = False,  # when val_split is None, indicates whether to use normal k-fold cv or an epitope-grouped cv
     one_epitope_out_cv: bool = False,  # when val_split is None and epitope_grouped_cv is True, indicates whether to use leave-1-epitope-out cv
-    neg_shuffle_in_cv: bool = True,  # NOT USED
+    neg_shuffle_in_cv: bool = True,  # when True, negatives will be generated through shuffling within each train/test set, otherwise the entire dataset will be shuffled, which can cause individual cdr3/epitope sequences to appear in both train and test sets.
     n_folds: int = 5,
     # these lengths are used for both size filtering and padding. Should be compatible with any preprocessing steps.
     min_length_cdr3: int = 10,
@@ -66,7 +66,11 @@ def run(
 
     # check argument compatability
     if epitope_grouped_cv and val_split is not None:
-        raise RuntimeError("Can't test epitope-grouped without k folds")
+        raise RuntimeError("Cannot test epitope-grouped without k folds.")
+    if neg_ref and not neg_shuffle_in_cv:
+        raise RuntimeError(
+            "Cannot shuffle dataset before fold generaton if negatives are generated via CDR3 reference set."
+        )
 
     logger.info("features: " + str(features_list))
     logger.info("operator: " + str(operator))
@@ -100,53 +104,68 @@ def run(
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
 
-    # if a fixed train-test split ratio is provided...
-    if val_split is not None:
-        train, val = splitter(data_source, test_size=val_split)
-        # if a negative reference set is provided, use it
-        if neg_ref:
-            negative_source = ControlCDR3Source(
-                min_length=min_length_cdr3, max_length=max_length_cdr3
-            )
-            neg_train, neg_val = splitter(negative_source, test_size=val_split)
-            iterations = [((train, neg_train), (val, neg_val))]
-        # else, generate negatives through shuffling
-        else:
-            # generate negatives through shuffling within each cv iteration
-            if neg_shuffle_in_cv:
-                iterations = [(train, val)]
-            # generate negatives once on the entire dataset
-            else:
-                # TODO: shuffle cdr3/epitope pairs, remove positives, present as negatives
-                iterations = [(train, val)]
-
-    # ...otherwise use a cross validation scheme
-    else:
-        iterations = cv_splitter(
-            data_source=data_source,
-            n_folds=n_folds,
-            epitope_grouped=epitope_grouped_cv,
-            one_out=one_epitope_out_cv,
+    # generate negatives once on the entire dataset
+    if not neg_shuffle_in_cv:
+        logger.info(
+            f"Generating negative examples on the entire dataset prior to train/test fold creation."
         )
+        data_source.generate_negatives()
 
-        # if a negative reference set is provided, use it
-        if neg_ref:
-            negative_source = ControlCDR3Source(
-                min_length=min_length_cdr3, max_length=max_length_cdr3
-            )
-            neg_ref_fold_path = run_name + "_cdr3_ref"
-            neg_iterations = cv_splitter(
-                data_source=negative_source,
+        # if a fixed train-test split ratio is provided...
+        if val_split is not None:
+            train, val = splitter(data_source, test_size=val_split)
+            iterations = [(train, val)]
+        else:
+            iterations = cv_splitter(
+                data_source=data_source,
                 n_folds=n_folds,
-                epitope_grouped=False,  # CDR3 reference cannot be grouped on epitope
-                one_epitope_out_cv=False,
+                epitope_grouped=epitope_grouped_cv,
+                one_out=one_epitope_out_cv,
             )
-            iterations = [
-                ((train, neg_train), (val, neg_val))
-                for (train, val), (neg_train, neg_val) in zip(
-                    iterations, neg_iterations
+
+    # generate negatives within each train/test set
+    else:
+        # if a fixed train-test split ratio is provided...
+        if val_split is not None:
+            train, val = splitter(data_source, test_size=val_split)
+            # if a negative reference set is provided, use it
+            if neg_ref:
+                negative_source = ControlCDR3Source(
+                    min_length=min_length_cdr3, max_length=max_length_cdr3
                 )
-            ]
+                neg_train, neg_val = splitter(negative_source, test_size=val_split)
+                iterations = [((train, neg_train), (val, neg_val))]
+            # else, generate negatives through shuffling
+            else:
+                iterations = [(train, val)]
+
+        # ...otherwise use a cross validation scheme
+        else:
+            iterations = cv_splitter(
+                data_source=data_source,
+                n_folds=n_folds,
+                epitope_grouped=epitope_grouped_cv,
+                one_out=one_epitope_out_cv,
+            )
+
+            # if a negative reference set is provided, use it
+            if neg_ref:
+                negative_source = ControlCDR3Source(
+                    min_length=min_length_cdr3, max_length=max_length_cdr3
+                )
+                neg_ref_fold_path = run_name + "_cdr3_ref"
+                neg_iterations = cv_splitter(
+                    data_source=negative_source,
+                    n_folds=n_folds,
+                    epitope_grouped=False,  # CDR3 reference cannot be grouped on epitope
+                    one_epitope_out_cv=False,
+                )
+                iterations = [
+                    ((train, neg_train), (val, neg_val))
+                    for (train, val), (neg_train, neg_val) in zip(
+                        iterations, neg_iterations
+                    )
+                ]
 
     for iteration, (train, val) in enumerate(iterations):
 
