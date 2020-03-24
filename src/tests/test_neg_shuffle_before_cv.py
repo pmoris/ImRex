@@ -1,6 +1,7 @@
 import pandas as pd
 
 from src.config import PROJECT_ROOT
+from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.processing.cv_folds import cv_splitter
 from src.processing.splitter import splitter
@@ -136,3 +137,73 @@ def test_cv():
     for train, val in iterations:
         assert all(pd.DataFrame(train)[1].sort_values().unique() == [0, 1])
         assert all(pd.DataFrame(val)[1].sort_values().unique() == [0, 1])
+
+
+def test_generate_negatives_from_ref():
+    """ Check that the number of negatives equals the number of positive examples. """
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
+    )
+    negative_source = ControlCDR3Source(
+        filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
+        min_length=10,
+        max_length=20,
+    )
+
+    data_source.generate_negatives_from_ref(negative_source)
+
+    assert (
+        data_source.data.groupby("y").size()[0]
+        == data_source.data.groupby("y").size()[1]
+    )
+
+
+def test_sample_pairs_to_do_neg_ref():
+    """ Make sure that the to_do_df only contains negative examples.
+
+    This should be ensured by using keep="first" when removing duplicates.
+    """
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
+    )
+    negative_source = ControlCDR3Source(
+        filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
+        min_length=10,
+        max_length=20,
+    )
+
+    # sample required number of CDR3 sequences
+    amount = data_source.data.shape[0]
+    negative_cdr3_series = (
+        negative_source.data[negative_source.headers["cdr3"]]
+        .sample(n=amount)
+        .reset_index(drop=True)
+        .rename("cdr3")
+    )
+
+    # match with positive epitopes
+    negative_df = pd.concat(
+        [negative_cdr3_series, data_source.data[data_source.headers["epitope_header"]]],
+        axis=1,
+    )
+
+    # add class labels
+    negative_df["y"] = 0
+
+    # merge with positive dataset
+    data_source.data = data_source.data.append(negative_df).reset_index(drop=True)
+
+    # remove false negatives
+    to_do_df = data_source.data.loc[
+        data_source.data.duplicated(
+            subset=[
+                data_source.headers["cdr3_header"],
+                data_source.headers["epitope_header"],
+            ],
+            keep="first",
+        )
+    ]
+
+    assert all(to_do_df["y"] == 0)

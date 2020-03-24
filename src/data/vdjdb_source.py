@@ -42,6 +42,80 @@ class VdjdbSource(DataSource):
             label = row["y"]
             yield (pep1, pep2), label
 
+    def generate_negatives_from_ref(self, negative_source: DataSource):
+        """ Generate negative CDR3 epitope sequence pairs by drawing from a negative CDR3 reference set.
+
+        Every epitope in the positive set is matched with a random CDR3 in order to keep the epitope distribution equal between the two classes.
+        """
+        # sample required number of CDR3 sequences
+        amount = self.data.shape[0]
+        negative_cdr3_series = (
+            negative_source.data[negative_source.headers["cdr3"]]
+            .sample(n=amount)
+            .reset_index(drop=True)
+            .rename("cdr3")
+        )
+
+        # match with positive epitopes
+        negative_df = pd.concat(
+            [negative_cdr3_series, self.data[self.headers["epitope_header"]]], axis=1
+        )
+
+        # add class labels
+        negative_df["y"] = 0
+
+        # merge with positive dataset
+        self.data = self.data.append(negative_df).reset_index(drop=True)
+
+        # remove false negatives
+        to_do_df = self.data.loc[
+            self.data.duplicated(
+                subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
+                keep="first",
+            )
+        ]
+        self.data = self.data.drop_duplicates(
+            subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
+            keep="first",
+        ).reset_index(drop=True)
+
+        # create new negative pairs for any accidental false negatives
+        amount = to_do_df.shape[0]
+        while amount > 0:
+            negative_cdr3_series = (
+                negative_source.data[negative_source.headers["cdr3"]]
+                .sample(n=amount)
+                .reset_index(drop=True)
+                .rename("cdr3")
+            )
+
+            negative_df = pd.concat(
+                [
+                    negative_cdr3_series,
+                    to_do_df[self.headers["epitope_header"]].reset_index(drop=True),
+                ],
+                axis=1,
+            )
+
+            negative_df["y"] = 0
+
+            self.data = self.data.append(negative_df).reset_index(drop=True)
+
+            to_do_df = self.data.loc[
+                self.data.duplicated(
+                    subset=[
+                        self.headers["cdr3_header"],
+                        self.headers["epitope_header"],
+                    ],
+                    keep="first",
+                )
+            ]
+
+            self.data = self.data.drop_duplicates(
+                subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
+                keep="first",
+            ).reset_index(drop=True)
+
     def generate_negatives(self):
         # generate negative pairs from list of all cdr3s in positive pairs
         shuffled_pairs = [

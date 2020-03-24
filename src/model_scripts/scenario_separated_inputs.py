@@ -59,10 +59,6 @@ def run(
     # check argument compatability
     if epitope_grouped_cv and val_split is not None:
         raise RuntimeError("Cannot test epitope-grouped without k folds.")
-    if neg_ref and not neg_shuffle_in_cv:
-        raise RuntimeError(
-            "Cannot shuffle dataset before fold generaton if negatives are generated via CDR3 reference set."
-        )
 
     logger.info("neg_ref: " + str(neg_ref))
     logger.info("epitope_grouped_cv: " + str(epitope_grouped_cv))
@@ -91,7 +87,19 @@ def run(
         logger.info(
             f"Generating negative examples on the entire dataset prior to train/test fold creation."
         )
-        data_source.generate_negatives()
+        # either through shuffling
+        if not neg_ref:
+            logger.info(f"Generating negative examples through shuffling.")
+            data_source.generate_negatives()
+        # or from reference set
+        else:
+            logger.info(
+                f"Generating negative examples from negative reference CDR3 set."
+            )
+            negative_source = ControlCDR3Source(
+                min_length=min_length_cdr3, max_length=max_length_cdr3
+            )
+            data_source.generate_negatives_from_ref(negative_source)
 
         # if a fixed train-test split ratio is provided...
         if val_split is not None:
