@@ -1,10 +1,8 @@
-import logging
-
-import numpy as np
 import pandas as pd
 
 from src.config import PROJECT_ROOT
 from src.data.data_source import DataSource
+from src.processing.negative_sampler import sample_pairs
 
 
 VDJDB_PATH = PROJECT_ROOT / "data/interim/vdjdb-human-trb.csv"
@@ -53,7 +51,7 @@ class VdjdbSource(DataSource):
             negative_source.data[negative_source.headers["cdr3"]]
             .sample(n=amount)
             .reset_index(drop=True)
-            .rename("cdr3")
+            .rename(negative_source.headers["cdr3"])
         )
 
         # match with positive epitopes
@@ -119,7 +117,13 @@ class VdjdbSource(DataSource):
     def generate_negatives(self):
         # generate negative pairs from list of all cdr3s in positive pairs
         shuffled_pairs = [
-            self._sample_pairs(cdr3) for cdr3 in self.data[self.headers["cdr3_header"]]
+            sample_pairs(
+                cdr3=cdr3,
+                df=self.data,
+                cdr3_column=self.headers["cdr3_header"],
+                epitope_column=self.headers["epitope_header"],
+            )
+            for cdr3 in self.data[self.headers["cdr3_header"]]
         ]
 
         # convert list of tuples into dataframe
@@ -165,7 +169,12 @@ class VdjdbSource(DataSource):
 
         while to_do_df.shape[0] > 0:
             shuffled_pairs = [
-                self._sample_pairs(cdr3)
+                sample_pairs(
+                    cdr3=cdr3,
+                    df=self.data,
+                    cdr3_column=self.headers["cdr3_header"],
+                    epitope_column=self.headers["epitope_header"],
+                )
                 for cdr3 in to_do_df[self.headers["cdr3_header"]]
             ]
             shuffled_df = pd.DataFrame(
@@ -190,38 +199,3 @@ class VdjdbSource(DataSource):
 
             # remove NaN to deal with any possible universal cdr3s
             self.data = self.data.dropna(axis=0, how="any")
-
-    def _sample_pairs(self, cdr3):
-        """
-        Sample an epitope for the given CDR3 sequence from the pool of other epitopes in the original positive dataset.
-
-        NOTE: do not use a random_state for the sample function, since this will result in the same epitope
-        being returned every time (for cdr3s with the same original epitope).
-        """
-        # check which epitopes occur as a positive partner for the current cdr3
-        epitopes_to_exclude = self.data.loc[
-            (self.data[self.headers["cdr3_header"]] == cdr3) & (self.data["y"] == 1),
-            self.headers["epitope_header"],
-        ]
-        # NOTE: for this to work, the original data source should either remain unmodified (to avoid epitopes paired with
-        # the cdr3 as a negative example from showing up in this list), or by making sure the class labels are 1, in which
-        # case the original dataframe should be given class labels before the sample_pairs function is called for the first time.
-
-        # create pd.Series with all epitopes except for those that are positive partnerse of the current cdr3
-        possible_epitopes = self.data.loc[
-            ~self.data[self.headers["epitope_header"]].isin(epitopes_to_exclude),
-            self.headers["epitope_header"],
-        ]
-
-        # check if list is empty => cdr3 binds to every epitope present
-        if possible_epitopes.empty:
-            logger = logging.getLogger(__name__)
-            logger.warning(
-                f"CDR3 sequence {cdr3} is associated with every epitope in the dataset and will be discarded from the negatives."
-            )
-            return cdr3, np.NaN
-
-        else:
-            # sample 1 epitope from this list to pair with the cdr3 as a negative example
-            sampled_epitope = possible_epitopes.sample(n=1).reset_index(drop=True)[0]
-            return cdr3, sampled_epitope

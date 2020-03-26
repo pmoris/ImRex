@@ -4,6 +4,7 @@ from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.processing.cv_folds import cv_splitter
+from src.processing.negative_sampler import sample_pairs
 from src.processing.splitter import splitter
 
 
@@ -71,7 +72,12 @@ def test_sample_pairs_to_do_neg():
     )
 
     shuffled_pairs = [
-        data_source._sample_pairs(cdr3)
+        sample_pairs(
+            cdr3=cdr3,
+            df=data_source.data,
+            cdr3_column=data_source.headers["cdr3_header"],
+            epitope_column=data_source.headers["epitope_header"],
+        )
         for cdr3 in data_source.data[data_source.headers["cdr3_header"]]
     ]
 
