@@ -2,13 +2,9 @@
 -e .
 
 # external packages
-python==3.7.6
 tensorflow-gpu==2.1.0
-tensorboard==2.0.1
-cudatoolkit==10.1.243
-cudnn==7.6.5
+tensorboard==2.1.0
 h5py==2.10.0
-hdf5==1.10.4
 biopython==1.76
 ipykernel
 joblib==0.14.1

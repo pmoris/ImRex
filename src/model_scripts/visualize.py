@@ -2,15 +2,15 @@ import os
 from copy import copy
 import itertools
 
-from scipy import stats
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy import stats
 import seaborn as sns
 
 import src.bacli as bacli
-from src.bio.image import image_from_matrix, image_from_matrices, image_from_tensor
-from src.bio.peptide_feature import (
+from src.bio.image import image_from_matrices, image_from_matrix
+from src.bio.peptide_feature import (  # noqa: I101
     Charge,
     Hydrophilicity,
     Hydrophobicity,
@@ -18,8 +18,8 @@ from src.bio.peptide_feature import (
     Surface,
     Flexibility,
     Transfer,
-    TCRexBasicity,
-    TCRexHelicity,
+    # TCRexBasicity,
+    # TCRexHelicity,
     AtchleyFactor1,
     AtchleyFactor2,
     AtchleyFactor3,
@@ -34,11 +34,11 @@ from src.config import PROJECT_ROOT
 from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.metric import metric
 from src.visualisation.plot import (
-    consolidate_all,
+    cmap,
     concatenate_all,
+    consolidate_all,
     plot_all,
     # palette,
-    cmap,
     plot_combined,
 )
 

@@ -36,7 +36,7 @@ class ModelNetTCR(Model):
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
 
-        def feature_extraction(input):
+        def feature_extraction(input):  # noqa: A002
             convolutions = list()
             convolutions.append(
                 Conv1D(

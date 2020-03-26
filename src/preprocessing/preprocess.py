@@ -1,4 +1,4 @@
-""" Preprocess ppi files """
+""" Preprocess ppi files. """
 from itertools import chain
 
 import pandas as pd
@@ -17,7 +17,7 @@ PPI_NAMES = [PPI_NAME1, PPI_NAME2]
 SEQUENCES_PATH = "PPI_sequences.csv"
 
 
-@bacli.command
+@bacli.command  # noqa: C901
 def ppi(
     inpath1: str,
     outpath1: str,
@@ -154,12 +154,12 @@ def ppi2(
         to_remove = set()
 
         with open(inpath, "r") as file:
-            header = file.readline()
+            header = file.readline()  # skip first line   # noqa: F841
 
             line = file.readline()
             while line:
                 if line.startswith(">"):
-                    id = line.lstrip(">").strip()
+                    id = line.lstrip(">").strip()  # noqa: A001
                     sequence = file.readline().strip()
                     # if sequence == "MLKSKTFLKKTRAGGVMKIVREHYLRDDIGCGAPGCAACGGAHEGPALEPQPQDPASSVCPQPHYLLPDTNVLLHQIDVLEDPAIRNVIVLQTVLQEVRNRSAPVYKRIRDVTNNQEKHFYTFTNEHHRETYVEQEQGENANDRNDRAIRVAAKWYNEHLKKMSADNQLQVIFITNDRRNKEKAIEEGIPAFTCEEYVKSLTANPELIDRLACLSEEGNEIESGKIIFSEHLPLSKLQQGIKSGTYLQGTFRASRENYLEATVWIHGDNEENKEIILQGLKHLNRAVHEDIVAVELLPKSQWVAPSSVVLHDEGQNEEDVEKEEETERMLKTAVSEKMLKPTGRVVGIIKRNWRPYCGMLSKSDIKESRRHLFTPADKRIPRIRIETRQASTLEGRRIIVAIDGWPRNSRYPNGHFVRNLGDVGEKETETEVLLLEHDVPHQPFSQAVLSFLPKMPWSITEKDMKNREDLRHLCICSVDPPGCTDIDDALHCRELENGNLEVGVHIADVSHFIRPGNALDQESARRGTTVYLCEKRIDMVPELLSSNLCSLKCDVDRLAFSCIWEMNHNAEILKTKFTKSVINSKASLTYAEAQLRIDSANMNDDITTSLRGLNKLAKILKKRRIEKGALTLSSPEVRFHMDSETHDPIDLQTKELRETNSMVEEFMLLANISVAKKIHEEFSEHALLRKHPAPPPSNYEILVKAARSRNLEIKTDTAKSLAESLDQAESPTFPYLNTLLRILATRCMMQAVYFCSGMDNDFHHYGLASPIYTHFTSPIRRYADVIVHRLLAVAIGADCTYPELTDKHKLADICKNLNFRHKMAQYAQRASVAFHTQLFFKSKGIVSEEAYILFVRKNAIVVLIPKYGLEGTVFFEEKDKPNPQLIYDDEIPSLKIEDTVFHVFDKVKVKIMLDSSNLQHQKIRMSLVEPQIPGISIPTDTSNMDLNGPKKKKMKLGK":
                     #     print(line)
@@ -187,12 +187,12 @@ def ppi2(
         interactions = filter(
             lambda x: x[0] not in to_remove and x[1] not in to_remove, interactions
         )
-        interactions_frame = DataFrame.from_records(
+        interactions_frame = pd.DataFrame.from_records(
             interactions, columns=[PPI_NAME1, PPI_NAME2]
         )
         interactions_frame.to_csv(outpath, index=False, sep=";")
 
-    sequences_frame = DataFrame.from_records(
+    sequences_frame = pd.DataFrame.from_records(
         list(sequences.items()), columns=["identifier", "sequence"]
     )
     sequences_frame.to_csv(sequences_path, index=False, sep=";")

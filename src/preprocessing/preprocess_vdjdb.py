@@ -1,5 +1,6 @@
 """ Preprocess VDJdb data files in order to extract CDR3 and epitope sequence pairs.
-    Turns raw VDJdb data from (../raw/vdjdb) into cleaned data ready to be analyzed (saved in ../processed).
+
+Turns raw VDJdb data from (../raw/vdjdb) into cleaned data ready to be analyzed (saved in ../processed).
 """
 
 import argparse
@@ -100,7 +101,7 @@ def create_parser():
         nargs="+",
         type=str,
         default=None,
-        help="Specify the sequence length restriction. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'. Do not use quotes.",
+        help="Specify the sequence length restriction. Format: cdr3-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'. Do not use quotes.",
     )
     parser.add_argument(
         "--downsample",
@@ -123,8 +124,8 @@ def create_parser():
     return args
 
 
-def filter_vdjdb(
-    input: str,
+def filter_vdjdb(  # noqa: C901
+    input: str,  # noqa: A002
     tcr_chain: str = "all",
     species: str = "all",
     drop_spurious: bool = True,
@@ -159,7 +160,7 @@ def filter_vdjdb(
     keep_specific_references : list
         Specify specific references to keep. E.g. '10xgenomics PMID#####', by default None
     length_restriction: list
-        Specify the sequence length restrictions. Format: cdr-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13', by default None
+        Specify the sequence length restrictions. Format: cdr3-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13', by default None
     Downsample: list
         Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 0.84 GILGFVFTL 0.80', by default None
 
@@ -335,7 +336,8 @@ def filter_vdjdb(
 
 
 def is_amino_acid_sequence(peptide: str):
-    """Checks whether a sequence contains only valid modX labels for the 20 standard amino acids.
+    """Check whether a sequence contains only valid modX labels for the 20 standard amino acids.
+
     std_amino_acids = ['Q', 'W', 'E', 'R', 'T', 'Y', 'I', 'P', 'A', 'S',
                    'D', 'F', 'G', 'H', 'K', 'L', 'C', 'V', 'N', 'M']
 
@@ -353,7 +355,7 @@ def is_amino_acid_sequence(peptide: str):
 
 
 def assert_length_restrictions(length_restriction_list: list):
-    """Checks whether number of provided length restrictions is possible
+    """Check whether number of provided length restrictions is possible.
 
     Parameters
     ----------
@@ -365,7 +367,7 @@ def assert_length_restrictions(length_restriction_list: list):
     ), f"Expected four numbers for length restrictions (cdr-min cdr3-max epitope-min epitope-max), but received {len(length_restriction_list)}."
 
 
-def assert_columns(df, input):
+def assert_columns(df, input):  # noqa: A002
     assert df.columns.tolist() == [
         # "complex.id",
         # "Gene",

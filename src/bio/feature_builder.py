@@ -39,6 +39,7 @@ class SinglePeptideFeatureBuilder(PeptideFeatureBuilder):
 
 class CombinedPeptideFeatureBuilder(PeptideFeatureBuilder):
     """Object that contains a list of features and an operator as its attributes.
+
     Can compute the pairwise feature matrix for two amino acid sequences.
     """
 

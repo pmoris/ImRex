@@ -1,10 +1,10 @@
 """ Scenario for neural network. """
-import datetime
 import logging
 
 import src.bacli as bacli
-from src.config import LOG_DIR, PROJECT_ROOT
+from src.config import PROJECT_ROOT
 from src.data.vdjdb_source import VdjdbSource
+from src.model_scripts import pipeline
 from src.models.model_separated_inputs import ModelSeparatedInputs
 from src.neural.trainer import Trainer
 from src.processing.cv_folds import cv_splitter
@@ -20,39 +20,28 @@ bacli.set_description(__doc__)
 def run(
     batch_size: int = 128,
     epochs: int = 40,
-    neg_ratio: float = 0.5,
+    neg_ratio: float = 0.5,  # proportion of positive to negative samples.
     val_split: float = None,  # the proportion of the dataset to include in the test split.
-    epitope_grouped_cv: bool = False,
-    neg_shuffle_in_cv: bool = True,
+    epitope_grouped_cv: bool = False,  # when val_split is None, indicates whether to use normal k-fold cv or an epitope-grouped cv
+    one_epitope_out_cv: bool = False,  # when val_split is None and epitope_grouped_cv is True, indicates whether to use leave-1-epitope-out cv
+    neg_shuffle_in_cv: bool = True,  # NOT USED
     n_folds: int = 5,
-    name: str = "",
+    name: str = "",  # name under which the model and log files will be stored, appended with the date-time.
     min_group: int = 32,
-    early_stop=False,
-    include_learning_rate_reduction: bool = False,
+    early_stop: bool = False,  # whether to terminate model training when the performance metric stops improving (tf.keras.callbacks.EarlyStopping)
+    include_learning_rate_reduction: bool = False,  # whether to reduce the learning rate when the performance metric has stopped improving (tf.keras.callbacks.ReduceLROnPlateau)
     data_path=PROJECT_ROOT
-    / "data/interim/vdjdb-2020-01-20/vdjdb-human-tra-trb-no10x.csv",
+    / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",  # input data csv, as supplied by preprocess_vdjdb
     optimizer: str = "rmsprop",  # can be any of: rmsprop, adam or SGD
-    learning_rate: bool = False,
+    learning_rate: float = None,  # learning rate supplied to the selected optimizer
 ):
 
-    # create run name by appending time and date
-    run_name = name + datetime.datetime.now().strftime("_%Y-%m-%d_%H-%M-%S")
-    # create filepath for log
-    log_file = LOG_DIR / run_name
-    log_file = log_file.with_suffix(".log")
-    log_file.parent.mkdir(parents=True, exist_ok=True)
-    # create file logger
-    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(filename=log_file, level=logging.INFO, format=log_fmt)
-    # apply settings to root logger, so that loggers in modules can inherit both the file and console logger
-    logger = logging.getLogger()
-    # add console logger
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    console.setFormatter(logging.Formatter(log_fmt))
-    logger.addHandler(console)
+    # create logger and log file
+    run_name = pipeline.create_run_name(name)
+    pipeline.create_logger(name)
+    logger = logging.getLogger(__name__)
 
-    # log utilised function arguments that were used for logging purposes
+    # log utilised function arguments that were used
     logger.info(locals())
 
     # read (positive) data
@@ -76,7 +65,7 @@ def run(
     )
 
     model = ModelSeparatedInputs(
-        optimizer=optimizer, learning_rate=learning_rate, name=name
+        name=name, optimizer=optimizer, learning_rate=learning_rate
     )
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
@@ -91,6 +80,7 @@ def run(
             data_source=data_source,
             n_folds=n_folds,
             epitope_grouped=epitope_grouped_cv,
+            one_out=one_epitope_out_cv,
             run_name=run_name,
         )
 
@@ -100,17 +90,17 @@ def run(
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
-        train_stream = separated_input_batch_generator(
+        train_data = separated_input_batch_generator(
             data_stream=train,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,
         )
-        val_stream = separated_input_batch_generator(
+        val_data = separated_input_batch_generator(
             data_stream=val,
             neg_ratio=neg_ratio,
             batch_size=batch_size,
             min_amount=min_group,
         )
 
-        trainer.train(model, train_stream, val_stream, iteration=iteration)
+        trainer.train(model, train_data, val_data, iteration=iteration)

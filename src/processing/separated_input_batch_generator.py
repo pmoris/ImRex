@@ -3,14 +3,14 @@ import random
 from Bio.SubsMat import MatrixInfo
 import numpy as np
 
-from src.processing.batch_generator import BatchGenerator
 from src.definitions.amino_acid_properties import AMINO_ACIDS
-from src.processing.grouper import ShapeGrouper, GroupedAmountFilter, SizeGrouper
-from src.processing.sampler import GroupSampler, BatchSampler
-from src.processing.shaped_batch_sampler import ShapedBatchSampler
+from src.processing.batch_generator import BatchGenerator
+from src.processing.grouper import GroupedAmountFilter, ShapeGrouper, SizeGrouper
 from src.processing.labeler import Labeler, LabelTrimmer
+from src.processing.sampler import BatchSampler, GroupSampler
+from src.processing.shaped_batch_sampler import ShapedBatchSampler
+from src.processing.stream import BatchStream, TransformStream
 from src.processing.tee import tee
-from src.processing.stream import TransformStream, BatchStream
 from src.processing.zipper import unzipper
 
 # from src.processing.filter import SizeFilter
@@ -52,7 +52,9 @@ def separated_input_batch_generator(
     negative_labeler = Labeler(shaped_batch_sampler, 0)
     neg_image_gen = BlossumImageGenerator(negative_labeler)
 
-    negative_extender = NetTCRBatchExtender(batch_sampler, neg_image_gen, 1 - neg_ratio)
+    negative_extender = SeparatedInputBatchExtended(
+        batch_sampler, neg_image_gen, 1 - neg_ratio
+    )
     batch_generator = BatchGenerator(negative_extender, batch_size, multiple_input=True)
 
     return batch_generator
@@ -84,7 +86,7 @@ class BlossumImageGenerator(TransformStream):
         return array
 
 
-class NetTCRBatchExtender(BatchStream):
+class SeparatedInputBatchExtended(BatchStream):
     def __init__(self, base_stream, extend_stream, base_ratio):
         super().__init__()
         assert 0 <= base_ratio <= 1
@@ -106,8 +108,8 @@ class NetTCRBatchExtender(BatchStream):
         # shape = base[0][0].shape[:-1]         # first element = [X, y], we select shape of X (without channels)
         ext = self.extend_stream.get_batch(extend_amount, shape=shape)
 
-        all = list()
-        all.extend(base)
-        all.extend(ext)
-        random.shuffle(all)  # shuffle in place
-        return all
+        all_data = list()
+        all_data.extend(base)
+        all_data.extend(ext)
+        random.shuffle(all_data)  # shuffle in place
+        return all_data

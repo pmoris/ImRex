@@ -41,7 +41,7 @@ def get_output_path(base_name, file_name, iteration=None):
 def create_checkpointer(base_name, iteration):
     output_path = get_output_path(
         base_name=base_name,
-        file_name=base_name + "-{epoch:02d}-{val_accuracy:.2f}.h5",
+        file_name=base_name + "-epoch{epoch:02d}-valacc{val_accuracy:.2f}.h5",
         iteration=iteration,
     )
 
@@ -65,9 +65,7 @@ def create_tensorboard_callback(model_name):
 
 
 def create_csv_logger(base_name, iteration):
-    output_path = get_output_path(
-        base_name, "metrics-{epoch:02d}-{val_accuracy:.2f}.csv", iteration=iteration
-    )
+    output_path = get_output_path(base_name, "metrics.csv", iteration=iteration)
 
     return callbacks.CSVLogger(output_path)
 
@@ -122,7 +120,7 @@ class RocCallback(MetricCallback):
         output_path = get_output_path(
             self.base_name, "auc.csv", iteration=self.iteration
         )
-        df = pd.DataFrame({"auc": [auc_value],})
+        df = pd.DataFrame({"auc": [auc_value]})
         df.to_csv(output_path, index=False)
 
         return
@@ -149,7 +147,7 @@ class PrecisionRecallCallback(MetricCallback):
         output_path = get_output_path(
             self.base_name, "average_precision.csv", iteration=self.iteration
         )
-        df = pd.DataFrame({"average_precision": [ap],})
+        df = pd.DataFrame({"average_precision": [ap]})
         df.to_csv(output_path, index=False)
 
         return
@@ -247,7 +245,7 @@ class Trainer(object):
         self.base_name = None
         self.lookup = lookup  # Lookup map from feature to input (for traceability)
 
-    def train(self, model, train_stream, val_stream, iteration=None):
+    def train(self, model, train_data, val_data, iteration=None):
         logger = logging.getLogger(__name__)
 
         model_instance = model.new_instance()
@@ -315,11 +313,11 @@ class Trainer(object):
         workers = multiprocessing.cpu_count()
         logger.info(f"Using {workers} workers")
         history = model_instance.fit(
-            x=train_stream,
+            x=train_data,
             epochs=self.epochs,
             verbose=1,
             callbacks=callbacks,
-            validation_data=val_stream,
+            validation_data=val_data,
             class_weight=None,
             max_queue_size=2,
             workers=workers,

@@ -24,15 +24,19 @@ class Joiner(BatchStream):
             return min(lengths)
 
     def get_batch(self, batch_size, *args, **kwargs):
+        """Return a batch_size'd list of positive and negative elements in the given ratio."""
         amount1 = int(self.ratio * batch_size)
         amount2 = batch_size - amount1
 
-        joined = list()
-        for stream, amount in zip([self.stream1, self.stream2], [amount1, amount2]):
-            for _ in range(amount):
-                item = stream.get(*args, **kwargs)
-                # print(item)
-                joined.append(item)
+        joined = [
+            stream.get(*args, **kwargs)
+            for stream, amount in zip([self.stream1, self.stream2], [amount1, amount2])
+            for _ in range(amount)
+        ]
 
+        # shuffle to mix positive and negative examples
+        # NOTE: this is also required to make subsequent iteration through
+        #       the tf.data.DataSet object based on this output, to be
+        #       different during every iteration/epoch.
         random.shuffle(joined)
         return joined

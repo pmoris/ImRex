@@ -25,8 +25,8 @@ class BatchExtender(BatchStream):
         ]  # first element = [X, y], we select shape of X (without channels)
         ext = self.extend_stream.get_batch(extend_amount, shape=shape)
 
-        all = list()
-        all.extend(base)
-        all.extend(ext)
-        random.shuffle(all)  # shuffle in place
-        return all
+        all_data = list()
+        all_data.extend(base)
+        all_data.extend(ext)
+        random.shuffle(all_data)  # shuffle in place
+        return all_data
