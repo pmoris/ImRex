@@ -1,6 +1,7 @@
 import pandas as pd
 
 from src.config import PROJECT_ROOT
+from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.data_source import DataSource
 from src.processing.negative_sampler import sample_pairs
 
@@ -40,7 +41,7 @@ class VdjdbSource(DataSource):
             label = row["y"]
             yield (pep1, pep2), label
 
-    def generate_negatives_from_ref(self, negative_source: DataSource):
+    def generate_negatives_from_ref(self, negative_source: ControlCDR3Source):
         """ Generate negative CDR3 epitope sequence pairs by drawing from a negative CDR3 reference set.
 
         Every epitope in the positive set is matched with a random CDR3 in order to keep the epitope distribution equal between the two classes.
@@ -48,10 +49,10 @@ class VdjdbSource(DataSource):
         # sample required number of CDR3 sequences
         amount = self.data.shape[0]
         negative_cdr3_series = (
-            negative_source.data[negative_source.headers["cdr3"]]
+            negative_source.data[negative_source.headers["cdr3_header"]]
             .sample(n=amount)
             .reset_index(drop=True)
-            .rename(negative_source.headers["cdr3"])
+            .rename(self.headers["cdr3_header"])
         )
 
         # match with positive epitopes
@@ -81,12 +82,13 @@ class VdjdbSource(DataSource):
         amount = to_do_df.shape[0]
         while amount > 0:
             negative_cdr3_series = (
-                negative_source.data[negative_source.headers["cdr3"]]
+                negative_source.data[negative_source.headers["cdr3_header"]]
                 .sample(n=amount)
                 .reset_index(drop=True)
-                .rename("cdr3")
+                .rename(self.headers["cdr3_header"])
             )
 
+            # merge with unused epitopes in to_do_df, reset indexing to allow concat
             negative_df = pd.concat(
                 [
                     negative_cdr3_series,

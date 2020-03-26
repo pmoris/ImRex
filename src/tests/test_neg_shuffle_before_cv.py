@@ -183,10 +183,10 @@ def test_sample_pairs_to_do_neg_ref():
     # sample required number of CDR3 sequences
     amount = data_source.data.shape[0]
     negative_cdr3_series = (
-        negative_source.data[negative_source.headers["cdr3"]]
+        negative_source.data[negative_source.headers["cdr3_header"]]
         .sample(n=amount)
         .reset_index(drop=True)
-        .rename("cdr3")
+        .rename(data_source.headers["cdr3_header"])
     )
 
     # match with positive epitopes

@@ -24,7 +24,7 @@ class ControlCDR3Source(DataSource):
         filepath=CONTROL_CDR3_PATH,
         min_length: Optional[int] = None,
         max_length: Optional[int] = None,
-        headers={"cdr3": CONTROL_CDR3_SEQ_COLUMN},
+        headers={"cdr3_header": CONTROL_CDR3_SEQ_COLUMN},
     ):
         super().__init__()
         self.filepath = filepath
