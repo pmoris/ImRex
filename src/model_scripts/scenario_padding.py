@@ -22,7 +22,7 @@ bacli.set_description(__doc__)
 def run(
     batch_size: int = 128,
     epochs: int = 40,
-    neg_ref: bool = False,  # whether to generate negatives from CDR3 reference sequences or by shuffling positive examples
+    neg_ref: str = None,  # whether to generate negatives from CDR3 reference sequences or by shuffling positive examples
     neg_ratio: float = 0.5,  # proportion of positive to negative samples.
     val_split: float = None,  # the proportion of the dataset to include in the test split.
     epitope_grouped_cv: bool = False,  # when val_split is None, indicates whether to use normal k-fold cv or an epitope-grouped cv
@@ -115,7 +115,7 @@ def run(
                 f"Generating negative examples from negative reference CDR3 set."
             )
             negative_source = ControlCDR3Source(
-                min_length=min_length_cdr3, max_length=max_length_cdr3
+                filepath=neg_ref, min_length=min_length_cdr3, max_length=max_length_cdr3
             )
             data_source.generate_negatives_from_ref(negative_source)
 
@@ -139,7 +139,9 @@ def run(
             # if a negative reference set is provided, use it
             if neg_ref:
                 negative_source = ControlCDR3Source(
-                    min_length=min_length_cdr3, max_length=max_length_cdr3
+                    filepath=neg_ref,
+                    min_length=min_length_cdr3,
+                    max_length=max_length_cdr3,
                 )
                 neg_train, neg_val = splitter(negative_source, test_size=val_split)
                 iterations = [((train, neg_train), (val, neg_val))]
@@ -159,7 +161,9 @@ def run(
             # if a negative reference set is provided, use it
             if neg_ref:
                 negative_source = ControlCDR3Source(
-                    min_length=min_length_cdr3, max_length=max_length_cdr3
+                    filepath=neg_ref,
+                    min_length=min_length_cdr3,
+                    max_length=max_length_cdr3,
                 )
                 neg_ref_fold_path = run_name + "_cdr3_ref"
                 neg_iterations = cv_splitter(
