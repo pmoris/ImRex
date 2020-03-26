@@ -70,7 +70,7 @@ class VdjdbSource(DataSource):
         to_do_df = self.data.loc[
             self.data.duplicated(
                 subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
-                keep="first",
+                keep="last",
             )
         ]
         self.data = self.data.drop_duplicates(
@@ -107,7 +107,7 @@ class VdjdbSource(DataSource):
                         self.headers["cdr3_header"],
                         self.headers["epitope_header"],
                     ],
-                    keep="first",
+                    keep="last",
                 )
             ]
 
@@ -142,14 +142,14 @@ class VdjdbSource(DataSource):
 
         # extract duplicates
         # NOTE: because the sampling approach ensures that accidental duplicates of positive pairs (i.e. false negatives)
-        #       never occur, these will all be accidental duplicate samples of negatives. Therefor, keep="first" is redundant,
-        #       but it would result in the positive examples being stored in the dataframe (marking the first (=positives) as True).
+        #       never occur, these will all be accidental duplicate samples of negatives. Therefore, keep="last" is redundant,
+        #       but it would result in the positive examples being stored in the dataframe (marking the last (=positives) as True).
         #       This is kept here for historical purposes, because before the epitope was supplied alongside the cdr3 in a zip operation
         #       during sample generation, and the associated positive epitope was used for exclusion purposes.
         to_do_df = self.data.loc[
             self.data.duplicated(
                 subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
-                keep="first",
+                keep="last",
             )
         ]
 
@@ -191,7 +191,7 @@ class VdjdbSource(DataSource):
                         self.headers["cdr3_header"],
                         self.headers["epitope_header"],
                     ],
-                    keep="first",
+                    keep="last",
                 )
             ]
             self.data = self.data.drop_duplicates(
