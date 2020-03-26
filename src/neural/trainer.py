@@ -98,59 +98,59 @@ class MetricCallback(callbacks.Callback):
             return y_pred, y_true
 
 
-class RocCallback(MetricCallback):
-    def __init__(self, val_stream, base_name, iteration):
-        super().__init__(val_stream, base_name, iteration)
-
-    def on_train_end(self, logs={}):
-        y_pred, y_true = self._predict()
-
-        fpr, tpr, _ = roc_curve(y_true, y_pred, drop_intermediate=True)
-        auc_value = auc(fpr, tpr)
-
-        interval = np.linspace(0, 1, 201)
-        tpr_i = np.interp(interval, fpr, tpr)
-
-        output_path = get_output_path(
-            self.base_name, "roc.csv", iteration=self.iteration
-        )
-        df = pd.DataFrame({"fpr": interval, "tpr": tpr_i})
-        df.to_csv(output_path, index=False)
-
-        output_path = get_output_path(
-            self.base_name, "auc.csv", iteration=self.iteration
-        )
-        df = pd.DataFrame({"auc": [auc_value]})
-        df.to_csv(output_path, index=False)
-
-        return
-
-
-class PrecisionRecallCallback(MetricCallback):
-    def __init__(self, val_stream, base_name, iteration):
-        super().__init__(val_stream, base_name, iteration)
-
-    def on_train_end(self, logs={}):
-        y_pred, y_true = self._predict()
-        precision, recall, _ = precision_recall_curve(y_true, y_pred)
-        ap = average_precision_score(y_true, y_pred)
-
-        interval = np.linspace(0, 1, 201)
-        precision_i = np.interp(interval, recall[::-1], precision[::-1])
-
-        output_path = get_output_path(
-            self.base_name, "precision_recall.csv", iteration=self.iteration
-        )
-        df = pd.DataFrame({"recall": interval, "precision": precision_i})
-        df.to_csv(output_path, index=False)
-
-        output_path = get_output_path(
-            self.base_name, "average_precision.csv", iteration=self.iteration
-        )
-        df = pd.DataFrame({"average_precision": [ap]})
-        df.to_csv(output_path, index=False)
-
-        return
+# class RocCallback(MetricCallback):
+#     def __init__(self, val_stream, base_name, iteration):
+#         super().__init__(val_stream, base_name, iteration)
+#
+#     def on_train_end(self, logs={}):
+#         y_pred, y_true = self._predict()
+#
+#         fpr, tpr, _ = roc_curve(y_true, y_pred, drop_intermediate=True)
+#         auc_value = auc(fpr, tpr)
+#
+#         interval = np.linspace(0, 1, 201)
+#         tpr_i = np.interp(interval, fpr, tpr)
+#
+#         output_path = get_output_path(
+#             self.base_name, "roc.csv", iteration=self.iteration
+#         )
+#         df = pd.DataFrame({"fpr": interval, "tpr": tpr_i})
+#         df.to_csv(output_path, index=False)
+#
+#         output_path = get_output_path(
+#             self.base_name, "auc.csv", iteration=self.iteration
+#         )
+#         df = pd.DataFrame({"auc": [auc_value]})
+#         df.to_csv(output_path, index=False)
+#
+#         return
+#
+#
+# class PrecisionRecallCallback(MetricCallback):
+#     def __init__(self, val_stream, base_name, iteration):
+#         super().__init__(val_stream, base_name, iteration)
+#
+#     def on_train_end(self, logs={}):
+#         y_pred, y_true = self._predict()
+#         precision, recall, _ = precision_recall_curve(y_true, y_pred)
+#         ap = average_precision_score(y_true, y_pred)
+#
+#         interval = np.linspace(0, 1, 201)
+#         precision_i = np.interp(interval, recall[::-1], precision[::-1])
+#
+#         output_path = get_output_path(
+#             self.base_name, "precision_recall.csv", iteration=self.iteration
+#         )
+#         df = pd.DataFrame({"recall": interval, "precision": precision_i})
+#         df.to_csv(output_path, index=False)
+#
+#         output_path = get_output_path(
+#             self.base_name, "average_precision.csv", iteration=self.iteration
+#         )
+#         df = pd.DataFrame({"average_precision": [ap]})
+#         df.to_csv(output_path, index=False)
+#
+#         return
 
 
 class PredictionCallback(MetricCallback):
@@ -271,6 +271,9 @@ class Trainer(object):
 
         if not self.base_name:
             self.base_name = model.base_name
+
+        # TODO: @PM Adapt PreedictionCallback to write predictions to file
+        #  Metrics per epoch (accuracy, loss, etc) are also still used in visualization script
 
         callbacks = [
             create_checkpointer(model.base_name, iteration),

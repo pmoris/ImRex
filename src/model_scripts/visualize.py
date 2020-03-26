@@ -35,6 +35,7 @@ from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.metric import metric
 from src.visualisation.plot import (
     cmap,
+    derive_metrics_all,
     concatenate_all,
     consolidate_all,
     plot_all,
@@ -149,6 +150,8 @@ def cam(model_file: str, epitope, cdr3):
 
     # last layer is combination of previous one
     # originalLayer, title = getImage(epitope, cdr3, False, True, 'best')[-1]
+
+    # TODO: keras-vis code is outdated, try snippet online ()
 
     x = makeInput(epitope, cdr3)
 
@@ -397,6 +400,7 @@ def metrics(directory: str, force: bool = False):
     #       |- average_precision.csv
     #   |- iteration 1
     #       |- ...
+    derive_metrics_all(directory, force=force)
     consolidate_all(directory, force=force)
     plot_all(directory)
 
