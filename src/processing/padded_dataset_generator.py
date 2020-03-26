@@ -7,13 +7,11 @@ import tensorflow as tf
 
 from src.bio.feature_builder import FeatureBuilder
 from src.processing.data_stream import DataStream
-from src.processing.dataset_export import export_data
-from src.processing.filter import PositiveFilter, SizeFilter
 from src.processing.image_generator import ImageGenerator
 from src.processing.image_padding import ImagePadding
 from src.processing.inverse_map import InverseMap, NoOp
-from src.processing.labeler import Labeler, LabelTrimmer
-from src.processing.zipper import unzipper, Zipper
+from src.processing.negative_sampler import add_negatives
+from src.processing.zipper import Zipper
 
 
 def padded_dataset_generator(
@@ -22,7 +20,7 @@ def padded_dataset_generator(
     cdr3_range: Tuple[int, int],
     epitope_range: Tuple[int, int],
     inverse_map: Optional[InverseMap] = NoOp(),
-    negative_ref_stream: Optional[DataStream] = None,
+    neg_shuffle: bool = True,
     export_path: Optional[str] = None,
 ) -> tf.data.Dataset:
     """Create a tensorflow dataset with positive and negative 2d interaction map arrays.
@@ -42,8 +40,8 @@ def padded_dataset_generator(
         The minimum and maximum desired epitope sequence length.
     inverse_map : Optional[InverseMap], optional.
         An inverse map for retrieving the sequences associated with an array, by default NoOp().
-    negative_ref_stream : Optional[DataStream], optional
-        An optional stream of reference cdr3 sequences, without epitope or label, by default None.
+    neg_shuffle : bool
+        Whether to create negatives by shuffling/sampling, by default True.
     export_path: Optional[str], optional.
         If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
 
@@ -59,88 +57,24 @@ def padded_dataset_generator(
     width = cdr3_range[1]
     height = epitope_range[1]
 
-    # create positive sequences
+    # create dataframe for export (and shuffling)
+    df = pd.DataFrame(data_stream, columns=["seq", "y"])
+    df["cdr3"], df["antigen.epitope"] = zip(*df.seq)
+    df = df.drop("seq", axis=1)
 
-    # filter sequences on size
-    size_filter = SizeFilter(data_stream, cdr3_range, epitope_range)
-    logger.info(f"Filtered CDR3 sequences to length: {cdr3_range}")
-    logger.info(f"Filtered epitope sequences to length: {epitope_range}")
-
-    # NOTE: SizeFilter is exhausted upon iteration/instantiation, so it is copied back into a DataStream to be re-used for negative example generation
-    positive_stream = DataStream(size_filter)
-
-    # split positive sequences and labels into separate tuples for later combining and export
-    x_pos_seq, y_pos_seq = zip(*positive_stream)
-    logger.info(f"Using {len(x_pos_seq)} positive examples.")
-
-    # Create negatives by permuting cdr3 and epitopes sequence pairs
-    # These are retained throughout consecutive iterations of the tf DataSet, and thus epochs.
-
-    # remove class labels
-    label_trimmer = LabelTrimmer(positive_stream)
-
-    # split DataStream into two Streams
-    cdr3_stream, epitope_stream = unzipper(label_trimmer)
-
-    # if reference cdr3 was provided use it
-    if negative_ref_stream:
-        cdr3_stream = SizeFilter(negative_ref_stream, cdr3_range, has_label=False)
-
-    # convert DataStreams to np.arrays to allow shuffling and concatenation
-    cdr3_array, epitope_array = (
-        np.array(list(cdr3_stream)),
-        np.array(list(epitope_stream)),
-    )
-
-    # create permutations
-    cdr3_permuted = np.random.permutation(cdr3_array)
-    epitope_permuted = np.random.permutation(epitope_array)
-
-    # convert back into DataStreams to utilise zipper/filter functionality
-    cdr3_permuted_stream, epitope_permuted_stream = (
-        DataStream(cdr3_permuted),
-        DataStream(epitope_permuted),
-    )
-
-    # combine sequences
-    zipper = Zipper(cdr3_permuted_stream, epitope_permuted_stream)
-
-    # remove matches with existing positive pairs
-    pos_filter = DataStream(
-        PositiveFilter(zipper, positive_items=positive_stream, has_label=False)
-    )  # NOTE: cast into DataStream so that its length becomes available
-
-    # create additional random pairs to even out the number of positive and negative examples
-    while len(pos_filter) < len(positive_stream):
-
-        # calculate how many new pairs are still required
-        amount = len(positive_stream) - len(pos_filter)
-
-        pos_filter = augment_pairs(
-            permuted_stream=pos_filter,
-            amount=amount,
-            original_cdr3_array=cdr3_array,
-            original_epitope_array=epitope_array,
-            positive_filter_set=positive_stream,
-            cdr3_range=cdr3_range,
-        )
-
-    # add negative class labels
-    negative_labeler = Labeler(pos_filter, 0)
-
-    # split negative sequences and labels into separate tuples for later combining and export
-    x_neg_seq, y_neg_seq = zip(*negative_labeler)
-    logger.info(f"Using {len(x_neg_seq)} negative examples.")
-
-    # combine positive and negative examples into arrays with sequences and labels
-    x_seq, y_seq = np.array(x_pos_seq + x_neg_seq), np.array(y_pos_seq + y_neg_seq)
+    # generate negatives through shuffling if negative reference set was not provided and shuffling did not happen on the entire dataset
+    if neg_shuffle:
+        df = add_negatives(df)
 
     # export dataset with sequences and labels as csv
     if export_path:
-        export_data(x_seq, y_seq, export_path)
+        logger.info(f"Saving train/test fold in: {export_path}")
+        df.to_csv(export_path, sep=";", index=False)
 
     # Combine sequences and labels into DataStream again to utilise image generation functionality
-    zipped = Zipper(DataStream(x_seq), DataStream(y_seq))
+    zipped = Zipper(
+        DataStream(zip(df["cdr3"], df["antigen.epitope"])), DataStream(df["y"])
+    )
 
     # create 2d input arrays and allow reverse lookup back to sequences
     zipped = inverse_map.input(zipped)
@@ -155,47 +89,3 @@ def padded_dataset_generator(
     dataset = tf.data.Dataset.from_tensor_slices((np.array(x), np.array(y)))
 
     return dataset
-
-
-def augment_pairs(
-    permuted_stream: DataStream,
-    amount: int,
-    original_cdr3_array: np.array,
-    original_epitope_array: np.array,
-    positive_filter_set: DataStream,
-    cdr3_range: Tuple[int, int] = None,
-) -> DataStream:
-    # split permuted DataStream into two Streams
-    cdr3_stream, epitope_stream = unzipper(permuted_stream)
-
-    # convert DataStreams to np.arrays to allow concatenation
-    cdr3_array, epitope_array = (
-        np.array(list(cdr3_stream)),
-        np.array(list(epitope_stream)),
-    )
-
-    # create new permutations from original arrays
-    cdr3_permuted_new = np.random.permutation(original_cdr3_array)[:amount]
-    epitope_permuted_new = np.random.permutation(original_epitope_array)[:amount]
-
-    # concatenate old and new arrays and convert to DataStreams
-    cdr3_permuted_stream = DataStream(np.concatenate([cdr3_array, cdr3_permuted_new]))
-    epitope_permuted_stream = DataStream(
-        np.concatenate([epitope_array, epitope_permuted_new])
-    )
-
-    # combine cdr3 and epitope sequences
-    zipper = Zipper(cdr3_permuted_stream, epitope_permuted_stream)
-
-    # remove duplicates due to repeated shuffling
-    deduplicated_df = pd.DataFrame(zipper).drop_duplicates()
-    deduplicated_stream = DataStream(deduplicated_df.to_numpy().tolist())
-
-    # remove matches with existing positive pairs
-    pos_filter = DataStream(
-        PositiveFilter(
-            deduplicated_stream, positive_items=positive_filter_set, has_label=False
-        )
-    )
-
-    return pos_filter

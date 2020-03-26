@@ -4,6 +4,56 @@ import numpy as np
 import pandas as pd
 
 
+def add_negatives(df):
+    # generate negative pairs from list of all cdr3s in positive pairs
+    shuffled_pairs = [
+        sample_pairs(cdr3, df, "cdr3", "antigen.epitope") for cdr3 in df["cdr3"]
+    ]
+
+    # convert list of tuples into dataframe and add class label
+    shuffled_df = pd.DataFrame(shuffled_pairs, columns=["cdr3", "antigen.epitope"],)
+    shuffled_df["y"] = 0
+
+    # merge with original positive data, ensuring positives are kept at the top of the dataframe
+    df = df.append(shuffled_df).reset_index(drop=True)
+
+    # extract duplicates
+    # NOTE: because the sampling approach ensures that accidental duplicates of positive pairs (i.e. false negatives)
+    #       never occur, these will all be accidental duplicate samples of negatives. Therefore, keep="last" is redundant,
+    #       but it would result in the positive examples being stored in the dataframe (marking the last (=positives) as True).
+    #       This is kept here for historical purposes, because before the epitope was supplied alongside the cdr3 in a zip operation
+    #       during sample generation, and the associated positive epitope was used for exclusion purposes.
+    to_do_df = df.loc[df.duplicated(subset=["cdr3", "antigen.epitope"], keep="last")]
+
+    # remove duplicates from merged dataframe
+    df = df.drop_duplicates(
+        subset=["cdr3", "antigen.epitope"],
+        keep="first",  # This should not be required, see previous NOTE: always keep the original positive examples when duplicates occur across pos/neg, i.e. remove false negatives
+    ).reset_index(drop=True)
+
+    # remove NaN to deal with any possible universal cdr3s
+    df = df.dropna(axis=0, how="any")
+
+    # add negatives until required amount is reached
+    while to_do_df.shape[0] > 0:
+        shuffled_pairs = [
+            sample_pairs(cdr3, df, "cdr3", "antigen.epitope")
+            for cdr3 in to_do_df["cdr3"]
+        ]
+        shuffled_df = pd.DataFrame(shuffled_pairs, columns=["cdr3", "antigen.epitope"],)
+        shuffled_df["y"] = 0
+        df = df.append(shuffled_df).reset_index(drop=True)
+        to_do_df = df.loc[
+            df.duplicated(subset=["cdr3", "antigen.epitope"], keep="last")
+        ]
+        df = df.drop_duplicates(
+            subset=["cdr3", "antigen.epitope"], keep="first",
+        ).reset_index(drop=True)
+        df = df.dropna(axis=0, how="any")
+
+    return df
+
+
 def sample_pairs(
     cdr3: str,
     df: pd.DataFrame,

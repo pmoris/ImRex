@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
@@ -7,14 +6,11 @@ from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.processing.data_stream import DataStream
-from src.processing.filter import PositiveFilter
-from src.processing.labeler import LabelTrimmer
 from src.processing.padded_batch_generator import padded_batch_generator
 from src.processing.padded_dataset_generator import (
-    augment_pairs,
+    # augment_pairs,
     padded_dataset_generator,
 )
-from src.processing.zipper import unzipper, Zipper
 
 
 features_list = parse_features("hydrophob,isoelectric,mass,hydrophil,charge")
@@ -80,7 +76,7 @@ def test_tf_dataset_shuffle_array():
         feature_builder=feature_builder,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
-        negative_ref_stream=None,
+        neg_shuffle=True,
     )
 
     tf_dataset = tf_dataset.shuffle(
@@ -96,11 +92,9 @@ def test_tf_dataset_shuffle_array():
 def test_tf_dataset_shuffle_array_neg_ref():
     """Same as above, but create the tf.data.DataSet object from numpy arrays. """
     # NOTE: DataStream needs to be re-created, because it will be exhausted by previous test otherwise.
-    data_stream = DataStream(
-        VdjdbSource(
-            filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
-            headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
-        )
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
 
     negative_source = ControlCDR3Source(
@@ -108,14 +102,16 @@ def test_tf_dataset_shuffle_array_neg_ref():
         min_length=10,
         max_length=20,
     )
-    negative_ref_stream = DataStream(negative_source)
+    data_source.generate_negatives_from_ref(negative_source)
+
+    data_stream = DataStream(data_source)
 
     tf_dataset = padded_dataset_generator(
         data_stream=data_stream,
         feature_builder=feature_builder,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
-        negative_ref_stream=negative_ref_stream,
+        neg_shuffle=False,
     )
 
     tf_dataset = tf_dataset.shuffle(
@@ -134,119 +130,53 @@ def test_output_shape():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
-
-    data_stream = DataStream(data_source)
+    n_pos = len(data_source)
 
     negative_source = ControlCDR3Source(
         filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
         min_length=10,
         max_length=20,
     )
-    negative_ref_stream = DataStream(negative_source)
+    data_source.generate_negatives_from_ref(negative_source)
+
+    data_stream = DataStream(data_source)
 
     tf_dataset = padded_dataset_generator(
         data_stream=data_stream,
         feature_builder=feature_builder,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
-        negative_ref_stream=negative_ref_stream,
+        neg_shuffle=False,
     )
 
-    assert len(list(tf_dataset.as_numpy_iterator())) == 2 * data_source.data.shape[0]
+    assert len(list(tf_dataset.as_numpy_iterator())) == 2 * n_pos
 
     assert tf_dataset.element_spec == (
         tf.TensorSpec(shape=(20, 11, len(features_list)), dtype=tf.float64, name=None),
         tf.TensorSpec(shape=(), dtype=tf.int64, name=None),
     )
 
+    # repeat without negative reference set
 
-def test_augment_pairs_dedup():
-    """
-    Check whether duplicates and positives are correctly filtered out.
-
-    The maximum number of unique permutations of 6 pairs is 36.
-    Removing the original 6 pairs leaves 30.
-    """
-    stream = DataStream(
-        [
-            (("AAAAAAAAAA", "AAAAAAAAAA"), 1),
-            (("BBBBBBBBBB", "BBBBBBBBBB"), 1),
-            (("C", "C"), 1),
-            (("DDDDDDDDDD", "DDDDDDDDDD"), 1),
-            (("EEE", "EEEE"), 1),
-            (("FFFFFFFFFFFFF", "FFFFFFFFF"), 1),
-        ]
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
-    label_trimmer = LabelTrimmer(stream)
-    stream = DataStream(label_trimmer)
+    n_pos = len(data_source)
 
-    cdr3_stream, epitope_stream = unzipper(stream)
-    cdr3_array, epitope_array = (
-        np.array(list(cdr3_stream)),
-        np.array(list(epitope_stream)),
+    data_stream = DataStream(data_source)
+
+    tf_dataset = padded_dataset_generator(
+        data_stream=data_stream,
+        feature_builder=feature_builder,
+        cdr3_range=(10, 20),
+        epitope_range=(8, 11),
+        neg_shuffle=True,
     )
 
-    for _ in range(100):
-        stream = augment_pairs(
-            permuted_stream=stream,
-            amount=len(stream),
-            original_cdr3_array=cdr3_array,
-            original_epitope_array=epitope_array,
-            positive_filter_set=DataStream([]),
-            cdr3_range=(0, 30),
-        )
+    assert len(list(tf_dataset.as_numpy_iterator())) == 2 * n_pos
 
-    assert len(stream) == 36
-
-
-def test_augment_pairs_dedup_pos():
-    """
-    Check whether duplicates are correctly filtered out.
-
-    The maximum number of unique permutations of 6 pairs is 36.
-    """
-    positive_stream = DataStream(
-        [
-            (("AAAAAAAAAA", "AAAAAAAAAA"), 1),
-            (("BBBBBBBBBB", "BBBBBBBBBB"), 1),
-            (("C", "C"), 1),
-            (("DDDDDDDDDD", "DDDDDDDDDD"), 1),
-            (("EEE", "EEEE"), 1),
-            (("FFFFFFFFFFFFF", "FFFFFFFFF"), 1),
-        ]
+    assert tf_dataset.element_spec == (
+        tf.TensorSpec(shape=(20, 11, len(features_list)), dtype=tf.float64, name=None),
+        tf.TensorSpec(shape=(), dtype=tf.int64, name=None),
     )
-    label_trimmer = LabelTrimmer(positive_stream)
-    trimmer = DataStream(label_trimmer)
-
-    cdr3_stream, epitope_stream = unzipper(trimmer)
-
-    cdr3_array, epitope_array = (
-        np.array(list(cdr3_stream)),
-        np.array(list(epitope_stream)),
-    )
-
-    cdr3_permuted = np.random.permutation(cdr3_array)
-    epitope_permuted = np.random.permutation(epitope_array)
-
-    cdr3_permuted_stream, epitope_permuted_stream = (
-        DataStream(cdr3_permuted),
-        DataStream(epitope_permuted),
-    )
-
-    zipper = Zipper(cdr3_permuted_stream, epitope_permuted_stream)
-
-    pos_filter = DataStream(
-        PositiveFilter(zipper, positive_items=positive_stream, has_label=False)
-    )
-
-    for _ in range(100):
-        pos_filter = augment_pairs(
-            permuted_stream=pos_filter,
-            amount=len(positive_stream),
-            original_cdr3_array=cdr3_array,
-            original_epitope_array=epitope_array,
-            positive_filter_set=positive_stream,
-            cdr3_range=(0, 30),
-        )
-
-    assert len(pos_filter) == 30

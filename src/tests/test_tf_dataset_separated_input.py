@@ -30,7 +30,7 @@ def test_tf_dataset_shuffle_separated_array():
         data_stream=data_stream,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
-        negative_ref_stream=None,
+        neg_shuffle=True,
     )
 
     tf_dataset = tf_dataset.shuffle(
@@ -46,11 +46,9 @@ def test_tf_dataset_shuffle_separated_array():
 def test_tf_dataset_shuffle_separated_array_neg_ref():
     """Same as above, but create the tf.data.DataSet object from numpy arrays. """
     # NOTE: DataStream needs to be re-created, because it will be exhausted by previous test otherwise.
-    data_stream = DataStream(
-        VdjdbSource(
-            filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
-            headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
-        )
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
 
     negative_source = ControlCDR3Source(
@@ -58,13 +56,15 @@ def test_tf_dataset_shuffle_separated_array_neg_ref():
         min_length=10,
         max_length=20,
     )
-    negative_ref_stream = DataStream(negative_source)
+    data_source.generate_negatives_from_ref(negative_source)
+
+    data_stream = DataStream(data_source)
 
     tf_dataset = separated_input_dataset_generator(
         data_stream=data_stream,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
-        negative_ref_stream=negative_ref_stream,
+        neg_shuffle=False,
     )
 
     tf_dataset = tf_dataset.shuffle(
@@ -83,24 +83,25 @@ def test_separated_output_shape():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
-
-    data_stream = DataStream(data_source)
+    n_pos = len(data_source)
 
     negative_source = ControlCDR3Source(
         filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
         min_length=10,
         max_length=20,
     )
-    negative_ref_stream = DataStream(negative_source)
+    data_source.generate_negatives_from_ref(negative_source)
+
+    data_stream = DataStream(data_source)
 
     tf_dataset = separated_input_dataset_generator(
         data_stream=data_stream,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
-        negative_ref_stream=negative_ref_stream,
+        neg_shuffle=False,
     )
 
-    assert len(list(tf_dataset.as_numpy_iterator())) == 2 * data_source.data.shape[0]
+    assert len(list(tf_dataset.as_numpy_iterator())) == 2 * n_pos
 
     assert tf_dataset.element_spec == (
         tf.TensorSpec(shape=(20, 20), dtype=tf.int64, name=None),

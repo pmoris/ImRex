@@ -87,84 +87,43 @@ def run(
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
 
-    # generate negatives once on the entire dataset
-    if not neg_shuffle_in_cv:
-        logger.info(
-            f"Generating negative examples on the entire dataset prior to train/test fold creation."
+    # if negative reference dataset is provided, draw negatives from it
+    if neg_ref:
+        logger.info(f"Generating negative examples from negative reference CDR3 set.")
+        negative_source = ControlCDR3Source(
+            filepath=neg_ref, min_length=min_length_cdr3, max_length=max_length_cdr3
         )
-        # either through shuffling
-        if not neg_ref:
-            logger.info(f"Generating negative examples through shuffling.")
+        data_source.generate_negatives_from_ref(negative_source)
+
+    # otherwise, generate negatives through shuffling
+    else:
+        # if neg_shuffle_in_cv is False, generate negatives once on the entire dataset
+        if not neg_shuffle_in_cv:
+            logger.info(
+                f"Generating negative examples through shuffling on the entire dataset prior to train/test fold creation."
+            )
             data_source.generate_negatives()
-        # or from reference set
+
+        # otherwise, generate negatives within each train/test set during tf dataset creation
         else:
             logger.info(
-                f"Generating negative examples from negative reference CDR3 set."
+                f"Generating negative examples through shuffling within each train/test fold."
             )
-            negative_source = ControlCDR3Source(
-                filepath=neg_ref, min_length=min_length_cdr3, max_length=max_length_cdr3
-            )
-            data_source.generate_negatives_from_ref(negative_source)
+            neg_shuffle = True
 
-        # if a fixed train-test split ratio is provided...
-        if val_split is not None:
-            train, val = splitter(data_source, test_size=val_split)
-            iterations = [(train, val)]
-        else:
-            iterations = cv_splitter(
-                data_source=data_source,
-                n_folds=n_folds,
-                epitope_grouped=epitope_grouped_cv,
-                one_out=one_epitope_out_cv,
-            )
+    # if a fixed train-test split ratio is provided...
+    if val_split is not None:
+        train, val = splitter(data_source, test_size=val_split)
+        iterations = [(train, val)]
 
-    # generate negatives within each train/test set
+    # ...otherwise use the specified cross validation scheme
     else:
-        # if a fixed train-test split ratio is provided...
-        if val_split is not None:
-            train, val = splitter(data_source, test_size=val_split)
-            # if a negative reference set is provided, use it
-            if neg_ref:
-                negative_source = ControlCDR3Source(
-                    filepath=neg_ref,
-                    min_length=min_length_cdr3,
-                    max_length=max_length_cdr3,
-                )
-                neg_train, neg_val = splitter(negative_source, test_size=val_split)
-                iterations = [((train, neg_train), (val, neg_val))]
-            # else, generate negatives through shuffling
-            else:
-                iterations = [(train, val)]
-
-        # ...otherwise use a cross validation scheme
-        else:
-            iterations = cv_splitter(
-                data_source=data_source,
-                n_folds=n_folds,
-                epitope_grouped=epitope_grouped_cv,
-                one_out=one_epitope_out_cv,
-            )
-
-            # if a negative reference set is provided, use it
-            if neg_ref:
-                negative_source = ControlCDR3Source(
-                    filepath=neg_ref,
-                    min_length=min_length_cdr3,
-                    max_length=max_length_cdr3,
-                )
-                neg_ref_fold_path = run_name + "_cdr3_ref"
-                neg_iterations = cv_splitter(
-                    data_source=negative_source,
-                    n_folds=n_folds,
-                    epitope_grouped=False,  # CDR3 reference cannot be grouped on epitope
-                    one_epitope_out_cv=False,
-                )
-                iterations = [
-                    ((train, neg_train), (val, neg_val))
-                    for (train, val), (neg_train, neg_val) in zip(
-                        iterations, neg_iterations
-                    )
-                ]
+        iterations = cv_splitter(
+            data_source=data_source,
+            n_folds=n_folds,
+            epitope_grouped=epitope_grouped_cv,
+            one_out=one_epitope_out_cv,
+        )
 
     for iteration, (train, val) in enumerate(iterations):
 
@@ -198,14 +157,14 @@ def run(
             data_stream=train,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
-            negative_ref_stream=neg_train,
+            neg_shuffle=neg_shuffle,
             export_path=train_fold_output,
         )
         val_data = separated_input_dataset_generator(
             data_stream=val,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
-            negative_ref_stream=neg_val,
+            neg_shuffle=neg_shuffle,
             export_path=test_fold_output,
         )
 
