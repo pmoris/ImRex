@@ -201,3 +201,24 @@ class VdjdbSource(DataSource):
 
             # remove NaN to deal with any possible universal cdr3s
             self.data = self.data.dropna(axis=0, how="any")
+
+    def length_filter(
+        self,
+        min_length_cdr3: int = 10,
+        max_length_cdr3: int = 20,
+        min_length_epitope: int = 8,
+        max_length_epitope: int = 13,
+    ):
+        self.data = self.data.loc[
+            (self.data[self.headers["cdr3_header"]].str.len() >= min_length_cdr3)
+            & (self.data[self.headers["cdr3_header"]].str.len() <= max_length_cdr3)
+            & (
+                self.data[self.headers["epitope_header"]].str.len()
+                >= min_length_epitope
+            )
+            & (
+                self.data[self.headers["epitope_header"]].str.len()
+                <= max_length_epitope
+            )
+        ]
+

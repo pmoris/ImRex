@@ -59,6 +59,11 @@ def run(
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
 
+    # filter on size
+    data_source.length_filter(
+        min_length_cdr3, max_length_cdr3, min_length_epitope, max_length_epitope
+    )
+
     # get list of features and operator based on input arguments
     features_list = parse_features(features)
     operator = parse_operator(operator)
@@ -79,8 +84,8 @@ def run(
     # store range restrictions for cdr3 and epitope
     cdr3_range = (min_length_cdr3, max_length_cdr3)
     epitope_range = (min_length_epitope, max_length_epitope)
-    logger.info(f"cdr3 range restrictions: {cdr3_range}")
-    logger.info(f"epitope range restrictions: {epitope_range}")
+    logger.info(f"Filtered CDR3 sequences to length: {cdr3_range}")
+    logger.info(f"Filtered epitope sequences to length: {epitope_range}")
 
     trainer = Trainer(
         epochs,

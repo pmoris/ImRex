@@ -56,6 +56,11 @@ def run(
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
 
+    # filter on size
+    data_source.length_filter(
+        min_length_cdr3, max_length_cdr3, min_length_epitope, max_length_epitope
+    )
+
     # check argument compatability
     if epitope_grouped_cv and val_split is not None:
         raise RuntimeError("Cannot test epitope-grouped without k folds.")
