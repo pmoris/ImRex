@@ -1,4 +1,6 @@
 import os
+from copy import copy
+import itertools
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,6 +35,7 @@ from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.metric import metric
 from src.visualisation.plot import (
     cmap,
+    derive_metrics_all,
     concatenate_all,
     consolidate_all,
     plot_all,
@@ -45,26 +48,20 @@ from src.visualisation.plot import (
 OUTPUT_DIR = PROJECT_ROOT / "reports/figures"
 SCALE = 50
 
-dependencies = {
-    "mean_pred": metric.mean_pred,
-    "AUC": metric.auc,
-    "balanced_accuracy": metric.balanced_accuracy,
-}
-
 
 @bacli.command
 def test(model_file: str):
     """ Debug function used to test commands out. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
 
-    model = load_model(model_file, custom_objects=dependencies)
+    model = load_model(model_file)
     print(model.layers[0].get_weights())
 
 
 @bacli.command
 def render(model_file: str):
     """ Render dot representation of neural network. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
     from keras.utils.vis_utils import plot_model
 
     model = load_model(model_file, compile=False)
@@ -88,7 +85,7 @@ def activations(
     operator: str = "best",
 ):
     """ Display the activations of a model for a given input. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
     from keract import get_activations, display_activations  # , display_heatmaps
 
     from src.processing.image_padding import ImagePadding
@@ -117,25 +114,146 @@ def activations(
     # display_heatmaps(activations, padded, save=False)
 
 
+def makeInput(epitope, cdr3):
+    # TODO: implement
+    #  generate input image for epitope and cdr3 sequence
+    #  need to handle 'X' amino acid
+    from src.bio.feature_builder import CombinedPeptideFeatureBuilder
+    from src.processing.image_generator import ImageGenerator
+    from src.processing.image_padding import ImagePadding
+    from src.processing.data_stream import DataStream
+
+    features = "hydrophob,isoelectric,mass,hydrophil,charge"
+    operator = "absdiff"
+    width = 20
+    height = 11
+
+    features_list = parse_features(features)
+    operator = parse_operator(operator)
+    feature_builder = CombinedPeptideFeatureBuilder(features_list, operator)
+
+    stream = DataStream([((cdr3, epitope), None)])
+
+    pos_images = ImageGenerator(stream, feature_builder)
+    pos_out = ImagePadding(pos_images, width, height, pad_value=0)
+
+    sample = pos_out.get()[0]
+    return sample
+
+
+@bacli.command
+def cam(model_file: str, epitope, cdr3):
+    from tensorflow.keras.models import load_model
+    from vis.visualization import visualize_cam
+
+    model = load_model(model_file)
+
+    # last layer is combination of previous one
+    # originalLayer, title = getImage(epitope, cdr3, False, True, 'best')[-1]
+
+    # TODO: keras-vis code is outdated, try snippet online ()
+
+    x = makeInput(epitope, cdr3)
+
+    for modifier in [None, 'guided', 'relu']:
+        cam = visualize_cam(model,
+                            -1,
+                            None,
+                            x,
+                            penultimate_layer_idx=9,
+                            backprop_modifier=modifier,
+                            grad_modifier=None
+                            )
+        # print(cam)
+        camLayer = image_from_tensor(cam, mode="RGB")
+
+        if modifier is None:
+            modifier = 'vanilla'
+
+        print(modifier)
+
+        layers = [
+            # (originalLayer, "input", "CMYK"),
+            (camLayer, modifier, "jet")
+        ]
+
+        img2plot(layers, epitope, cdr3, "CAM.pdf")
+
+
+def perturbe(variables, symbol, amount):
+    """ Generate all possible combinations from list 'variables' where 'amount' places are set to 'symbol'. """
+    variables = list(variables)
+
+    for indices in itertools.combinations(range(len(variables)), amount):
+        variation = variables.copy()
+        for index in indices:
+            variation[index] = symbol
+        yield variation
+
+
+@bacli.command
+def predict_variations(model_file: str, epitope, cdr3, aa='X', perturbations: int=1):
+    from tensorflow.keras.models import load_model
+
+    model = load_model(model_file)
+
+    samples = list()
+
+    # first sample is original
+    samples.append((epitope, cdr3))
+
+    print(f"Generating variations with up to {perturbations} changes")
+
+    variables = list(epitope + cdr3)
+    for amount in range(1, perturbations + 1):
+        for variation in perturbe(variables, aa, amount):
+            var_epitope = "".join(variation[:len(epitope)])
+            var_cdr3 = "".join(variation[len(epitope):])
+            samples.append((var_epitope, var_cdr3))
+
+    # TODO: Need to test what replacing with X does. It works, but I don't know which values are used.
+
+    # generate input images for each sample
+    x = np.array([makeInput(*sample) for sample in samples])
+
+    # get scores of model
+    predictions = np.squeeze(model.predict_on_batch(x).numpy())
+
+    # output results
+    print("=============== All results ===============")
+    for sample, prediction in zip(samples, predictions):
+        print(sample[0], sample[1], prediction)
+
+    print("=============== Statistics ===============")
+    basePrediction = predictions[0]
+    mostDifferent = sorted(zip(samples, predictions), key=lambda el: el[1] - basePrediction, reverse=True)
+
+    print("Base prediction:", basePrediction)
+    print("Most deviating (more positive):")
+    for sample, prediction in mostDifferent[:5]:
+        if prediction >= basePrediction:
+            print("\t", sample[0], sample[1], prediction)
+
+    print("Most deviating (more negative):")
+    for sample, prediction in reversed(mostDifferent[-5:]):
+        if prediction <= basePrediction:
+            print("\t", sample[0], sample[1], prediction)
+
+
 @bacli.command
 def summary(model_file: str):
     """ Print summary of neural network. """
-    from keras.models import load_model
+    from tensorflow.keras.models import load_model
 
-    model = load_model(model_file, custom_objects=dependencies)
+    model = load_model(model_file)
     model.summary(line_length=80)
 
 
-@bacli.command
-def peptide(
-    epitope: str = None,
-    cdr3: str = None,
-    tensor: bool = False,
-    cmyk: bool = False,
-    operator: str = "best",
-):
-    """ Render peptide images. """
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+def getImage(epitope: str = None,
+             cdr3: str = None,
+             tensor: bool = False,
+             cmyk: bool = False,
+             operator: str = "best",):
 
     for pep in [epitope, cdr3]:
         print(pep)
@@ -161,18 +279,33 @@ def peptide(
             pixels = feature.image_matrix(cdr3, epitope, operator=operator)
 
         img = image_from_matrix(pixels, mode=mode, index=index)
-        layers.append((img, feature.name))
+        layers.append((img, feature.name, mode))
 
     img = image_from_matrices(*matrices, mode=mode)
-    layers.append((img, "Combined"))
+    layers.append((img, "Combined", mode))
+    return layers
+
+
+@bacli.command
+def peptide(
+    epitope: str = None,
+    cdr3: str = None,
+    tensor: bool = False,
+    cmyk: bool = False,
+    operator: str = "best",
+):
+    """ Render peptide images. """
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    layers = getImage(epitope, cdr3, tensor, cmyk, operator)
 
     img2plot(layers, epitope, cdr3, "amino-acid-map.pdf")
 
 
 def img2plot(layers, epitope, cdr3, name):
     fig = plt.figure(figsize=(12, 4))
-    axes = fig.subplots(1, 5, sharey=True)
-    for ax in axes.flat:
+    axes = fig.subplots(1, len(layers), sharey=True)
+    for ax in fig.get_axes():
         ax.set_yticks(range(len(cdr3)))
         ax.set_yticklabels(cdr3)
         ax.set_xticks(range(len(epitope)))
@@ -185,15 +318,15 @@ def img2plot(layers, epitope, cdr3, name):
     fig.text(0.5, 0.08, "Epitope", ha="center", va="center")
 
     # Hide x labels and tick labels for top plots and y ticks for right plots.
-    for ax in axes.flat:
+    for ax in fig.get_axes():
         ax.label_outer()
 
-    for i, (layer, title) in enumerate(layers):
-        sub = axes[i]
+    for i, (layer, title, cmap) in enumerate(layers):
+        sub = fig.get_axes()[i]
         sub.set_title(title)
         rgb_im = layer.convert("RGB")
         pix = np.array(rgb_im)
-        sub.imshow(pix, origin="lower")
+        sub.imshow(pix, origin="lower", cmap=cmap)
         sub.grid(False)
         for spine in plt.gca().spines.values():
             spine.set_visible(False)
@@ -267,6 +400,7 @@ def metrics(directory: str, force: bool = False):
     #       |- average_precision.csv
     #   |- iteration 1
     #       |- ...
+    derive_metrics_all(directory, force=force)
     consolidate_all(directory, force=force)
     plot_all(directory)
 

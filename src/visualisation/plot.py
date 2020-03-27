@@ -8,7 +8,13 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import (
+    auc,
+    average_precision_score,
+    precision_recall_curve,
+    roc_curve,
+    confusion_matrix
+)
 
 from src.bio.util import subdirs
 
@@ -16,9 +22,9 @@ from src.bio.util import subdirs
 FILES = [
     ("metrics.csv", "epoch"),
     ("roc.csv", "index"),
+    ("auc.csv", "index"),
     ("precision_recall.csv", "index"),
     ("average_precision.csv", "index"),
-    ("auc.csv", "index"),
     ("predictions.csv", None),
 ]
 
@@ -61,6 +67,101 @@ def get_output_path(directory, title, extension=".pdf"):
     return os.path.join(directory, title + extension)
 
 
+def derive_metrics_all(directory, force=False):
+    """
+    For each iteration, derive the roc and p/r values. Creates four new files, as shown below:
+
+    directory
+      |- iteration 0
+          |- metrics.csv
+          |- predictions.csv
+          |+ roc.csv
+          |+ auc.csv
+          |+ precision_recall.csv
+          |+ average_precision.csv
+      |- iteration 1
+          |- ...
+    """
+
+    for subdir in filter(
+        lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)
+    ):
+        p = os.path.join(subdir, subdir)
+
+        predictions_path = os.path.join(p, "predictions.csv")
+        if not os.path.exists(predictions_path):
+            print(f"Missing predictions.csv in {p}")
+            return
+
+        # read predictions from csv
+        predictions_path = os.path.join(subdir, "predictions.csv")
+        predictions = pd.read_csv(predictions_path)
+        y_pred, y_true = predictions.y_pred, predictions.y_true
+
+        derive_roc(p, y_true, y_pred, force=force)
+        derive_pr(p, y_true, y_pred, force=force)
+
+
+def derive_roc(subdir, y_true, y_pred, force=False):
+    roc_path = os.path.join(subdir, "roc.csv")
+    auc_path = os.path.join(subdir, "auc.csv")
+
+    # Check if already processed
+    if not force and os.path.exists(roc_path) and os.path.exists(auc_path):
+        return
+
+    # calculate fpr, tpr and thresholds for ROC curve
+    fpr, tpr, _ = roc_curve(y_true, y_pred, drop_intermediate=True)
+
+    # interpolate (to easily combine with other iterations)
+    interval = np.linspace(0, 1, 201)
+    tpr_i = np.interp(interval, fpr, tpr)
+
+    # Set roc end values to something that makes sense (should mostly be the case, up to rounding errors).
+    tpr_i[0], tpr_i[-1] = 0.0, 1.0
+
+    # write to file
+    df = pd.DataFrame({"fpr": interval, "tpr": tpr_i})
+    df.to_csv(roc_path, index=False)
+
+    # calculate auc from ROC curve. This is done here already (and written to file) so it can be processed by the same average/stddev calculations later on.
+    auc_value = auc(fpr, tpr)
+
+    # write to file
+    df = pd.DataFrame({"auc": [auc_value]})
+    df.to_csv(auc_path, index=False)
+
+
+def derive_pr(subdir, y_true, y_pred, force=False):
+    pr_path = os.path.join(subdir, "precision_recall.csv")
+    apr_path = os.path.join(subdir, "average_precision.csv")
+
+    # Check if already processed
+    if not force and os.path.exists(pr_path) and os.path.exists(apr_path):
+        return
+
+    # calculate p/r values
+    precision, recall, _ = precision_recall_curve(y_true, y_pred)
+
+    # interpolate (to easily combine with other iterations)
+    interval = np.linspace(0, 1, 201)
+    precision_i = np.interp(interval, recall[::-1], precision[::-1])
+
+    # Set p/r values to something that makes sense (should mostly be the case, up to rounding errors).
+    precision_i[0], interval[0] = 1.0, 0.0
+
+    # write to file
+    df = pd.DataFrame({"recall": interval, "precision": precision_i})
+    df.to_csv(pr_path, index=False)
+
+    # calculate average precitions. This is done here already (and written to file) so it can be processed by the same average/stddev calculations later on.
+    ap = average_precision_score(y_true, y_pred)
+
+    # write to file
+    df = pd.DataFrame({"average_precision": [ap]})
+    df.to_csv(apr_path, index=False)
+
+
 def consolidate_all(directory, force=False):
     # directory
     #   |- iteration 0
@@ -90,13 +191,14 @@ def consolidate(directory, file, col):
             return
         df = pd.read_csv(p)
 
-        # Set roc end values to something that makes sense.
-        if file == "roc.csv":
-            df.tpr[0], df.tpr[-1] = 0.0, 1.0
-
-        # Set p/r values to something that makes sense.
-        if file == "precision_recall.csv":
-            df.precision[0], df.recall[0] = 1.0, 0.0
+        # Moved to derive step. If still needed for legacy results -> uncomment
+        # # Set roc end values to something that makes sense.
+        # if file == "roc.csv":
+        #     df.tpr[0], df.tpr[-1] = 0.0, 1.0
+        #
+        # # Set p/r values to something that makes sense.
+        # if file == "precision_recall.csv":
+        #     df.precision[0], df.recall[0] = 1.0, 0.0
 
         dfs.append(df)
 
@@ -118,7 +220,6 @@ def consolidate(directory, file, col):
 
     result = pd.concat([df_means, df_std], axis=1, sort=False)
     result["type"] = os.path.basename(os.path.dirname(directory))
-    output_path = os.path.join(directory, file)
     result.to_csv(output_path, index=False)
 
 
