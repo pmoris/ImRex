@@ -221,4 +221,3 @@ class VdjdbSource(DataSource):
                 <= max_length_epitope
             )
         ]
-

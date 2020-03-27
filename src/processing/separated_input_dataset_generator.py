@@ -28,13 +28,14 @@ def separated_input_dataset_generator(
     Parameters
     ----------
     data_stream : DataStream
-        A DataStream of positive labeled cdr3-epitope sequence pairs.
+        A DataStream of positive labeled cdr3-epitope sequence pairs. Expected fromat ( ("CDR3","EPITOPE"), 1)
     cdr3_range : Tuple[int, int]
         The minimum and maximum desired cdr3 sequence length.
     epitope_range : Tuple[int, int]
         The minimum and maximum desired epitope sequence length.
     neg_shuffle : bool
         Whether to create negatives by shuffling/sampling, by default True.
+        NOTE: Should always be set to False when evaluating a dataset that already contains negatives.
     export_path : Optional[str], optional
         If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
 

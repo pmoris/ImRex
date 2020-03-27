@@ -31,7 +31,7 @@ def padded_dataset_generator(
     Parameters
     ----------
     data_stream : DataStream
-        A DataStream of positive labeled cdr3-epitope sequence pairs.
+        A DataStream of positive labeled cdr3-epitope sequence pairs. Expected fromat ( ("CDR3","EPITOPE"), 1)
     feature_builder : FeatureBuilder
         A FeatureBuilder object that can convert the sequences into pairwise interaction arrays.
     cdr3_range : Tuple[int, int]
@@ -42,6 +42,7 @@ def padded_dataset_generator(
         An inverse map for retrieving the sequences associated with an array, by default NoOp().
     neg_shuffle : bool
         Whether to create negatives by shuffling/sampling, by default True.
+        NOTE: Should always be set to False when evaluating a dataset that already contains negatives.
     export_path: Optional[str], optional.
         If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
 
