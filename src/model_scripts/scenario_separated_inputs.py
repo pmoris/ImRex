@@ -26,7 +26,7 @@ def run(
     val_split: float = None,  # the proportion of the dataset to include in the test split.
     epitope_grouped_cv: bool = False,  # when val_split is None, indicates whether to use normal k-fold cv or an epitope-grouped cv
     one_epitope_out_cv: bool = False,  # when val_split is None and epitope_grouped_cv is True, indicates whether to use leave-1-epitope-out cv
-    neg_shuffle_in_cv: bool = True,  # when True, negatives will be generated through shuffling within each train/test set, otherwise the entire dataset will be shuffled, which can cause individual cdr3/epitope sequences to appear in both train and test sets.
+    neg_shuffle_in_cv: bool = False,  # when True, negatives will be generated through shuffling within each train/test set, otherwise the entire dataset will be shuffled, which can cause individual cdr3/epitope sequences to appear in both train and test sets.
     n_folds: int = 5,
     # these lengths are used for both size filtering and padding. Should be compatible with any preprocessing steps.
     min_length_cdr3: int = 10,
