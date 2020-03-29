@@ -71,32 +71,32 @@ def create_csv_logger(base_name, iteration):
     return callbacks.CSVLogger(output_path)
 
 
-class MetricCallback(callbacks.Callback):
-    """Callback template to compute average metrics after training."""
+# class MetricCallback(callbacks.Callback):
+#     """Callback template to compute average metrics after training."""
 
-    def __init__(self, val_stream, base_name, iteration):
-        super().__init__()
-        self.val_stream = val_stream
-        self.base_name = base_name
-        self.iteration = iteration
+#     def __init__(self, val_stream, base_name, iteration):
+#         super().__init__()
+#         self.val_stream = val_stream
+#         self.base_name = base_name
+#         self.iteration = iteration
 
-    def _predict(self, include_samples=False):
-        xx = list()
-        y_pred = list()
-        y_true = list()
-        for i in range(len(self.val_stream) * 5):
-            batch = self.val_stream[i]
-            x, y = batch
-            pred = self.model.predict_on_batch(x)
-            if include_samples:
-                xx.extend(x)
-            y_pred.extend(pred)
-            y_true.extend(y)
+#     def _predict(self, include_samples=False):
+#         xx = list()
+#         y_pred = list()
+#         y_true = list()
+#         for i in range(len(self.val_stream) * 5):
+#             batch = self.val_stream[i]
+#             x, y = batch
+#             pred = self.model.predict_on_batch(x)
+#             if include_samples:
+#                 xx.extend(x)
+#             y_pred.extend(pred)
+#             y_true.extend(y)
 
-        if include_samples:
-            return y_pred, y_true, xx
-        else:
-            return y_pred, y_true
+#         if include_samples:
+#             return y_pred, y_true, xx
+#         else:
+#             return y_pred, y_true
 
 
 # class RocCallback(MetricCallback):
@@ -154,54 +154,90 @@ class MetricCallback(callbacks.Callback):
 #         return
 
 
-class PredictionCallback(MetricCallback):
-    def __init__(self, val_stream, base_name, iteration, lookup=None):
-        super().__init__(val_stream, base_name, iteration)
+# class PredictionCallback(MetricCallback):
+#     def __init__(self, val_stream, base_name, iteration, lookup=None):
+#         super().__init__(val_stream, base_name, iteration)
+#         self.lookup = lookup
+
+#     def on_train_end(self, logs={}):
+#         if self.lookup:
+#             y_pred, y_true, samples = self._predict(include_samples=True)
+#         else:
+#             y_pred, y_true = self._predict(include_samples=False)
+
+#         y_pred = [e[0] for e in y_pred]
+#         df = pd.DataFrame(zip(y_true, y_pred), columns=["y_true", "y_pred"])
+#         output_path = get_output_path(
+#             self.base_name, "predictions.csv", iteration=self.iteration
+#         )
+#         df.to_csv(output_path, index=False)
+
+#         if self.lookup:
+#             all_pos = [
+#                 (pred, sample, 1)
+#                 for pred, sample, label in zip(y_pred, samples, y_true)
+#                 if label == 1
+#             ]
+#             all_neg = [
+#                 (pred, sample, 0)
+#                 for pred, sample, label in zip(y_pred, samples, y_true)
+#                 if label == 0
+#             ]
+
+#             interesting = {
+#                 "Best Positive": max(all_pos, key=lambda x: x[0]),
+#                 "Worst Positive": min(all_pos, key=lambda x: x[0]),
+#                 "Best Negative": min(all_neg, key=lambda x: x[0]),
+#                 "Worst Negative": max(all_neg, key=lambda x: x[0]),
+#             }
+
+#             for name, (prediction, sample, label) in interesting.items():
+#                 print(f" ======= {name} ======= ")
+#                 print(f"prediction:\t{prediction}")
+#                 print(f"label:\t\t{label}")
+#                 x = self.lookup.find_input_for(sample)
+#                 if x:
+#                     cdr3, epitope = x
+#                     print(f"epitope:\t{epitope}")
+#                     print(f"cdr3:\t\t{cdr3}")
+#                 else:
+#                     print("Not found")
+
+
+class PredictionCallBack(callbacks.Callback):
+    def __init__(self, val_data, base_name, iteration, lookup=None):
+        super().__init__()
+        self.val_data = val_data
+        self.base_name = base_name
+        self.iteration = iteration
         self.lookup = lookup
 
-    def on_train_end(self, logs={}):
-        if self.lookup:
-            y_pred, y_true, samples = self._predict(include_samples=True)
-        else:
-            y_pred, y_true = self._predict(include_samples=False)
+    def on_train_end(self, logs=None):
+        y_pred = self.model.predict(self.val_data)
+        y_true = np.array(list(self.val_data.unbatch().as_numpy_iterator()))[:, 1]
 
-        y_pred = [e[0] for e in y_pred]
-        df = pd.DataFrame(zip(y_true, y_pred), columns=["y_true", "y_pred"])
         output_path = get_output_path(
-            self.base_name, "predictions.csv", iteration=self.iteration
+            self.base_name, f"predictions.csv", iteration=self.iteration
         )
-        df.to_csv(output_path, index=False)
 
-        if self.lookup:
-            all_pos = [
-                (pred, sample, 1)
-                for pred, sample, label in zip(y_pred, samples, y_true)
-                if label == 1
-            ]
-            all_neg = [
-                (pred, sample, 0)
-                for pred, sample, label in zip(y_pred, samples, y_true)
-                if label == 0
-            ]
-
-            interesting = {
-                "Best Positive": max(all_pos, key=lambda x: x[0]),
-                "Worst Positive": min(all_pos, key=lambda x: x[0]),
-                "Best Negative": min(all_neg, key=lambda x: x[0]),
-                "Worst Negative": max(all_neg, key=lambda x: x[0]),
-            }
-
-            for name, (prediction, sample, label) in interesting.items():
-                print(f" ======= {name} ======= ")
-                print(f"prediction:\t{prediction}")
-                print(f"label:\t\t{label}")
-                x = self.lookup.find_input_for(sample)
-                if x:
-                    cdr3, epitope = x
-                    print(f"epitope:\t{epitope}")
-                    print(f"cdr3:\t\t{cdr3}")
-                else:
-                    print("Not found")
+        # if self.lookup:
+        #     samples = [
+        #         self.lookup.find_input_for(sample)
+        #         for sample in self.val_data.unbatch().as_numpy_iterator()
+        #     ]
+        #     cdr3, epitope = zip(*samples)
+        #     pd.DataFrame(
+        #         {
+        #             "y_pred": y_pred.squeeze(),
+        #             "y_true": y_true.squeeze(),
+        #             "cdr3": cdr3,
+        #             "antigen.epitope": epitope,
+        #         }
+        #     ).to_csv(output_path, index=False)
+        # else:
+        pd.DataFrame({"y_pred": y_pred.squeeze(), "y_true": y_true.squeeze()}).to_csv(
+            output_path, index=False
+        )
 
 
 def get_metrics():
@@ -274,13 +310,11 @@ class Trainer(object):
         if not self.base_name:
             self.base_name = model.base_name
 
-        # TODO: @PM Adapt PreedictionCallback to write predictions to file
-        #  Metrics per epoch (accuracy, loss, etc) are also still used in visualization script
-
         callbacks_list = [
             create_checkpointer(model.base_name, iteration),
             create_csv_logger(model.base_name, iteration),
             create_tensorboard_callback(model.base_name, iteration),
+            PredictionCallBack(val_data, model.base_name, iteration, self.lookup)
             # RocCallback(val_stream, model.base_name, iteration),
             # PrecisionRecallCallback(val_stream, model.base_name, iteration),
             # PredictionCallback(
@@ -330,6 +364,8 @@ class Trainer(object):
             shuffle=False,
         )
         self.histories[iteration] = history
+
+        return model_instance
 
     def evaluate(self):
         pass  # Moved to post processing step
