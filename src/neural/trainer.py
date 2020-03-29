@@ -19,7 +19,7 @@ from src.config import MODEL_DIR, TENSORBOARD_DIR
 from src.processing.inverse_map import InverseMap
 
 
-NUMBER_OF_GPUS = int(os.environ["GPUS"])
+NUMBER_OF_GPUS = os.environ.get("GPUS")
 
 
 def get_output_dir(base_name, iteration=None):
@@ -257,8 +257,8 @@ class Trainer(object):
             logger.info("Training model:")
             model_instance.summary(print_fn=logger.info)
 
-        if NUMBER_OF_GPUS > 1:
-            model_instance = multi_gpu_model(model_instance, gpus=NUMBER_OF_GPUS)
+        if NUMBER_OF_GPUS and int(NUMBER_OF_GPUS) > 1:
+            model_instance = multi_gpu_model(model_instance, gpus=int(NUMBER_OF_GPUS))
 
         model_instance.compile(
             optimizer=model.get_optimizer(),
