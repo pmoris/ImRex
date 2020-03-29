@@ -8,7 +8,6 @@ from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.model_scripts import pipeline
-from src.models.model_padded import ModelPadded
 from src.neural.trainer import get_output_path, Trainer
 from src.processing.cv_folds import cv_splitter
 from src.processing.inverse_map import InverseMap
@@ -43,6 +42,12 @@ def run(
     / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",  # input data csv, as supplied by preprocess_vdjdb
     optimizer: str = "rmsprop",  # can be any of: rmsprop, adam or SGD
     learning_rate: float = None,  # learning rate supplied to the selected optimizer
+    model: str = "model_padded",
+    depth1: int = None,
+    depth2: int = None,
+    dropout1: float = None,
+    dropout2: float = None,
+    gap: bool = False,
 ):
 
     # create logger and log file
@@ -94,14 +99,61 @@ def run(
         lookup=inverse_map,
     )
 
-    model = ModelPadded(
-        width=max_length_cdr3,
-        height=max_length_epitope,
-        name=run_name,
-        channels=feature_builder.get_number_layers(),
-        optimizer=optimizer,
-        learning_rate=learning_rate,
-    )
+    if model == "model_padded":
+        from src.models.model_padded import ModelPadded
+
+        model = ModelPadded(
+            width=max_length_cdr3,
+            height=max_length_epitope,
+            name=run_name,
+            channels=feature_builder.get_number_layers(),
+            optimizer=optimizer,
+            learning_rate=learning_rate,
+        )
+    elif model == "model_selu":
+        from src.models.model_padded_selu import ModelPaddedSelu
+
+        model = ModelPaddedSelu(
+            width=max_length_cdr3,
+            height=max_length_epitope,
+            name=run_name,
+            channels=feature_builder.get_number_layers(),
+            optimizer=optimizer,
+            learning_rate=learning_rate,
+        )
+    elif model == "model_small":
+        from src.models.model_padded_small import ModelPaddedSmall
+
+        model = ModelPaddedSmall(
+            width=max_length_cdr3,
+            height=max_length_epitope,
+            name=run_name,
+            channels=feature_builder.get_number_layers(),
+            optimizer=optimizer,
+            learning_rate=learning_rate,
+            depth1=depth1,
+            depth2=depth2,
+            dropout1=dropout1,
+            dropout2=dropout2,
+            gap=gap,
+        )
+    elif model == "model_small_selu":
+        from src.models.model_padded_small_selu import ModelPaddedSmallSelu
+
+        model = ModelPaddedSmallSelu(
+            width=max_length_cdr3,
+            height=max_length_epitope,
+            name=run_name,
+            channels=feature_builder.get_number_layers(),
+            optimizer=optimizer,
+            learning_rate=learning_rate,
+            depth1=depth1,
+            depth2=depth2,
+            dropout1=dropout1,
+            dropout2=dropout2,
+            gap=gap,
+        )
+
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
 
