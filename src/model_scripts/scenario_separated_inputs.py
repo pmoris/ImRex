@@ -94,6 +94,7 @@ def run(
             filepath=neg_ref, min_length=min_length_cdr3, max_length=max_length_cdr3
         )
         data_source.generate_negatives_from_ref(negative_source)
+        neg_shuffle = False
 
     # otherwise, generate negatives through shuffling
     else:
@@ -103,6 +104,7 @@ def run(
                 f"Generating negative examples through shuffling on the entire dataset prior to train/test fold creation."
             )
             data_source.generate_negatives()
+            neg_shuffle = False
 
         # otherwise, generate negatives within each train/test set during tf dataset creation
         else:
@@ -127,15 +129,11 @@ def run(
 
     for iteration, (train, val) in enumerate(iterations):
 
-        neg_train, neg_val = None, None
 
         logger.info(f"Iteration: {iteration}")
         logger.info(f"batch size: {batch_size}")
-        if neg_ref:
-            train, neg_train = train
-            val, neg_val = val
-            logger.info(f"neg train set: {len(neg_train)}")
-            logger.info(f"neg val set: {len(neg_val)}")
+        logger.info(f"Train set: {len(train)}")
+        logger.info(f"Test set: {len(val)}")
         logger.info(f"train set: {len(train)}")
         logger.info(f"val set: {len(val)}")
 
