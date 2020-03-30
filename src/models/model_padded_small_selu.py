@@ -18,7 +18,7 @@ from src.models.model import Model
 NUM_CLASSES = 1
 
 
-class ModelPaddedSmall(Model):
+class ModelPaddedSmallSelu(Model):
     def __init__(
         self,
         width: int,
