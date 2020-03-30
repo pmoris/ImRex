@@ -287,10 +287,13 @@ if __name__ == "__main__":
             export_path=test_fold_output,
         )
 
+        # get length of train dataset
+        train_length = len(train) if not neg_shuffle else len(train) * 2
+
         # shuffle and batch train data
         train_data = train_data.shuffle(
             # buffer equals size of dataset, because positives and negatives are grouped
-            buffer_size=train_data.reduce(0, lambda x, _: x + 1).numpy(),
+            buffer_size=train_length,
             seed=42,
             # reshuffle to make each epoch see a different order of examples
             reshuffle_each_iteration=True,
