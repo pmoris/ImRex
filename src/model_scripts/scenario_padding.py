@@ -219,9 +219,9 @@ if __name__ == "__main__":
     pipeline.create_logger(run_name)
     logger = logging.getLogger(__name__)
 
-    # log utilised function arguments that were used
-    for k, v in locals.items():
-        logger.info(f"{k}: {v}")
+    # log arguments that were used
+    for arg, value in sorted(vars(args).items()):
+        logging.info("CLI argument %s: %r", arg, value)
 
     # read (positive) data
     data_source = VdjdbSource(
