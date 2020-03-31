@@ -41,7 +41,7 @@ def create_parser():
     parser.add_argument(
         "--neg_ref",
         dest="neg_ref",
-        type=float,
+        type=str,
         help="Whether to generate negatives from CDR3 reference sequences or by shuffling positive examples.",
         default=None,
     )
