@@ -48,6 +48,7 @@ class VdjdbSource(DataSource):
         """
         # sample required number of CDR3 sequences
         amount = self.data.shape[0]
+
         negative_cdr3_series = (
             negative_source.data[negative_source.headers["cdr3_header"]]
             .sample(n=amount)
@@ -110,6 +111,7 @@ class VdjdbSource(DataSource):
                     keep="last",
                 )
             ]
+            amount = to_do_df.shape[0]
 
             self.data = self.data.drop_duplicates(
                 subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
