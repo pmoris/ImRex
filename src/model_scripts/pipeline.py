@@ -2,6 +2,7 @@
 import datetime
 import logging
 from pathlib import Path
+import sys
 
 from src.neural.trainer import get_output_path
 
@@ -23,7 +24,7 @@ def create_logger(run_name):
     # apply settings to root logger, so that loggers in modules can inherit both the file and console logger
     logger = logging.getLogger()
     # add console logger
-    console = logging.StreamHandler()
+    console = logging.StreamHandler(sys.stdout)
     console.setLevel(logging.INFO)
     console.setFormatter(logging.Formatter(log_fmt))
     logger.addHandler(console)
