@@ -81,6 +81,20 @@ def create_parser():
         default=False,
     )
     parser.add_argument(
+        "--neg_augment",
+        dest="neg_augment",
+        type=str,
+        help="The path to a negative reference cdr3 set, used to augment the shuffled negatives with additional examples. Ignored by default. Must be used in conjunction with the --augment_amount argument",
+        default=None,
+    )
+    parser.add_argument(
+        "--augment_amount",
+        dest="augment_amount",
+        type=int,
+        help="The number of additional negatives to generate from the negative reference cdr3 set. Must be used in conjunction with the --neg_augment argument.",
+        default=None,
+    )
+    parser.add_argument(
         "--n_folds",
         dest="n_folds",
         type=int,
@@ -245,6 +259,10 @@ if __name__ == "__main__":
     # check argument compatability
     if args.epitope_grouped_cv and args.val_split is not None:
         raise RuntimeError("Cannot test epitope-grouped without k folds.")
+    elif bool(args.neg_augment) ^ bool(args.augment_amount):
+        raise RuntimeError(
+            "If negatives should be augmented, both the neg_agument and augment_amount should be supplied."
+        )
 
     logger.info("features: " + str(features_list))
     logger.info("operator: " + str(operator))
@@ -395,6 +413,8 @@ if __name__ == "__main__":
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,
             export_path=train_fold_output,
+            neg_augment=args.neg_augment,
+            augment_amount=args.augment_amount,
         )
         val_data = padded_dataset_generator(
             data_stream=val,
@@ -404,6 +424,8 @@ if __name__ == "__main__":
             inverse_map=inverse_map,
             neg_shuffle=neg_shuffle,
             export_path=test_fold_output,
+            neg_augment=args.neg_augment,
+            augment_amount=args.augment_amount,
         )
 
         # get length of train dataset

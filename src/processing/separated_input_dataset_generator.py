@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Optional, Tuple
 
 from Bio.SubsMat import MatrixInfo
@@ -8,7 +9,7 @@ import tensorflow as tf
 
 from src.definitions.amino_acid_properties import AMINO_ACIDS
 from src.processing.data_stream import DataStream
-from src.processing.negative_sampler import add_negatives
+from src.processing.negative_sampler import add_negatives, augment_negatives
 from src.processing.stream import TransformStream
 from src.processing.zipper import Zipper
 
@@ -19,6 +20,8 @@ def separated_input_dataset_generator(
     epitope_range: Tuple[int, int],
     neg_shuffle: bool = True,
     export_path: Optional[str] = None,
+    neg_augment: Optional[str] = None,
+    augment_amount: Optional[int] = None,
 ):
     """Create a tensorflow dataset with positive and negative blosum-encoded arrays.
 
@@ -38,6 +41,10 @@ def separated_input_dataset_generator(
         NOTE: Should always be set to False when evaluating a dataset that already contains negatives.
     export_path : Optional[str], optional
         If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
+    neg_augment: Optional[str], optional.
+        If supplied, provided the filepath to a negative reference set of cdr3 sequences, used for augmenting additional negatives, by default None.
+    augment_amount: Optional[int], optional.
+        The amount of negatives to augment.
 
     Returns
     -------
@@ -58,7 +65,22 @@ def separated_input_dataset_generator(
 
     # generate negatives through shuffling if negative reference set was not provided and shuffling did not happen on the entire dataset
     if neg_shuffle:
+        logger.info(
+            f"Generating {df.shape[0]} negatives by shuffling the positive sequence pairs."
+        )
         df = add_negatives(df)
+
+    # optionally augment with additional negative reference pairs
+    if neg_augment and augment_amount:
+        logger.info(
+            f"Augmenting {augment_amount} negatives from negative reference set {Path(neg_augment).absolute()}."
+        )
+        df = augment_negatives(
+            negative_source=neg_augment,
+            df=df,
+            cdr3_range=cdr3_range,
+            amount=augment_amount,
+        )
 
     # export dataset with sequences and labels as csv
     if export_path:

@@ -3,6 +3,8 @@ import logging
 import numpy as np
 import pandas as pd
 
+from src.data.control_cdr3_source import ControlCDR3Source
+
 
 def add_negatives(df):
     # generate negative pairs from list of all cdr3s in positive pairs
@@ -107,3 +109,54 @@ def sample_pairs(
     else:
         sampled_epitope = possible_epitopes.sample(n=1).reset_index(drop=True)[0]
         return cdr3, sampled_epitope
+
+
+def augment_negatives(negative_source, df, cdr3_range, amount):
+
+    epitopes = (
+        df.loc[df["y"] == 1, "antigen.epitope"].sample(n=amount).reset_index(drop=True)
+    )
+
+    negative_source = ControlCDR3Source(
+        filepath=negative_source, min_length=cdr3_range[0], max_length=cdr3_range[1],
+    )
+
+    cdr3 = (
+        negative_source.data[negative_source.headers["cdr3_header"]]
+        .sample(n=amount)
+        .reset_index(drop=True)
+        .rename("cdr3")
+    )
+    negative_df = pd.concat([cdr3, epitopes], axis=1)
+    negative_df["y"] = 0
+
+    df = df.append(negative_df).reset_index(drop=True)
+
+    to_do_df = df.loc[df.duplicated(subset=["cdr3", "antigen.epitope"], keep="last")]
+
+    # remove duplicates from merged dataframe
+    df = df.drop_duplicates(
+        subset=["cdr3", "antigen.epitope"], keep="first",
+    ).reset_index(drop=True)
+
+    amount = to_do_df.shape[0]
+    while amount > 0:
+        epitopes = df.loc[df["y"] == 1, "y"].sample(n=amount).reset_index(drop=True)
+        cdr3 = (
+            negative_source.data[negative_source.headers["cdr3_header"]]
+            .sample(n=amount)
+            .reset_index(drop=True)
+            .rename("cdr3")
+        )
+        negative_df = pd.concat([cdr3, epitopes], axis=1)
+        negative_df["y"] = 0
+        df = df.append(negative_df).reset_index(drop=True)
+        to_do_df = df.loc[
+            df.duplicated(subset=["cdr3", "antigen.epitope"], keep="last")
+        ]
+        df = df.drop_duplicates(
+            subset=["cdr3", "antigen.epitope"], keep="first",
+        ).reset_index(drop=True)
+        amount = to_do_df.shape[0]
+
+    return df
