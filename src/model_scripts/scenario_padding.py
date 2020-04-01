@@ -189,13 +189,13 @@ def create_parser():
     parser.add_argument(
         "--dropout1",
         dest="dropout1",
-        type=int,
+        type=float,
         help="Dropout after the first convolutional layer. Only used for the small models.",
     )
     parser.add_argument(
         "--dropout2",
         dest="dropout2",
-        type=int,
+        type=float,
         help="Dropout after the second convolutional layer. Only used for the small models.",
     )
     parser.add_argument(
