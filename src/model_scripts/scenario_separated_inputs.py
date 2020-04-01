@@ -17,7 +17,7 @@ from src.processing.splitter import splitter
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Script to extract CDR3-epitope sequence pairs from VDJdb files.",
+        description="Script to train a separated inputs cdr3-epitpe prediction model.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -77,7 +77,7 @@ def create_parser():
         "--neg_gen_full",
         dest="neg_gen_full",
         action="store_true",
-        help="When selected, the entire dataset will be shuffled to generate negatives, which can cause individual cdr3/epitope sequences to reappear in both train and test sets. Otherwise, negatives will be generated through shuffling within each train/test set. Otherwise,",
+        help="When selected, the entire dataset will be shuffled to generate negatives, which can cause individual cdr3/epitope sequences to reappear in both train and test sets. Otherwise, negatives will be generated through shuffling within each train/test set.",
         default=False,
     )
     parser.add_argument(

@@ -39,11 +39,11 @@ def separated_input_dataset_generator(
     neg_shuffle : bool
         Whether to create negatives by shuffling/sampling, by default True.
         NOTE: Should always be set to False when evaluating a dataset that already contains negatives.
-    export_path : Optional[str], optional
+    export_path: Optional[str], optional
         If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
-    neg_augment: Optional[str], optional.
+    neg_augment: Optional[str], optional
         If supplied, provided the filepath to a negative reference set of cdr3 sequences, used for augmenting additional negatives, by default None.
-    augment_amount: Optional[int], optional.
+    augment_amount: Optional[int], optional
         The amount of negatives to augment.
 
     Returns

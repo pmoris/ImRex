@@ -1,6 +1,5 @@
-import os
-from copy import copy
 import itertools
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +8,7 @@ from scipy import stats
 import seaborn as sns
 
 import src.bacli as bacli
-from src.bio.image import image_from_matrices, image_from_matrix
+from src.bio.image import image_from_matrices, image_from_matrix, image_from_tensor
 from src.bio.peptide_feature import (  # noqa: I101
     Charge,
     Hydrophilicity,
@@ -32,12 +31,11 @@ from src.bio.peptide_feature import (  # noqa: I101
 from src.bio.util import subdirs
 from src.config import PROJECT_ROOT
 from src.definitions.amino_acid_properties import AMINO_ACIDS
-from src.metric import metric
 from src.visualisation.plot import (
     cmap,
-    derive_metrics_all,
     concatenate_all,
     consolidate_all,
+    derive_metrics_all,
     plot_all,
     # palette,
     plot_combined,
@@ -114,7 +112,7 @@ def activations(
     # display_heatmaps(activations, padded, save=False)
 
 
-def makeInput(epitope, cdr3):
+def make_input(epitope, cdr3):
     # TODO: implement
     #  generate input image for epitope and cdr3 sequence
     #  need to handle 'X' amino acid
@@ -149,26 +147,27 @@ def cam(model_file: str, epitope, cdr3):
     model = load_model(model_file)
 
     # last layer is combination of previous one
-    # originalLayer, title = getImage(epitope, cdr3, False, True, 'best')[-1]
+    # originalLayer, title = get_image(epitope, cdr3, False, True, 'best')[-1]
 
     # TODO: keras-vis code is outdated, try snippet online ()
 
-    x = makeInput(epitope, cdr3)
+    x = make_input(epitope, cdr3)
 
-    for modifier in [None, 'guided', 'relu']:
-        cam = visualize_cam(model,
-                            -1,
-                            None,
-                            x,
-                            penultimate_layer_idx=9,
-                            backprop_modifier=modifier,
-                            grad_modifier=None
-                            )
+    for modifier in [None, "guided", "relu"]:
+        cam = visualize_cam(
+            model,
+            -1,
+            None,
+            x,
+            penultimate_layer_idx=9,
+            backprop_modifier=modifier,
+            grad_modifier=None,
+        )
         # print(cam)
         camLayer = image_from_tensor(cam, mode="RGB")
 
         if modifier is None:
-            modifier = 'vanilla'
+            modifier = "vanilla"
 
         print(modifier)
 
@@ -192,7 +191,7 @@ def perturbe(variables, symbol, amount):
 
 
 @bacli.command
-def predict_variations(model_file: str, epitope, cdr3, aa='X', perturbations: int=1):
+def predict_variations(model_file: str, epitope, cdr3, aa="X", perturbations: int = 1):
     from tensorflow.keras.models import load_model
 
     model = load_model(model_file)
@@ -207,14 +206,14 @@ def predict_variations(model_file: str, epitope, cdr3, aa='X', perturbations: in
     variables = list(epitope + cdr3)
     for amount in range(1, perturbations + 1):
         for variation in perturbe(variables, aa, amount):
-            var_epitope = "".join(variation[:len(epitope)])
-            var_cdr3 = "".join(variation[len(epitope):])
+            var_epitope = "".join(variation[: len(epitope)])
+            var_cdr3 = "".join(variation[len(epitope) :])
             samples.append((var_epitope, var_cdr3))
 
     # TODO: Need to test what replacing with X does. It works, but I don't know which values are used.
 
     # generate input images for each sample
-    x = np.array([makeInput(*sample) for sample in samples])
+    x = np.array([make_input(*sample) for sample in samples])
 
     # get scores of model
     predictions = np.squeeze(model.predict_on_batch(x).numpy())
@@ -226,7 +225,9 @@ def predict_variations(model_file: str, epitope, cdr3, aa='X', perturbations: in
 
     print("=============== Statistics ===============")
     basePrediction = predictions[0]
-    mostDifferent = sorted(zip(samples, predictions), key=lambda el: el[1] - basePrediction, reverse=True)
+    mostDifferent = sorted(
+        zip(samples, predictions), key=lambda el: el[1] - basePrediction, reverse=True
+    )
 
     print("Base prediction:", basePrediction)
     print("Most deviating (more positive):")
@@ -249,11 +250,13 @@ def summary(model_file: str):
     model.summary(line_length=80)
 
 
-def getImage(epitope: str = None,
-             cdr3: str = None,
-             tensor: bool = False,
-             cmyk: bool = False,
-             operator: str = "best",):
+def get_image(
+    epitope: str = None,
+    cdr3: str = None,
+    tensor: bool = False,
+    cmyk: bool = False,
+    operator: str = "best",
+):
 
     for pep in [epitope, cdr3]:
         print(pep)
@@ -297,7 +300,7 @@ def peptide(
     """ Render peptide images. """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    layers = getImage(epitope, cdr3, tensor, cmyk, operator)
+    layers = get_image(epitope, cdr3, tensor, cmyk, operator)
 
     img2plot(layers, epitope, cdr3, "amino-acid-map.pdf")
 

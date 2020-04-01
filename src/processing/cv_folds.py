@@ -1,10 +1,9 @@
 import logging
-from typing import Generator, Optional, Tuple
+from typing import Generator, Tuple
 
 import numpy as np
 from sklearn.model_selection import GroupKFold, KFold, LeaveOneGroupOut
 
-from src.config import PROJECT_ROOT
 from src.data.data_source import DataSource
 from src.processing.data_stream import DataStream
 
@@ -27,7 +26,7 @@ def cv_splitter(
     Parameters
     ----------
     data_source : DataSource
-        The data to be split into folds, contains tuples of sequences tuples and outcome label 0/1.
+        The data to be split into folds, contains tuples of sequences tuples and class label 0/1.
     n_folds : int
         The number of folds to create.
     epitope_grouped : bool
