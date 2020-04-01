@@ -324,7 +324,7 @@ class Trainer(object):
                     # "no longer improving" being defined as "no better than 1e-2 less"
                     min_delta=1e-2,
                     # "no longer improving" being further defined as "for at least 2 epochs"
-                    patience=5,
+                    patience=6,
                     verbose=1,
                 )
             )
@@ -334,11 +334,11 @@ class Trainer(object):
                 callbacks.ReduceLROnPlateau(
                     monitor="val_loss",
                     factor=0.2,  # factor by which the learning rate will be reduced. new_lr = lr * factor
-                    patience=5,  # number of epochs with no improvement after which learning rate will be reduced
+                    patience=2,  # number of epochs with no improvement after which learning rate will be reduced
                     verbose=1,
                     mode="auto",
                     min_delta=0.0001,  # threshold for measuring the new optimum, to only focus on significant changes
-                    cooldown=1,  # number of epochs to wait before resuming normal operation after lr has been reduced
+                    cooldown=0,  # number of epochs to wait before resuming normal operation after lr has been reduced
                     min_lr=0,  # lower bound on the learning rate
                 )
             )
