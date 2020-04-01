@@ -29,7 +29,6 @@ class VdjdbSource(DataSource):
         self.filepath = filepath
         self.data = pd.read_csv(self.filepath, sep=";")
         self.headers = headers
-        self.data["y"] = 1
 
     def __len__(self):
         return len(self.data)
@@ -40,6 +39,12 @@ class VdjdbSource(DataSource):
             pep2 = row[self.headers["epitope_header"]]
             label = row["y"]
             yield (pep1, pep2), label
+
+    def add_pos_labels(self):
+        assert (
+            "y" not in self.data.columns
+        ), "Dataset already contains class label column y."
+        self.data["y"] = 1
 
     def generate_negatives_from_ref(self, negative_source: ControlCDR3Source):
         """ Generate negative CDR3 epitope sequence pairs by drawing from a negative CDR3 reference set.

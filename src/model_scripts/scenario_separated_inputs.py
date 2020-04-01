@@ -188,6 +188,7 @@ if __name__ == "__main__":
         filepath=args.data_path,
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
 
     # filter on size
     data_source.length_filter(
