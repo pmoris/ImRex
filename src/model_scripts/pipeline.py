@@ -13,11 +13,23 @@ def create_run_name(name):
     return run_name
 
 
-def create_logger(run_name):
+def create_evaluate_path(run_name, evaluate_model):
+    """ Create output directory for evaluation in same directory as the supplied model file. """
+    model_path = Path(evaluate_model).absolute().parent
+    evaluate_dir = model_path / ("evaluate_" + run_name)
+    evaluate_dir.mkdir(parents=True, exist_ok=True)
+    return evaluate_dir
+
+
+def create_logger(run_name, evaluate_dir=None):
     # create filepath for log
-    log_file = get_output_path(
-        base_name=run_name, file_name=Path(run_name).with_suffix(".log")
-    )
+    if evaluate_dir:
+        # for an evaluation run, the output directory is created separately in the scenario script
+        log_file = (evaluate_dir / ("evaluate_" + run_name)).with_suffix(".log")
+    else:
+        log_file = get_output_path(
+            base_name=run_name, file_name=Path(run_name).with_suffix(".log")
+        )
     # create file logger
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     logging.basicConfig(filename=log_file, level=logging.INFO, format=log_fmt)
