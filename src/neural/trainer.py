@@ -5,12 +5,6 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (
-    auc,
-    average_precision_score,
-    precision_recall_curve,
-    roc_curve,
-)
 from tensorflow.keras import callbacks
 from tensorflow.keras import metrics
 from tensorflow.keras.utils import multi_gpu_model
@@ -243,7 +237,8 @@ class PredictionCallBack(callbacks.Callback):
 def get_metrics():
     return [
         metrics.BinaryAccuracy(name="accuracy"),
-        metrics.AUC(name="auc"),
+        metrics.AUC(curve="ROC", name="roc_auc"),
+        metrics.AUC(curve="PR", name="pr_auc"),
         metrics.Precision(name="precision"),
         metrics.Recall(name="recall"),
         metrics.TruePositives(name="tp"),
