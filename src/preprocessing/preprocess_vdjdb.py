@@ -96,6 +96,14 @@ def create_parser():
         help="Specify specific references to keep. E.g. '10xgenomics PMID#####'",
     )
     parser.add_argument(
+        "--keep-specific-epitopes",
+        dest="keep_specific_epitopes",
+        nargs="+",
+        type=str,
+        default=None,
+        help="Specify specific epitopes to keep. E.g. 'NLVPMVATV KLGGALQAK'",
+    )
+    parser.add_argument(
         "--length-restriction",
         dest="length_restriction",
         nargs="+",
@@ -134,6 +142,7 @@ def filter_vdjdb(  # noqa: C901
     specific_removal_epitope_reference: list = None,
     specific_removal_references: list = None,
     keep_specific_references: list = None,
+    keep_specific_epitopes: list = None,
     length_restriction: list = None,
     downsample: list = None,
 ):
@@ -159,6 +168,8 @@ def filter_vdjdb(  # noqa: C901
         Specify specific references to remove. E.g. '10xgenomics PMID#####', by default None
     keep_specific_references : list
         Specify specific references to keep. E.g. '10xgenomics PMID#####', by default None
+    keep_specific_epitopes : list
+        Specify specific epitopes to keep. E.g. 'NLVPMVATV KLGGALQAK', by default None
     length_restriction: list
         Specify the sequence length restrictions. Format: cdr3-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13', by default None
     Downsample: list
@@ -281,6 +292,12 @@ def filter_vdjdb(  # noqa: C901
         )
     else:
         logger.info("Not filtering on specific reference entries...")
+
+    if keep_specific_epitopes:
+        df = df.loc[(df["antigen.epitope"].isin(keep_specific_epitopes))]
+        logger.info(
+            f"Filtered on specific epitopes {keep_specific_references}, resulting in {df.shape[0]} remaining entries..."
+        )
 
     # Filter on sequence length
     if length_restriction:
@@ -452,6 +469,7 @@ if __name__ == "__main__":
         specific_removal_epitope_reference=args.specific_removal_epitope_reference,
         specific_removal_references=args.specific_removal_references,
         keep_specific_references=args.keep_specific_references,
+        keep_specific_epitopes=args.keep_specific_epitopes,
         length_restriction=args.length_restriction,
         downsample=args.downsample,
     )
