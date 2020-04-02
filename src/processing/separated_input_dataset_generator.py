@@ -104,7 +104,7 @@ def separated_input_dataset_generator(
 
     # convert into tf DataSet
     dataset = tf.data.Dataset.from_tensor_slices(
-        (np.array(x_cdr3), np.array(x_epitope), np.array(y))
+        ((np.array(x_cdr3), np.array(x_epitope)), np.array(y))
     )
 
     return dataset
