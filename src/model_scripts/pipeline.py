@@ -9,7 +9,7 @@ from src.neural.trainer import get_output_path
 
 def create_run_name(name):
     # create run name by appending time and date
-    run_name = name + datetime.datetime.now().strftime("_%Y-%m-%d_%H-%M-%S")
+    run_name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S_") + name
     return run_name
 
 
