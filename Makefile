@@ -59,6 +59,11 @@ clean:
 # ANALYSIS                                                                      #
 #################################################################################
 
+## Calculate metrics across train/test folds and create figures
+metrics:
+	find models/models -maxdepth 1 -mindepth 1 -type d -exec python src/model_scripts/visualize.py metrics --force True {} \;
+
+## Download data to correct directories
 data-vdjdb-aug-2019:
 	@echo ">>> Downloading raw data."
 	bash src/data_scripts/retrieve_data.sh

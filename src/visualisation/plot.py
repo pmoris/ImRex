@@ -13,7 +13,7 @@ from sklearn.metrics import (
     average_precision_score,
     precision_recall_curve,
     roc_curve,
-    confusion_matrix
+    confusion_matrix,
 )
 
 from src.bio.util import subdirs
@@ -86,16 +86,17 @@ def derive_metrics_all(directory, force=False):
     for subdir in filter(
         lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)
     ):
-        p = os.path.join(subdir, subdir)
-
+        p = os.path.join(directory, os.path.basename(subdir))
         predictions_path = os.path.join(p, "predictions.csv")
         if not os.path.exists(predictions_path):
-            print(f"Missing predictions.csv in {p}")
-            return
+            print(f"Missing 'predictions.csv' in {p}...")
+            continue
+        if not os.path.getsize(predictions_path) > 0:
+            print(f"{predictions_path} in {p} appears to be empty, skipping...")
+            continue
 
         # read predictions from csv
-        predictions_path = os.path.join(subdir, "predictions.csv")
-        predictions = pd.read_csv(predictions_path)
+        predictions = pd.read_csv(predictions_path, sep=",")
         y_pred, y_true = predictions.y_pred, predictions.y_true
 
         derive_roc(p, y_true, y_pred, force=force)
@@ -186,9 +187,14 @@ def consolidate(directory, file, col):
         lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)
     ):
         p = os.path.join(subdir, file)
+
         if not os.path.exists(p):
-            print(f"{file} not found in one of the iterations, skipping.")
-            return
+            print(f"{file} not found in {subdir}, skipping.")
+            continue
+        if not os.path.getsize(p) > 0:
+            print(f"{file} in {subdir} appears to be empty, skipping...")
+            continue
+
         df = pd.read_csv(p)
 
         # Moved to derive step. If still needed for legacy results -> uncomment
@@ -202,12 +208,18 @@ def consolidate(directory, file, col):
 
         dfs.append(df)
 
-    print(file)
-    output_path = os.path.join(directory, file)
+    # skip if no files were found
+    if not dfs:
+        print(f"No {file} found in any subdirectory of {directory}, skipping...")
+        return
 
+    output_path = os.path.join(directory, file)
     df_concat = pd.concat(dfs)
+
     if col is None:
-        df_concat["type"] = os.path.basename(os.path.dirname(directory))
+        df_concat["type"] = os.path.basename(
+            os.path.abspath(os.path.dirname(directory))
+        )
         df_concat.to_csv(output_path, index=False)
         return
     elif col == "index":
@@ -219,7 +231,8 @@ def consolidate(directory, file, col):
     df_std = df_concat.std(ddof=0).add_prefix("std_")
 
     result = pd.concat([df_means, df_std], axis=1, sort=False)
-    result["type"] = os.path.basename(os.path.dirname(directory))
+
+    result["type"] = os.path.basename(os.path.abspath(os.path.dirname(directory)))
     result.to_csv(output_path, index=False)
 
 
@@ -240,17 +253,28 @@ def concatenate_all(directory, force=False):
 def concatenate(directory, file):
     dfs = list()
     for subdir in subdirs(directory):
-        if os.path.basename(subdir).startswith("_"):
-            print("Found directory:", subdir, "which starts with underscore, skipping")
+        # if os.path.basename(subdir).startswith("_"):
+        #     print("Found directory:", subdir, "which starts with underscore, skipping")
+        #     continue
+        if not os.path.basename(subdir).startswith("iteration"):
+            print(
+                f"Found directory: {subdir}, which is not a train/test iteration, skipping..."
+            )
             continue
 
         p = os.path.join(subdir, file)
         if not os.path.exists(p):
-            print(f"{file} not found in one of the experiments, skipping.")
+            print(f"{file} not found in one of the experiments, skipping...")
             return
+
         df = pd.read_csv(p)
         df["type"] = os.path.basename(subdir)
         dfs.append(df)
+
+    # skip if no files were found
+    if not dfs:
+        print(f"No {file} found in any subdirectory of {directory}, skipping...")
+        return
 
     df_concat = pd.concat(dfs)
     output_path = os.path.join(directory, file)
@@ -259,25 +283,55 @@ def concatenate(directory, file):
 
 def plot_metrics(directory):
     metrics_path = os.path.join(directory, "metrics.csv")
+
+    if not os.path.exists(metrics_path):
+        print(f"{metrics_path} not found, skipping plots...")
+        return
+    if not os.path.getsize(metrics_path) > 0:
+        print(f"{metrics_path} appears to be empty, skipping plots...")
+        return
+
     metrics = pd.read_csv(metrics_path)
+
     for metric in [
-        "AUC",
-        "acc",
-        "balanced_accuracy",
         "loss",
-        "mean_pred",
+        "acc",
+        "accuracy",
+        "balanced_accuracy",
+        "balanced_acc",
+        "AUC",
+        "auc",
+        "roc_auc",
+        "pr_auc",
+        # "fn",
+        # "fp",
+        # "tn",
+        # "tp",
         "precision",
         "recall",
-        "val_AUC",
-        "val_acc",
-        "val_balanced_accuracy",
         "val_loss",
-        "val_mean_pred",
+        "val_acc",
+        "val_accuracy",
+        "val_balanced_accuracy",
+        "val_balanced_acc",
+        "val_AUC",
+        "val_auc",
+        "val_roc_auc",
+        "val_pr_auc",
+        # "val_fn",
+        # "val_fp",
+        # "val_tn",
+        # "val_tp",
         "val_precision",
         "val_recall",
     ]:
+        # check if metric is present, otherwise skip
+        if metric not in metrics.columns:
+            continue
+
         std_metric = "std_" + metric
         plt.figure()
+
         sns_plot = sns.lineplot(x="epoch", y=metric, ci=None, hue="type", data=metrics)
 
         labels = list()
@@ -287,14 +341,23 @@ def plot_metrics(directory):
             labels.append("{} (final = {:.2f})".format(tpe, value))
 
         if metric in [
-            "AUC",
             "acc",
+            "accuracy",
             "balanced_accuracy",
+            "AUC",
+            "auc",
+            "roc_auc",
+            "pr_auc",
             "precision",
             "recall",
-            "val_AUC",
             "val_acc",
+            "val_accuracy",
             "val_balanced_accuracy",
+            "val_balanced_acc",
+            "val_AUC",
+            "val_auc",
+            "val_roc_auc",
+            "val_pr_auc",
             "val_precision",
             "val_recall",
         ]:
@@ -323,6 +386,7 @@ def plot_metrics(directory):
                 df[metric] + df[std_metric],
                 alpha=0.5,
             )
+
         sns_plot.get_figure().savefig(
             get_output_path(directory, metric), bbox_inches="tight"
         )
@@ -339,10 +403,14 @@ def plot_roc_pr(directory):
     ax2 = fig.add_subplot(gs[0, 1])
 
     # create roc plot
-    plot_roc(directory, ax=ax1)
+    roc_success = plot_roc(directory, ax=ax1, legend=False)
 
     # create precision-recall plot
-    plot_precision_recall(directory, ax=ax2)
+    pr_success = plot_precision_recall(directory, ax=ax2, legend=False)
+
+    # skip if either roc or pr are not present
+    if not roc_success or not pr_success:
+        return
 
     # add labels
     import string
@@ -367,8 +435,16 @@ def plot_roc_pr(directory):
     fig.savefig(get_output_path(directory, "roc-pr"), bbox_inches="tight")
 
 
-def plot_roc(directory, ax=None):
+def plot_roc(directory, ax=None, legend=True):
     roc_path = os.path.join(directory, "roc.csv")
+
+    if not os.path.exists(roc_path):
+        print(f"{roc_path} not found, skipping roc plot...")
+        return
+    if not os.path.getsize(roc_path) > 0:
+        print(f"{roc_path} appears to be empty, skipping roc plot...")
+        return
+
     roc = pd.read_csv(roc_path)
 
     auc_path = os.path.join(directory, "auc.csv")
@@ -390,9 +466,10 @@ def plot_roc(directory, ax=None):
     sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
 
     sns_plot.set_title("ROC")
-    sns_plot.legend(
-        labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15)
-    )  # loc="lower right")
+    if legend:
+        sns_plot.legend(
+            labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15)
+        )  # loc="lower right")
     sns_plot.set_xlabel("False Positive Rate")
     sns_plot.set_ylabel("True Positive Rate")
     # sns_plot.set_ylim(-0.05, 1.05)
@@ -409,10 +486,21 @@ def plot_roc(directory, ax=None):
         sns_plot.get_figure().savefig(
             get_output_path(directory, "roc"), bbox_inches="tight"
         )
+    return True
 
 
-def plot_precision_recall(directory, ax=None):
+def plot_precision_recall(directory, ax=None, legend=True):
     precision_recall_path = os.path.join(directory, "precision_recall.csv")
+
+    if not os.path.exists(precision_recall_path):
+        print(f"{precision_recall_path} not found, skipping precision recall plot...")
+        return
+    if not os.path.getsize(precision_recall_path) > 0:
+        print(
+            f"{precision_recall_path} appears to be empty, skipping precision recall plot..."
+        )
+        return
+
     precision_recall = pd.read_csv(precision_recall_path)
 
     # Interpolation messes these up if the highest predictions are negative samples.
@@ -443,7 +531,10 @@ def plot_precision_recall(directory, ax=None):
     )
 
     sns_plot.set_title("Precision - Recall")
-    sns_plot.legend(labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15))
+    if legend:
+        sns_plot.legend(
+            labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15)
+        )
     # sns_plot.legend(labels, title=None, loc="lower left")
     sns_plot.set_xlabel("Recall")
     sns_plot.set_ylabel("Precision")
@@ -463,11 +554,17 @@ def plot_precision_recall(directory, ax=None):
         sns_plot.get_figure().savefig(
             get_output_path(directory, "precision_recall"), bbox_inches="tight"
         )
+    return True
 
 
 def plot_predictions(directory):
     predictions_path = os.path.join(directory, "predictions.csv")
+
     if not os.path.exists(predictions_path):
+        print(f"{predictions_path} not found, skipping predictions plot...")
+        return
+    if not os.path.getsize(predictions_path) > 0:
+        print(f"{predictions_path} appears to be empty, skipping predictions plot...")
         return
 
     predictions = pd.read_csv(predictions_path)
@@ -481,7 +578,7 @@ def plot_predictions(directory):
     )
     sns_plot.set_xlim(0, 1)
     sns_plot.set_ylim(0, 18000)
-    title = os.path.basename(os.path.normpath(directory))
+    title = os.path.basename(os.path.normpath(os.path.abspath(directory)))
     # title = "Predictions"
     sns_plot.set_title(title)
     sns_plot.set_xlabel("Predicted probability")
@@ -498,7 +595,14 @@ def plot_confusion_matrix(directory, ax=None):
     source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html#sphx-glr-auto-examples-model-selection-plot-confusion-matrix-py
     """
     predictions_path = os.path.join(directory, "predictions.csv")
+
     if not os.path.exists(predictions_path):
+        print(f"{predictions_path} not found, skipping confusion matrix plot...")
+        return
+    if not os.path.getsize(predictions_path) > 0:
+        print(
+            f"{predictions_path} appears to be empty, skipping confusion matrix plot..."
+        )
         return
 
     predictions = pd.read_csv(predictions_path)
@@ -603,7 +707,7 @@ def plot_combined_function(directories, plot_func, title):
         ax = axarr[index // cols][index % cols]
         plot_func(directory, ax=ax)
 
-        subtitle = os.path.basename(os.path.normpath(directory))
+        subtitle = os.path.basename(os.path.normpath(os.path.abspath(directory)))
         ax.set_title(subtitle)
 
     f.savefig(get_output_path("output", title), bbox_inches="tight")
