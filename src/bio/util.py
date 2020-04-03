@@ -111,4 +111,4 @@ def scale_matrix(
 
 def subdirs(directory):
     """Return all subdirectories of a given directory path."""
-    return [x for x in Path("Documents").iterdir() if x.is_dir()]
+    return [x for x in Path(directory).iterdir() if x.is_dir()]
