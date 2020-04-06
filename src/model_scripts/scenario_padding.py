@@ -219,6 +219,13 @@ def create_parser():
         help="Use global average max pool. Only used for the small models.",
         default=False,
     )
+    parser.add_argument(
+        "--disable_file_log",
+        dest="disable_file_log",
+        action="store_false",
+        help="Disable logging to file.",
+        default=True,
+    )
     args = parser.parse_args()
     return args
 
@@ -230,7 +237,7 @@ if __name__ == "__main__":
 
     # create logger and log file
     run_name = pipeline.create_run_name(args.name)
-    pipeline.create_logger(run_name)
+    pipeline.create_logger(run_name, log_to_file=args.disable_file_log)
     logger = logging.getLogger(__name__)
 
     # log arguments that were used
@@ -284,6 +291,7 @@ if __name__ == "__main__":
         include_learning_rate_reduction=args.include_learning_rate_reduction,
         include_early_stop=args.early_stop,
         lookup=inverse_map,
+        verbose=args.disable_file_log,
     )
 
     if args.model == "model_padded":

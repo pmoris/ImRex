@@ -1,6 +1,7 @@
 """Functions to create pipelines for different model scenarios."""
 import datetime
 import logging
+import os
 from pathlib import Path
 import sys
 
@@ -21,22 +22,30 @@ def create_evaluate_path(run_name, evaluate_model):
     return evaluate_dir
 
 
-def create_logger(run_name, evaluate_dir=None):
-    # create filepath for log
-    if evaluate_dir:
-        # for an evaluation run, the output directory is created separately in the scenario script
-        log_file = (evaluate_dir / ("evaluate_" + run_name)).with_suffix(".log")
+def create_logger(run_name, evaluate_dir=None, log_to_file=True, level=logging.INFO):
+    if log_to_file:
+        # create filepath for log
+        if evaluate_dir:
+            # for an evaluation run, the output directory is created separately in the scenario script
+            log_file = (evaluate_dir / ("evaluate_" + run_name)).with_suffix(".log")
+        else:
+            log_file = get_output_path(
+                base_name=run_name, file_name=Path(run_name).with_suffix(".log")
+            )
+        # create file logger
+        log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        logging.basicConfig(filename=log_file, level=level, format=log_fmt)
+        # apply settings to root logger, so that loggers in modules can inherit both the file and console logger
+        logger = logging.getLogger()
+        # add console logger
+        console = logging.StreamHandler()
+        console.setLevel(level)
+        console.setFormatter(logging.Formatter(log_fmt))
+        logger.addHandler(console)
     else:
-        log_file = get_output_path(
-            base_name=run_name, file_name=Path(run_name).with_suffix(".log")
-        )
-    # create file logger
-    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(filename=log_file, level=logging.INFO, format=log_fmt)
-    # apply settings to root logger, so that loggers in modules can inherit both the file and console logger
-    logger = logging.getLogger()
-    # add console logger
-    console = logging.StreamHandler(sys.stdout)
-    console.setLevel(logging.INFO)
-    console.setFormatter(logging.Formatter(log_fmt))
-    logger.addHandler(console)
+        log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        logging.basicConfig(level=level, format=log_fmt)
+
+    # suppress tf logging
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"  # ERROR
+    logging.getLogger("tensorflow").setLevel(logging.ERROR)

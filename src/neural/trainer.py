@@ -257,6 +257,7 @@ class Trainer(object):
         include_learning_rate_reduction: bool = False,
         include_early_stop: bool = False,
         lookup: Optional[InverseMap] = None,
+        verbose: bool = True,
     ):
         """Initialise Trainer object.
 
@@ -270,6 +271,8 @@ class Trainer(object):
             [description], by default None
         include_early_stop : bool, optional
             [description], by default False
+        verbose : bool, optional
+            True for verbose training output, False otherwise, by default True.
         """
         self.epochs = epochs
         self.include_learning_rate_reduction = include_learning_rate_reduction
@@ -277,6 +280,7 @@ class Trainer(object):
         self.histories = dict()
         self.base_name = None
         self.lookup = lookup  # Lookup map from feature to input (for traceability)
+        self.verbose = 1 if verbose else 0
 
     def train(self, model, train_data, val_data, iteration=None):
         logger = logging.getLogger(__name__)
@@ -349,7 +353,7 @@ class Trainer(object):
         history = model_instance.fit(
             x=train_data,
             epochs=self.epochs,
-            verbose=1,
+            verbose=self.verbose,
             callbacks=callbacks_list,
             validation_data=val_data,
             class_weight=None,
