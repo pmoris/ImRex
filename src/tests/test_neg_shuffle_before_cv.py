@@ -14,6 +14,7 @@ def test_generate_negatives():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
     data_source.generate_negatives()
     assert (
         data_source.data.groupby("y").size()[0]
@@ -26,6 +27,7 @@ def test_sample_pairs_nan():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
 
     # create fake cdr3 sequence that pairs with every epitope in the dataset
     universal_binder_df = pd.DataFrame(
@@ -70,6 +72,7 @@ def test_sample_pairs_to_do_neg():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
 
     shuffled_pairs = [
         sample_pairs(
@@ -121,6 +124,7 @@ def test_cv():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
 
     data_source.generate_negatives()
 
@@ -151,6 +155,8 @@ def test_generate_negatives_from_ref():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
+
     negative_source = ControlCDR3Source(
         filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
         min_length=10,
@@ -174,6 +180,8 @@ def test_sample_pairs_to_do_neg_ref():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
+
     negative_source = ControlCDR3Source(
         filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
         min_length=10,

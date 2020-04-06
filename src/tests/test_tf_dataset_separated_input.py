@@ -19,12 +19,12 @@ def test_tf_dataset_shuffle_separated_array():
     reshuffle_each_iteration argument.
     """
     # NOTE: DataStream needs to be re-created, because it will be exhausted by previous test otherwise.
-    data_stream = DataStream(
-        VdjdbSource(
-            filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
-            headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
-        )
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
+    data_stream = DataStream(data_source)
 
     tf_dataset = separated_input_dataset_generator(
         data_stream=data_stream,
@@ -37,8 +37,8 @@ def test_tf_dataset_shuffle_separated_array():
         buffer_size=len(data_stream), seed=42, reshuffle_each_iteration=True
     ).batch(10)
 
-    iteration_1 = [i[2] for i in list(tf_dataset.as_numpy_iterator())]
-    iteration_2 = [i[2] for i in list(tf_dataset.as_numpy_iterator())]
+    iteration_1 = [i[1] for i in list(tf_dataset.as_numpy_iterator())]
+    iteration_2 = [i[1] for i in list(tf_dataset.as_numpy_iterator())]
 
     assert not all([all(a) for a in [i == j for i, j in zip(iteration_1, iteration_2)]])
 
@@ -50,6 +50,7 @@ def test_tf_dataset_shuffle_separated_array_neg_ref():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
 
     negative_source = ControlCDR3Source(
         filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
@@ -71,8 +72,8 @@ def test_tf_dataset_shuffle_separated_array_neg_ref():
         buffer_size=len(data_stream), seed=42, reshuffle_each_iteration=True
     ).batch(10)
 
-    iteration_1 = [i[2] for i in list(tf_dataset.as_numpy_iterator())]
-    iteration_2 = [i[2] for i in list(tf_dataset.as_numpy_iterator())]
+    iteration_1 = [i[1] for i in list(tf_dataset.as_numpy_iterator())]
+    iteration_2 = [i[1] for i in list(tf_dataset.as_numpy_iterator())]
 
     assert not all([all(a) for a in [i == j for i, j in zip(iteration_1, iteration_2)]])
 
@@ -83,6 +84,7 @@ def test_separated_output_shape():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
     n_pos = len(data_source)
 
     negative_source = ControlCDR3Source(
@@ -104,7 +106,9 @@ def test_separated_output_shape():
     assert len(list(tf_dataset.as_numpy_iterator())) == 2 * n_pos
 
     assert tf_dataset.element_spec == (
-        tf.TensorSpec(shape=(20, 20), dtype=tf.int64, name=None),
-        tf.TensorSpec(shape=(11, 20), dtype=tf.int64, name=None),
+        (
+            tf.TensorSpec(shape=(20, 20), dtype=tf.int64, name=None),
+            tf.TensorSpec(shape=(11, 20), dtype=tf.int64, name=None),
+        ),
         tf.TensorSpec(shape=(), dtype=tf.int64, name=None),
     )

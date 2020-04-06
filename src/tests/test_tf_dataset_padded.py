@@ -29,12 +29,12 @@ def test_tf_dataset_shuffle():
 
     However, when using a custom generator, the behaviour is controlled by the underlying generator code.
     """
-    data_stream = DataStream(
-        VdjdbSource(
-            filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
-            headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
-        )
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
+    data_stream = DataStream(data_source)
 
     tf_dataset = padded_batch_generator(
         data_stream=data_stream,
@@ -64,12 +64,12 @@ def test_tf_dataset_shuffle():
 def test_tf_dataset_shuffle_array():
     """Same as above, but create the tf.data.DataSet object from numpy arrays. """
     # NOTE: DataStream needs to be re-created, because it will be exhausted by previous test otherwise.
-    data_stream = DataStream(
-        VdjdbSource(
-            filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
-            headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
-        )
+    data_source = VdjdbSource(
+        filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+        headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
+    data_stream = DataStream(data_source)
 
     tf_dataset = padded_dataset_generator(
         data_stream=data_stream,
@@ -96,6 +96,7 @@ def test_tf_dataset_shuffle_array_neg_ref():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
 
     negative_source = ControlCDR3Source(
         filepath=PROJECT_ROOT / "src/tests/test_CDR3_control.tsv",
@@ -130,6 +131,7 @@ def test_output_shape():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
     n_pos = len(data_source)
 
     negative_source = ControlCDR3Source(
@@ -162,6 +164,7 @@ def test_output_shape():
         filepath=PROJECT_ROOT / "src/tests/test_vdjdb.csv",
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
+    data_source.add_pos_labels()
     n_pos = len(data_source)
 
     data_stream = DataStream(data_source)
