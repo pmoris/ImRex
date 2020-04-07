@@ -256,17 +256,26 @@ if __name__ == "__main__":
     model = tf.keras.models.load_model(args.model)
 
     # evaluate
-    evaluation.evaluate_model(model=model, dataset=val_data, output_dir=output_dir)
-    evaluation.predictions_model(model=model, dataset=val_data, output_dir=output_dir)
+    metrics_df = evaluation.evaluate_model(model=model, dataset=val_data)
+    metrics_filepath = output_dir / "metrics.csv"
+    metrics_df.to_csv(metrics_filepath, index=False)
+    logger.info(f"Saved metrics in {metrics_filepath.absolute()}.")
+
+    predictions_df = evaluation.predictions_model(model=model, dataset=val_data)
+    predictions_filepath = output_dir / "predictions.csv"
+    predictions_df.to_csv(predictions_filepath, index=False)
+    logger.info(f"Saved predictions in {predictions_filepath.absolute()}.")
 
     if args.per_epitope:
-        evaluation.evaluate_per_epitope(
+        per_epitope_df = evaluation.evaluate_per_epitope(
             model=model,
             data_source=data_source,
-            output_dir=output_dir,
             batch_size=args.batch_size,
             model_type=args.model_type,
             feature_builder=feature_builder,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
         )
+        per_epitope_filepath = output_dir / "metrics_per_epitope.csv"
+        per_epitope_df.to_csv(per_epitope_filepath, index=False)
+        logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")

@@ -1,6 +1,5 @@
 import logging
 import multiprocessing
-from pathlib import Path
 from typing import Tuple
 
 import numpy as np
@@ -42,9 +41,7 @@ from src.processing.zipper import Zipper
 #         )
 
 
-def predictions_model(
-    model: tf.keras.Model, dataset: tf.data.Dataset, output_dir: Path
-):
+def predictions_model(model: tf.keras.Model, dataset: tf.data.Dataset):
     logger = logging.getLogger(__name__)
 
     logger.info("Saving predictions")
@@ -54,15 +51,13 @@ def predictions_model(
     y_pred = model.predict(dataset)
     y_true = np.array(list(dataset.unbatch().as_numpy_iterator()))[:, 1]
 
-    predictions_filepath = output_dir / "predictions.csv"
-    pd.DataFrame({"y_pred": y_pred.squeeze(), "y_true": y_true.squeeze()}).to_csv(
-        predictions_filepath, index=False
+    predictions_df = pd.DataFrame(
+        {"y_pred": y_pred.squeeze(), "y_true": y_true.squeeze()}
     )
-    logger.info(f"Saved predictions in {predictions_filepath.absolute()}.")
+    return predictions_df
 
 
-def evaluate_model(model: tf.keras.Model, dataset: tf.data.Dataset, output_dir: Path):
-
+def evaluate_model(model: tf.keras.Model, dataset: tf.data.Dataset):
     logger = logging.getLogger(__name__)
 
     # callbacks_list = [
@@ -91,16 +86,12 @@ def evaluate_model(model: tf.keras.Model, dataset: tf.data.Dataset, output_dir: 
     )
 
     metrics_df = pd.DataFrame([metrics], columns=model.metrics_names)
-
-    metrics_filepath = output_dir / "metrics.csv"
-    metrics_df.to_csv(metrics_filepath, index=False)
-    logger.info(f"Saved metrics in {metrics_filepath.absolute()}.")
+    return metrics_df
 
 
 def evaluate_per_epitope(
     model: tf.keras.Model,
     data_source: VdjdbSource,
-    output_dir: Path,
     batch_size: int,
     model_type: str,
     feature_builder: FeatureBuilder,
@@ -114,10 +105,6 @@ def evaluate_per_epitope(
     logger.info(f"Using {workers} workers")
 
     df = pd.DataFrame()
-
-    # import ipdb
-
-    # ipdb.set_trace()
 
     for epitope in data_source.data[data_source.headers["epitope_header"]].unique():
 
@@ -170,6 +157,4 @@ def evaluate_per_epitope(
 
         df = df.append(metrics_df)
 
-    metrics_filepath = output_dir / "metrics_per_epitope.csv"
-    df.to_csv(metrics_filepath, index=False)
-    logger.info(f"Saved per-epitope metrics in {metrics_filepath.absolute()}.")
+    return df
