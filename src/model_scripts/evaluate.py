@@ -13,6 +13,9 @@ from src.model_scripts import pipeline
 from src.neural import evaluation
 from src.processing.data_stream import DataStream
 from src.processing.padded_dataset_generator import padded_dataset_generator
+from src.processing.separated_input_dataset_generator import (
+    separated_input_dataset_generator,
+)
 
 
 def create_parser():
@@ -166,12 +169,15 @@ if __name__ == "__main__":
     )
 
     # get list of features and operator based on input arguments
-    features_list = parse_features(args.features)
-    operator = parse_operator(args.operator)
-    feature_builder = CombinedPeptideFeatureBuilder(features_list, operator)
+    if args.model_type == "padded":
+        features_list = parse_features(args.features)
+        operator = parse_operator(args.operator)
+        feature_builder = CombinedPeptideFeatureBuilder(features_list, operator)
+        logger.info("features: " + str(features_list))
+        logger.info("operator: " + str(operator))
+    elif args.model_type == "separated":
+        feature_builder = None
 
-    logger.info("features: " + str(features_list))
-    logger.info("operator: " + str(operator))
     logger.info("neg_ref: " + str(args.neg_ref))
     logger.info("neg_gen: " + str(args.neg_gen))
 
@@ -227,14 +233,23 @@ if __name__ == "__main__":
     # retrieve evaluation output directory and create filepath store generated datasets
     evaluation_output_dataset = output_dir / "evaluation_dataset.csv"
 
-    val_data = padded_dataset_generator(
-        data_stream=test_stream,
-        feature_builder=feature_builder,
-        cdr3_range=cdr3_range,
-        epitope_range=epitope_range,
-        neg_shuffle=False,
-        export_path=evaluation_output_dataset,
-    )
+    if args.model_type == "padded":
+        val_data = padded_dataset_generator(
+            data_stream=test_stream,
+            feature_builder=feature_builder,
+            cdr3_range=cdr3_range,
+            epitope_range=epitope_range,
+            neg_shuffle=False,
+            export_path=evaluation_output_dataset,
+        )
+    elif args.model_type == "separated":
+        val_data = separated_input_dataset_generator(
+            data_stream=test_stream,
+            cdr3_range=cdr3_range,
+            epitope_range=epitope_range,
+            neg_shuffle=False,
+            export_path=evaluation_output_dataset,
+        )
     val_data = val_data.batch(args.batch_size)
 
     # load model
