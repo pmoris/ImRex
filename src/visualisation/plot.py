@@ -11,9 +11,9 @@ import seaborn as sns
 from sklearn.metrics import (
     auc,
     average_precision_score,
+    confusion_matrix,
     precision_recall_curve,
     roc_curve,
-    confusion_matrix,
 )
 
 from src.bio.util import subdirs
@@ -69,7 +69,7 @@ def get_output_path(directory, title, extension=".pdf"):
 
 def derive_metrics_all(directory, force=False):
     """
-    For each iteration, derive the roc and p/r values. Creates four new files, as shown below:
+    For each iteration, derive the roc and p/r values. Creates four new files, as shown below.
 
     directory
       |- iteration 0
@@ -82,7 +82,6 @@ def derive_metrics_all(directory, force=False):
       |- iteration 1
           |- ...
     """
-
     for subdir in filter(
         lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)
     ):
@@ -332,13 +331,38 @@ def plot_metrics(directory):
         std_metric = "std_" + metric
         plt.figure()
 
-        sns_plot = sns.lineplot(x="epoch", y=metric, ci=None, hue="type", data=metrics)
-
         labels = list()
-        for tpe in metrics.type.unique():
-            df = metrics[metrics.type == tpe]
-            value = float(df.tail(1)[metric])
-            labels.append("{} (final = {:.2f})".format(tpe, value))
+        if "type" in metrics.columns:
+            for tpe in metrics.type.unique():
+                df = metrics[metrics.type == tpe]
+                value = float(df.tail(1)[metric])
+                labels.append("{} (final = {:.2f})".format(tpe, value))
+
+            sns_plot = sns.lineplot(
+                x="epoch", y=metric, ci=None, hue="type", data=metrics
+            )
+
+            for tpe in metrics.type.unique():
+                df = metrics[metrics.type == tpe]
+                sns_plot.fill_between(
+                    df.epoch,
+                    df[metric] - df[std_metric],
+                    df[metric] + df[std_metric],
+                    alpha=0.5,
+                )
+
+        else:
+            value = float(metrics.tail(1)[metric])
+            labels.append("{} (final = {:.2f})".format(directory, value))
+            sns_plot = sns.lineplot(x="epoch", y=metric, ci=None, data=metrics)
+
+        handles, _ = sns_plot.get_legend_handles_labels()
+        sns_plot.legend(
+            handles=handles[1:],
+            labels=[l.capitalize() for l in labels],
+            loc="upper left",
+            title=None,
+        )
 
         if metric in [
             "acc",
@@ -368,24 +392,8 @@ def plot_metrics(directory):
         # Force ticks to be ints
         sns_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-        handles, _ = sns_plot.get_legend_handles_labels()
-        sns_plot.legend(
-            handles=handles[1:],
-            labels=[l.capitalize() for l in labels],
-            loc="upper left",
-            title=None,
-        )
         sns_plot.set_xlabel("Epoch")
         sns_plot.set_title(metric.capitalize())
-
-        for tpe in metrics.type.unique():
-            df = metrics[metrics.type == tpe]
-            sns_plot.fill_between(
-                df.epoch,
-                df[metric] - df[std_metric],
-                df[metric] + df[std_metric],
-                alpha=0.5,
-            )
 
         sns_plot.get_figure().savefig(
             get_output_path(directory, metric), bbox_inches="tight"
@@ -403,10 +411,10 @@ def plot_roc_pr(directory):
     ax2 = fig.add_subplot(gs[0, 1])
 
     # create roc plot
-    roc_success = plot_roc(directory, ax=ax1, legend=False)
+    roc_success = plot_roc(directory, ax=ax1, legend=True)
 
     # create precision-recall plot
-    pr_success = plot_precision_recall(directory, ax=ax2, legend=False)
+    pr_success = plot_precision_recall(directory, ax=ax2, legend=True)
 
     # skip if either roc or pr are not present
     if not roc_success or not pr_success:
@@ -450,36 +458,44 @@ def plot_roc(directory, ax=None, legend=True):
     auc_path = os.path.join(directory, "auc.csv")
     auc = pd.read_csv(auc_path)
 
-    labels = list()
-    for tpe in auc.type.unique():
-        df = auc[auc.type == tpe]
-        auc_mean = float(df.auc)
-        auc_std = float(df.std_auc)
-        labels.append("{} (AUC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std))
-
     save = False
     if ax is None:
         plt.figure(figsize=(6.4, 6.4))
         ax = plt.gca()
         save = True
 
-    sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
+    labels = list()
+    if "type" in auc.columns:
+        for tpe in auc.type.unique():
+            df = auc[auc.type == tpe]
+            auc_mean = float(df.auc)
+            auc_std = float(df.std_auc)
+            labels.append("{} (AUC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std))
+        sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
+
+    else:
+        auc_mean = float(auc.auc)
+        labels.append("{} (AUC = {:.2f})".format(os.path.basename(directory), auc_mean))
+        sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, ax=ax)
 
     sns_plot.set_title("ROC")
+
     if legend:
         sns_plot.legend(
             labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15)
         )  # loc="lower right")
+
     sns_plot.set_xlabel("False Positive Rate")
     sns_plot.set_ylabel("True Positive Rate")
     # sns_plot.set_ylim(-0.05, 1.05)
     # sns_plot.set_xlim(-0.05, 1.05)
 
-    for tpe in roc.type.unique():
-        df = roc[roc.type == tpe]
-        sns_plot.fill_between(
-            df.fpr, df.tpr - df.std_tpr, df.tpr + df.std_tpr, alpha=0.5
-        )
+    if "type" in roc.columns:
+        for tpe in roc.type.unique():
+            df = roc[roc.type == tpe]
+            sns_plot.fill_between(
+                df.fpr, df.tpr - df.std_tpr, df.tpr + df.std_tpr, alpha=0.5
+            )
 
     sns_plot.plot([0, 1], [0, 1], "k--")
     if save:
@@ -510,15 +526,6 @@ def plot_precision_recall(directory, ax=None, legend=True):
     average_precision_path = os.path.join(directory, "average_precision.csv")
     average_precision = pd.read_csv(average_precision_path)
 
-    labels = list()
-    for tpe in average_precision.type.unique():
-        df = average_precision[average_precision.type == tpe]
-        prec_mean = float(df.average_precision)
-        prec_std = float(df.std_average_precision)
-        labels.append(
-            "{} (Avg. Prec. = {:.2f} ± {:.2f})".format(tpe, prec_mean, prec_std)
-        )
-
     save = False
     if ax is None:
         plt.figure(figsize=(6.4, 6.4))
@@ -526,29 +533,50 @@ def plot_precision_recall(directory, ax=None, legend=True):
         save = True
 
     plt.figure(figsize=(6.4, 6.4))
-    sns_plot = sns.lineplot(
-        x="recall", y="precision", ci=None, data=precision_recall, hue="type", ax=ax
-    )
+
+    labels = list()
+    if "type" in average_precision.columns:
+        for tpe in average_precision.type.unique():
+            df = average_precision[average_precision.type == tpe]
+            prec_mean = float(df.average_precision)
+            prec_std = float(df.std_average_precision)
+            labels.append(
+                "{} (Avg. Prec. = {:.2f} ± {:.2f})".format(tpe, prec_mean, prec_std)
+            )
+        sns_plot = sns.lineplot(
+            x="recall", y="precision", ci=None, data=precision_recall, hue="type", ax=ax
+        )
+    else:
+        prec_mean = float(average_precision.average_precision)
+        labels.append(
+            "{} (Avg. Prec. = {:.2f})".format(os.path.basename(directory), prec_mean)
+        )
+        sns_plot = sns.lineplot(
+            x="recall", y="precision", ci=None, data=precision_recall, ax=ax
+        )
 
     sns_plot.set_title("Precision - Recall")
+
     if legend:
         sns_plot.legend(
             labels, title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15)
         )
+
     # sns_plot.legend(labels, title=None, loc="lower left")
     sns_plot.set_xlabel("Recall")
     sns_plot.set_ylabel("Precision")
     # sns_plot.set_ylim(-0.05, 1.05)
     # sns_plot.set_xlim(-0.05, 1.05)
 
-    for tpe in precision_recall.type.unique():
-        df = precision_recall[precision_recall.type == tpe]
-        sns_plot.fill_between(
-            df.recall,
-            df.precision - df.std_precision,
-            df.precision + df.std_precision,
-            alpha=0.5,
-        )
+    if "type" in precision_recall.columns:
+        for tpe in precision_recall.type.unique():
+            df = precision_recall[precision_recall.type == tpe]
+            sns_plot.fill_between(
+                df.recall,
+                df.precision - df.std_precision,
+                df.precision + df.std_precision,
+                alpha=0.5,
+            )
 
     if save:
         sns_plot.get_figure().savefig(
@@ -577,7 +605,7 @@ def plot_predictions(directory):
         predictions.y_pred[predictions.y_true == 1], bins=bins, kde=False
     )
     sns_plot.set_xlim(0, 1)
-    sns_plot.set_ylim(0, 18000)
+    sns_plot.set_ylim(0, len(predictions))
     title = os.path.basename(os.path.normpath(os.path.abspath(directory)))
     # title = "Predictions"
     sns_plot.set_title(title)
