@@ -65,6 +65,34 @@ def create_parser():
         default="absdiff",
     )
     parser.add_argument(
+        "--min_length_cdr3",
+        dest="min_length_cdr3",
+        type=int,
+        help="Minimum CDR3 sequence length, used during negative reference filtering and padding.",
+        default=None,
+    )
+    parser.add_argument(
+        "--max_length_cdr3",
+        dest="max_length_cdr3",
+        type=int,
+        help="Maximum CDR3 sequence length, used during negative reference filtering and padding.",
+        default=None,
+    )
+    parser.add_argument(
+        "--min_length_epitope",
+        dest="min_length_epitope",
+        type=int,
+        help="Minimum epitope sequence length, used during negative reference filtering and padding.",
+        default=None,
+    )
+    parser.add_argument(
+        "--max_length_epitope",
+        dest="max_length_epitope",
+        type=int,
+        help="Maximum epitope sequence length, used during negative reference filtering and padding.",
+        default=None,
+    )
+    parser.add_argument(
         "--batch_size", dest="batch_size", type=int, help="Batch size.", default=128,
     )
 
@@ -112,8 +140,8 @@ if __name__ == "__main__":
     for iteration_dir in iterations_directories:
 
         # create metrics and figures (not required)
-        derive_metrics_all(iteration_dir, force=True)
-        plot_all(iteration_dir)
+        # derive_metrics_all(iteration_dir, force=True)
+        # plot_all(iteration_dir)
 
         # find latest model
         model_list = [model for model in iteration_dir.glob("*.h5")]
@@ -135,18 +163,29 @@ if __name__ == "__main__":
 
         # filter on size
         min_length_cdr3 = (
-            data_source.data[data_source.headers["cdr3_header"]].str.len().min()
+            args.min_length_cdr3
+            if args.min_length_cdr3
+            else (data_source.data[data_source.headers["cdr3_header"]].str.len().min())
         )
         max_length_cdr3 = (
-            data_source.data[data_source.headers["cdr3_header"]].str.len().max()
+            args.max_length_cdr3
+            if args.max_length_cdr3
+            else (data_source.data[data_source.headers["cdr3_header"]].str.len().max())
         )
         min_length_epitope = (
-            data_source.data[data_source.headers["epitope_header"]].str.len().min()
+            args.min_length_epitope
+            if args.min_length_epitope
+            else (
+                data_source.data[data_source.headers["epitope_header"]].str.len().min()
+            )
         )
-        max_length_epitope = 11
-        #  (
-        #     data_source.data[data_source.headers["epitope_header"]].str.len().max()
-        # )
+        max_length_epitope = (
+            args.max_length_epitope
+            if args.max_length_epitope
+            else (
+                data_source.data[data_source.headers["epitope_header"]].str.len().max()
+            )
+        )
 
         # get list of features and operator based on input arguments
         if args.model_type == "padded":
@@ -195,7 +234,12 @@ if __name__ == "__main__":
         model = tf.keras.models.load_model(model_path)
 
         # evaluate
-        metrics_df = evaluation.evaluate_model(model=model, dataset=dataset)
+        try:
+            metrics_df = evaluation.evaluate_model(model=model, dataset=dataset)
+        except ValueError as e:
+            raise ValueError(
+                "Make sure the correct model type and padding lengths are specified. The latter can be omitted if every fold contains an example of the shortest and longest length, otherwise they should be provided as input arguments."
+            ) from e
         metrics_filepath = output_dir / f"metrics_{iteration_dir.name}.csv"
         metrics_df.to_csv(metrics_filepath, index=False)
         logger.info(
@@ -209,15 +253,20 @@ if __name__ == "__main__":
             f"Saved predictions for {iteration_dir.name} in {predictions_filepath.absolute()}."
         )
 
-        iteration_metrics_df = evaluation.evaluate_per_epitope(
-            model=model,
-            data_source=data_source,
-            batch_size=args.batch_size,
-            model_type=args.model_type,
-            feature_builder=feature_builder,
-            cdr3_range=cdr3_range,
-            epitope_range=epitope_range,
-        )
+        try:
+            iteration_metrics_df = evaluation.evaluate_per_epitope(
+                model=model,
+                data_source=data_source,
+                batch_size=args.batch_size,
+                model_type=args.model_type,
+                feature_builder=feature_builder,
+                cdr3_range=cdr3_range,
+                epitope_range=epitope_range,
+            )
+        except ValueError as e:
+            raise ValueError(
+                "Make sure the correct model type and padding lengths are specified. The latter can be omitted if every fold contains an example of the shortest and longest length, otherwise they should be provided as input arguments."
+            ) from e
         iteration_metrics_df["iteration"] = iteration_dir.name
         per_epitope_df = per_epitope_df.append(iteration_metrics_df)
 
