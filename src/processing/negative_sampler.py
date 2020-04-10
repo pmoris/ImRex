@@ -7,6 +7,15 @@ from src.data.control_cdr3_source import ControlCDR3Source
 
 
 def add_negatives(df):
+    logger = logging.getLogger(__name__)
+
+    # print warning and skip generation if there is only 1 epitope
+    if len(df["antigen.epitope"].unique()) == 1:
+        logger.warning(
+            "Cannot generate negatives through shuffling when there is only 1 epitope present in a fold. Skipping generation..."
+        )
+        return df
+
     # generate negative pairs from list of all cdr3s in positive pairs
     shuffled_pairs = [
         sample_pairs(cdr3, df, "cdr3", "antigen.epitope") for cdr3 in df["cdr3"]
@@ -37,11 +46,23 @@ def add_negatives(df):
     df = df.dropna(axis=0, how="any", subset="antigen.epitope")
 
     # add negatives until required amount is reached
+    # add fail safe in case it is mathematically impossible to do so
+    n = 0
     while to_do_df.shape[0] > 0:
-        shuffled_pairs = [
-            sample_pairs(cdr3, df, "cdr3", "antigen.epitope")
-            for cdr3 in to_do_df["cdr3"]
-        ]
+        n += 1
+        if n > 50:
+            shuffled_pairs = [
+                sample_pairs(cdr3, df, "cdr3", "antigen.epitope")
+                for cdr3 in df.loc[df["y"] == 1, "cdr3"].sample(len(to_do_df))
+            ]
+            logger.warning(
+                f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3's will be re-used."
+            )
+        else:
+            shuffled_pairs = [
+                sample_pairs(cdr3, df, "cdr3", "antigen.epitope")
+                for cdr3 in to_do_df["cdr3"]
+            ]
         shuffled_df = pd.DataFrame(shuffled_pairs, columns=["cdr3", "antigen.epitope"],)
         shuffled_df["y"] = 0
         df = df.append(shuffled_df).reset_index(drop=True)

@@ -1,3 +1,6 @@
+import logging
+import sys
+
 import pandas as pd
 
 from src.config import PROJECT_ROOT
@@ -124,6 +127,14 @@ class VdjdbSource(DataSource):
             ).reset_index(drop=True)
 
     def generate_negatives(self):
+        logger = logging.getLogger(__name__)
+        # print warning and skip generation if there is only 1 epitope
+        if len(self.data[self.headers["epitope_header"]].unique()) == 1:
+            logger.warning(
+                "Cannot generate negatives through shuffling when there is only 1 epitope present in the dataset. Skipping generation..."
+            )
+            sys.exit(1)
+
         # generate negative pairs from list of all cdr3s in positive pairs
         shuffled_pairs = [
             sample_pairs(
@@ -180,16 +191,36 @@ class VdjdbSource(DataSource):
         # )
         # logger.info(self.data["y"].value_counts())
 
+        # add negatives until required amount is reached
+        # add fail safe in case it is mathematically impossible to do so
+        n = 0
         while to_do_df.shape[0] > 0:
-            shuffled_pairs = [
-                sample_pairs(
-                    cdr3=cdr3,
-                    df=self.data,
-                    cdr3_column=self.headers["cdr3_header"],
-                    epitope_column=self.headers["epitope_header"],
+            n += 1
+            if n > 50:
+                shuffled_pairs = [
+                    sample_pairs(
+                        cdr3=cdr3,
+                        df=self.data,
+                        cdr3_column=self.headers["cdr3_header"],
+                        epitope_column=self.headers["epitope_header"],
+                    )
+                    for cdr3 in self.data.loc[
+                        self.data["y"] == 1, self.headers["cdr3_header"]
+                    ].sample(len(to_do_df))
+                ]
+                logger.warning(
+                    f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3's will be re-used."
                 )
-                for cdr3 in to_do_df[self.headers["cdr3_header"]]
-            ]
+            else:
+                shuffled_pairs = [
+                    sample_pairs(
+                        cdr3=cdr3,
+                        df=self.data,
+                        cdr3_column=self.headers["cdr3_header"],
+                        epitope_column=self.headers["epitope_header"],
+                    )
+                    for cdr3 in to_do_df[self.headers["cdr3_header"]]
+                ]
             shuffled_df = pd.DataFrame(
                 shuffled_pairs,
                 columns=[self.headers["cdr3_header"], self.headers["epitope_header"]],
