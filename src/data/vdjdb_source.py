@@ -167,7 +167,11 @@ class VdjdbSource(DataSource):
         ).reset_index(drop=True)
 
         # remove NaN to deal with any possible universal cdr3s
-        self.data = self.data.dropna(axis=0, how="any")
+        self.data = self.data.dropna(
+            axis=0,
+            how="any",
+            subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
+        )
 
         # log difference in positive and negative examples
         # logger = logging.getLogger(__name__)
@@ -207,7 +211,11 @@ class VdjdbSource(DataSource):
             ).reset_index(drop=True)
 
             # remove NaN to deal with any possible universal cdr3s
-            self.data = self.data.dropna(axis=0, how="any")
+            self.data = self.data.dropna(
+                axis=0,
+                how="any",
+                subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
+            )
 
     def length_filter(
         self,

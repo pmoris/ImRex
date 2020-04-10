@@ -34,7 +34,7 @@ def add_negatives(df):
     ).reset_index(drop=True)
 
     # remove NaN to deal with any possible universal cdr3s
-    df = df.dropna(axis=0, how="any")
+    df = df.dropna(axis=0, how="any", subset="antigen.epitope")
 
     # add negatives until required amount is reached
     while to_do_df.shape[0] > 0:
@@ -51,7 +51,7 @@ def add_negatives(df):
         df = df.drop_duplicates(
             subset=["cdr3", "antigen.epitope"], keep="first",
         ).reset_index(drop=True)
-        df = df.dropna(axis=0, how="any")
+        df = df.dropna(axis=0, how="any", subset="antigen.epitope")
 
     return df
 
