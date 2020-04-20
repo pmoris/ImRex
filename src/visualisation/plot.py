@@ -1,6 +1,7 @@
 from functools import partial
 import math
 import os
+from textwrap import fill
 
 from matplotlib.gridspec import GridSpec
 import matplotlib.pyplot as plt
@@ -471,11 +472,13 @@ def plot_roc(directory, ax=None, legend=True):
             auc_mean = float(df.auc)
             auc_std = float(df.std_auc)
             labels.append("{} (AUC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std))
+            labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
 
     else:
         auc_mean = float(auc.auc)
         labels.append("{} (AUC = {:.2f})".format(os.path.basename(directory), auc_mean))
+        labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, ax=ax)
 
     sns_plot.set_title("ROC")
@@ -543,6 +546,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
             labels.append(
                 "{} (Avg. Prec. = {:.2f} ± {:.2f})".format(tpe, prec_mean, prec_std)
             )
+            labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(
             x="recall", y="precision", ci=None, data=precision_recall, hue="type", ax=ax
         )
@@ -551,6 +555,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
         labels.append(
             "{} (Avg. Prec. = {:.2f})".format(os.path.basename(directory), prec_mean)
         )
+        labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(
             x="recall", y="precision", ci=None, data=precision_recall, ax=ax
         )
