@@ -217,9 +217,7 @@ def consolidate(directory, file, col):
     df_concat = pd.concat(dfs)
 
     if col is None:
-        df_concat["type"] = os.path.basename(
-            os.path.abspath(os.path.dirname(directory))
-        )
+        df_concat["type"] = os.path.basename(os.path.abspath(directory))
         df_concat.to_csv(output_path, index=False)
         return
     elif col == "index":
@@ -232,7 +230,7 @@ def consolidate(directory, file, col):
 
     result = pd.concat([df_means, df_std], axis=1, sort=False)
 
-    result["type"] = os.path.basename(os.path.abspath(os.path.dirname(directory)))
+    result["type"] = os.path.basename(os.path.abspath(directory))
     result.to_csv(output_path, index=False)
 
 
@@ -715,11 +713,17 @@ def plot_confusion_matrix(directory, ax=None):
 
 def plot_all(directory):
     plot_metrics(directory)
+    plt.close("all")
     plot_roc(directory)
+    plt.close("all")
     plot_precision_recall(directory)
+    plt.close("all")
     plot_roc_pr(directory)
+    plt.close("all")
     plot_predictions(directory)
+    plt.close("all")
     plot_confusion_matrix(directory)
+    plt.close("all")
 
 
 def plot_combined(directories):
