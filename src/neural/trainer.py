@@ -347,6 +347,15 @@ class Trainer(object):
                 )
             )
 
+        # save model with weight initialization before training
+        initial_model_path = get_output_path(
+            base_name=model.base_name,
+            file_name=model.base_name + "-init.h5",
+            iteration=iteration,
+        )
+        # model_instance.evaluate(val_data) # get metrics and print them to file + store for modelfilename
+        model_instance.save(initial_model_path)
+
         logger.info("Fitting CNN")
         workers = multiprocessing.cpu_count()
         logger.info(f"Using {workers} workers")
