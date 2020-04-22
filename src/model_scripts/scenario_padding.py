@@ -453,3 +453,7 @@ if __name__ == "__main__":
         val_data = val_data.batch(args.batch_size)
 
         trainer.train(model, train_data, val_data, iteration=iteration)
+
+        import tensorflow as tf
+
+        tf.keras.backend.clear_session()
