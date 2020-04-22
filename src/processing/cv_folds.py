@@ -2,18 +2,14 @@ import logging
 from typing import Generator, Tuple
 
 import numpy as np
-from sklearn.model_selection import GroupKFold, KFold, LeaveOneGroupOut
+from sklearn.model_selection import GroupKFold, KFold, LeaveOneGroupOut, RepeatedKFold
 
 from src.data.data_source import DataSource
 from src.processing.data_stream import DataStream
 
 
 def cv_splitter(
-    data_source: DataSource,
-    n_folds: int,
-    epitope_grouped: bool = False,
-    one_out: bool = False,
-    shuffle: bool = True,
+    data_source: DataSource, n_folds: int, cv_type: str = "kfold", shuffle: bool = True,
 ) -> Generator[Tuple[DataStream, DataStream], None, None]:
     """Take a DataSource object, split it into folds and yield a tuple of train and test sets as DataStream objects.
 
@@ -27,12 +23,10 @@ def cv_splitter(
     ----------
     data_source : DataSource
         The data to be split into folds, contains tuples of sequences tuples and class label 0/1.
+    cv_type : str
+        The type of cross-validation strategy to use.
     n_folds : int
         The number of folds to create.
-    epitope_grouped : bool
-        Whether to perform a normal k-fold (False) or grouped k-fold (True) cross-validation, by default False.
-    one_out : bool
-        Whether to perform a leave-one-epitope out cross-validation, by default False. Requires epitope_grouped to be True.
     shuffle : bool, optional
         Whether to shuffle the data before splitting it into folds, by default True.
 
@@ -46,29 +40,34 @@ def cv_splitter(
     # make data indexable
     data_source_array = np.array(list(data_source))
 
-    if epitope_grouped:
-        if not one_out:
-            cv = GroupKFold(n_splits=n_folds)
-            logger.info(
-                f"Using a Group K-Fold (k = {n_folds}) cross-validation strategy with the following settings:\n{cv}"
-            )
-            cv_split = cv.split(
-                X=data_source_array,
-                groups=data_source.data[data_source.headers["epitope_header"]],
-            )
-        else:
-            cv = LeaveOneGroupOut(n_splits=n_folds)
-            logger.info(
-                f"Using a Leave One Group Out cross-validation strategy with the following settings:\n{cv}"
-            )
-            cv_split = cv.split(
-                X=data_source_array,
-                groups=data_source.data[data_source.headers["epitope_header"]],
-            )
-    else:
-        cv = KFold(n_splits=n_folds, shuffle=shuffle)
+    if cv_type == "epitope_grouped":
+        cv = GroupKFold(n_splits=n_folds)
+        logger.info(
+            f"Using a Group K-Fold (k = {n_folds}) cross-validation strategy with the following settings:\n{cv}"
+        )
+        cv_split = cv.split(
+            X=data_source_array,
+            groups=data_source.data[data_source.headers["epitope_header"]],
+        )
+    elif cv_type == "one_epitope_out":
+        cv = LeaveOneGroupOut(n_splits=n_folds)
+        logger.info(
+            f"Using a Leave One Group Out cross-validation strategy with the following settings:\n{cv}"
+        )
+        cv_split = cv.split(
+            X=data_source_array,
+            groups=data_source.data[data_source.headers["epitope_header"]],
+        )
+    elif cv_type == "kfold":
+        cv = KFold(n_splits=n_folds, shuffle=shuffle, random_state=42)
         logger.info(
             f"Using a K-Fold (k = {n_folds}) cross-validation strategy with the following settings:\n{cv}"
+        )
+        cv_split = cv.split(X=data_source_array)
+    elif cv_type == "repeatedkfold":
+        cv = RepeatedKFold(n_splits=n_folds, n_repeats=5, random_state=42)
+        logger.info(
+            f"Using a Repeated K-Fold (k = {n_folds}) cross-validation strategy with the following settings:\n{cv}"
         )
         cv_split = cv.split(X=data_source_array)
 

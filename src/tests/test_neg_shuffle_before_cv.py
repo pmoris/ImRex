@@ -134,15 +134,13 @@ def test_cv():
     assert all(pd.DataFrame(train)[1].sort_values().unique() == [0, 1])
     assert all(pd.DataFrame(val)[1].sort_values().unique() == [0, 1])
 
-    iterations = cv_splitter(
-        data_source=data_source, n_folds=2, epitope_grouped=False, one_out=False,
-    )
+    iterations = cv_splitter(data_source=data_source, n_folds=2, cv_type="kfold")
     for train, val in iterations:
         assert all(pd.DataFrame(train)[1].sort_values().unique() == [0, 1])
         assert all(pd.DataFrame(val)[1].sort_values().unique() == [0, 1])
 
     iterations = cv_splitter(
-        data_source=data_source, n_folds=2, epitope_grouped=True, one_out=False,
+        data_source=data_source, n_folds=2, cv_type="epitope_grouped",
     )
     for train, val in iterations:
         assert all(pd.DataFrame(train)[1].sort_values().unique() == [0, 1])

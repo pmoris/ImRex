@@ -60,18 +60,12 @@ def create_parser():
         default=None,
     )
     parser.add_argument(
-        "--epitope_grouped_cv",
-        dest="epitope_grouped_cv",
-        action="store_true",
-        help="When val_split is omitted, indicates whether to use an epitope-grouped cv over a normal k-fold cv.",
-        default=False,
-    )
-    parser.add_argument(
-        "--one_epitope_out_cv",
-        dest="one_epitope_out_cv",
-        action="store_true",
-        help="When val_split is omitted and epitope_grouped_cv is selected, indicates whether to use leave-1-epitope-out cv",
-        default=False,
+        "--cv",
+        dest="cross_validation",
+        type=str,
+        help="The type of cross-validation strategy to use. Can be any of: ",
+        choices=["kfold", "repeatedkfold", "epitope_grouped", "one_epitope_out"],
+        default=None,
     )
     parser.add_argument(
         "--neg_gen_full",
@@ -265,17 +259,23 @@ if __name__ == "__main__":
     feature_builder = CombinedPeptideFeatureBuilder(features_list, operator)
 
     # check argument compatability
-    if args.epitope_grouped_cv and args.val_split is not None:
-        raise RuntimeError("Cannot test epitope-grouped without k folds.")
+    if args.val_split and args.cross_validation:
+        raise RuntimeError(
+            "Invalid arguments. Val_split should not be used in conjunction with a cv strategy."
+        )
     elif bool(args.neg_augment) ^ bool(args.augment_amount):
         raise RuntimeError(
             "If negatives should be augmented, both the neg_agument and augment_amount should be supplied."
+        )
+    elif bool(args.n_folds) ^ bool(args.cross_validation):
+        raise RuntimeError(
+            "For cross-validation, both the number of folds and the type of cv should be specified."
         )
 
     logger.info("features: " + str(features_list))
     logger.info("operator: " + str(operator))
     logger.info("neg_ref: " + str(args.neg_ref))
-    logger.info("epitope_grouped_cv: " + str(args.epitope_grouped_cv))
+    logger.info("cv_type: " + str(args.cross_validation))
     logger.info("neg_gen_full: " + str(args.neg_gen_full))
 
     inverse_map = InverseMap()
@@ -389,9 +389,8 @@ if __name__ == "__main__":
     else:
         iterations = cv_splitter(
             data_source=data_source,
+            cv_type=args.cross_validation,
             n_folds=args.n_folds,
-            epitope_grouped=args.epitope_grouped_cv,
-            one_out=args.one_epitope_out_cv,
         )
 
     for iteration, (train, val) in enumerate(iterations):
