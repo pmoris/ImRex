@@ -3,7 +3,6 @@ import datetime
 import logging
 import os
 from pathlib import Path
-import sys
 
 from src.neural.trainer import get_output_path
 
@@ -18,7 +17,7 @@ def create_evaluate_path(run_name, evaluate_model):
     """ Create output directory for evaluation in same directory as the supplied model file. """
     model_path = Path(evaluate_model).absolute().parent
     evaluate_dir = model_path / ("evaluate_" + run_name)
-    evaluate_dir.mkdir(parents=True, exist_ok=True)
+    evaluate_dir.mkdir(parents=True, exist_ok=False)
     return evaluate_dir
 
 
@@ -27,7 +26,7 @@ def create_logger(run_name, evaluate_dir=None, log_to_file=True, level=logging.I
         # create filepath for log
         if evaluate_dir:
             # for an evaluation run, the output directory is created separately in the scenario script
-            log_file = (evaluate_dir / ("evaluate_" + run_name)).with_suffix(".log")
+            log_file = (evaluate_dir / run_name).with_suffix(".log")
         else:
             log_file = get_output_path(
                 base_name=run_name, file_name=Path(run_name).with_suffix(".log")
