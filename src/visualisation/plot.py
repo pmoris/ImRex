@@ -251,12 +251,9 @@ def concatenate_all(directory, force=False):
 def concatenate(directory, file):
     dfs = list()
     for subdir in subdirs(directory):
-        # if os.path.basename(subdir).startswith("_"):
-        #     print("Found directory:", subdir, "which starts with underscore, skipping")
-        #     continue
-        if not os.path.basename(subdir).startswith("iteration"):
+        if os.path.basename(subdir).startswith("_"):
             print(
-                f"Found directory: {subdir}, which is not a train/test iteration, skipping..."
+                f"Found directory: {subdir} which starts with underscore, skipping..."
             )
             continue
 
