@@ -189,7 +189,7 @@ def consolidate(directory, file, col):
         p = os.path.join(subdir, file)
 
         if not os.path.exists(p):
-            print(f"{file} not found in {subdir}, skipping.")
+            print(f"{file} not found in {subdir}, skipping...")
             continue
         if not os.path.getsize(p) > 0:
             print(f"{file} in {subdir} appears to be empty, skipping...")
@@ -395,6 +395,87 @@ def plot_metrics(directory):
         sns_plot.get_figure().savefig(
             get_output_path(directory, metric), bbox_inches="tight"
         )
+
+
+def plot_loss(directory):
+    metrics_path = os.path.join(directory, "metrics.csv")
+    if not os.path.exists(metrics_path):
+        print(f"{metrics_path} not found, skipping plots...")
+        return
+    if not os.path.getsize(metrics_path) > 0:
+        print(f"{metrics_path} appears to be empty, skipping plots...")
+        return
+
+    metrics = pd.read_csv(metrics_path)
+
+    if "loss" not in metrics.columns or "val_loss" not in metrics.columns:
+        print(f"No loss values found in metrics.csv, skipping...")
+        return
+
+    train_loss_df = metrics.loc[:, ["loss", "std_loss", "epoch", "type"]]
+    train_loss_df["train_val"] = "train"
+    train_loss_df = train_loss_df.rename(
+        columns={"loss": "value", "std_loss": "std_value"}
+    )
+
+    val_loss_df = metrics.loc[:, ["val_loss", "std_val_loss", "epoch", "type"]]
+    val_loss_df["train_val"] = "val"
+    val_loss_df = val_loss_df.rename(
+        columns={"val_loss": "value", "std_val_loss": "std_value"}
+    )
+
+    loss_df = pd.concat([train_loss_df, val_loss_df])
+    loss_df["type_train_val"] = loss_df["type"] + "_" + loss_df["train_val"]
+
+    plt.figure()
+
+    labels = list()
+    if "type" in loss_df.columns:
+        for tpe in loss_df.type_train_val.unique():
+            df = loss_df.loc[loss_df.type_train_val == tpe]
+            value = float(df.tail(1)["value"])
+            labels.append("{} (final = {:.2f})".format(tpe, value))
+
+        sns_plot = sns.lineplot(
+            x="epoch", y="value", ci=None, hue="type_train_val", data=loss_df
+        )
+
+        for tpe in loss_df.type_train_val.unique():
+            df = loss_df.loc[loss_df.type_train_val == tpe]
+            sns_plot.fill_between(
+                df.epoch,
+                df["value"] - df["std_value"],
+                df["value"] + df["std_value"],
+                alpha=0.5,
+            )
+
+    else:
+        for i in loss_df.train_val.unique():
+            value = float(df.loc[df.train_val == i].tail(1)["value"])
+            labels.append("{} (final = {:.2f})".format(directory, value))
+        sns_plot = sns.lineplot(
+            x="epoch", y="value", ci=None, hue="type_train_val", data=loss_df
+        )
+
+    handles, _ = sns_plot.get_legend_handles_labels()
+    sns_plot.legend(
+        handles=handles[1:],
+        labels=[l.capitalize() for l in labels],
+        loc="upper left",
+        bbox_to_anchor=(1, 1),
+        title=None,
+    )
+
+    sns_plot.set_xlim(0,)
+    # Force ticks to be ints
+    sns_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+    sns_plot.set_xlabel("Epoch")
+    sns_plot.set_title("Train and validation loss")
+
+    sns_plot.get_figure().savefig(
+        get_output_path(directory, "train_val_loss"), bbox_inches="tight"
+    )
 
 
 def plot_roc_pr(directory):
@@ -711,6 +792,8 @@ def plot_confusion_matrix(directory, ax=None):
 
 def plot_all(directory):
     plot_metrics(directory)
+    plt.close("all")
+    plot_loss(directory)
     plt.close("all")
     plot_roc(directory)
     plt.close("all")
