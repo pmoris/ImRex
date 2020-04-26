@@ -357,6 +357,7 @@ def plot_metrics(directory):
             handles=handles[1:],
             labels=[l.capitalize() for l in labels],
             loc="upper left",
+            bbox_to_anchor=(1, 1),
             title=None,
         )
 
