@@ -178,7 +178,12 @@ def create_parser():
         "--model",
         dest="model",
         type=str,
-        choices=["model_padded", "model_selu", "model_small", "model_small_selu"],
+        choices=[
+            "model_padded",
+            "model_selu",
+            "model_padded_small",
+            "model_small_selu",
+        ],
         help="The type of padded model to use.",
         default="model_padded",
     )
@@ -198,13 +203,13 @@ def create_parser():
         "--dropout1",
         dest="dropout1",
         type=float,
-        help="Dropout after the first convolutional layer. Only used for the small models.",
+        help="Dropout after the first convolutional layer. Legacy command used for the old small models.",
     )
     parser.add_argument(
         "--dropout2",
         dest="dropout2",
         type=float,
-        help="Dropout after the second convolutional layer. Only used for the small models.",
+        help="Dropout after the second convolutional layer. Legacy command used for the old small models.",
     )
     parser.add_argument(
         "--gap",
@@ -212,6 +217,41 @@ def create_parser():
         action="store_true",
         help="Use global average max pool. Only used for the small models.",
         default=False,
+    )
+    parser.add_argument(
+        "--regularization",
+        dest="regularization",
+        type=float,
+        help="Regularization applied to all layers.",
+        default=None,
+    )
+    parser.add_argument(
+        "--activation_function_conv",
+        dest="activation_function_conv",
+        type=str,
+        help="The activation function used for the convolutional layers.",
+        default="relu",
+    )
+    parser.add_argument(
+        "--activation_function_dense",
+        dest="activation_function_dense",
+        type=str,
+        help="The activation function used for the dense layers.",
+        default="tanh",
+    )
+    parser.add_argument(
+        "--dropout_conv",
+        dest="dropout_conv",
+        type=float,
+        help="Dropout rate applied applied to the convolutional layers.",
+        default=None,
+    )
+    parser.add_argument(
+        "--dropout_dense",
+        dest="dropout_dense",
+        type=float,
+        help="Dropout rate applied applied to the dense layers.",
+        default=None,
     )
     parser.add_argument(
         "--disable_file_log",
@@ -304,19 +344,13 @@ if __name__ == "__main__":
             channels=feature_builder.get_number_layers(),
             optimizer=args.optimizer,
             learning_rate=args.learning_rate,
+            regularization=args.regularization,
+            activation_function_conv=args.activation_function_conv,
+            activation_function_dense=args.activation_function_dense,
+            dropout_conv=args.dropout_conv,
+            dropout_dense=args.dropout_dense,
         )
-    elif args.model == "model_selu":
-        from src.models.model_padded_selu import ModelPaddedSelu
-
-        model = ModelPaddedSelu(
-            width=args.max_length_cdr3,
-            height=args.max_length_epitope,
-            name=run_name,
-            channels=feature_builder.get_number_layers(),
-            optimizer=args.optimizer,
-            learning_rate=args.learning_rate,
-        )
-    elif args.model == "model_small":
+    elif args.model == "model_padded_small":
         from src.models.model_padded_small import ModelPaddedSmall
 
         model = ModelPaddedSmall(
@@ -328,9 +362,25 @@ if __name__ == "__main__":
             learning_rate=args.learning_rate,
             depth1=args.depth1,
             depth2=args.depth2,
-            dropout1=args.dropout1,
-            dropout2=args.dropout2,
             gap=args.gap,
+            regularization=args.regularization,
+            activation_function_conv=args.activation_function_conv,
+            activation_function_dense=args.activation_function_dense,
+            dropout_conv=args.dropout_conv,
+            dropout_dense=args.dropout_dense,
+        )
+
+    # legacy models
+    elif args.model == "model_selu":
+        from src.models.model_padded_selu import ModelPaddedSelu
+
+        model = ModelPaddedSelu(
+            width=args.max_length_cdr3,
+            height=args.max_length_epitope,
+            name=run_name,
+            channels=feature_builder.get_number_layers(),
+            optimizer=args.optimizer,
+            learning_rate=args.learning_rate,
         )
     elif args.model == "model_small_selu":
         from src.models.model_padded_small_selu import ModelPaddedSmallSelu

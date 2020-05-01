@@ -14,6 +14,7 @@ from tensorflow.keras.layers import (
     GlobalMaxPooling1D,
     Input,
 )
+from tensorflow.keras.regularizers import l2
 
 from src.models.model import Model
 
@@ -23,11 +24,21 @@ LENGTH = 10
 
 class ModelSeparatedInputs(Model):
     def __init__(
-        self, optimizer, learning_rate: Optional[bool] = None, *args, **kwargs
+        self,
+        optimizer,
+        learning_rate: Optional[float] = None,
+        regularization: Optional[float] = None,
+        dropout_conv: Optional[float] = None,
+        dropout_dense: Optional[float] = None,
+        *args,
+        **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.optimizer = optimizer
         self.learning_rate = learning_rate
+        self.regularization = l2(regularization) if regularization else None
+        self.dropout_conv = dropout_conv
+        self.dropout_dense = dropout_dense
 
     def _build_model(self):
         KERNEL_INIT = tensorflow.keras.initializers.he_normal
@@ -43,7 +54,8 @@ class ModelSeparatedInputs(Model):
                     (1,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -52,7 +64,8 @@ class ModelSeparatedInputs(Model):
                     (3,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -61,7 +74,8 @@ class ModelSeparatedInputs(Model):
                     (5,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -70,7 +84,8 @@ class ModelSeparatedInputs(Model):
                     (7,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -79,7 +94,8 @@ class ModelSeparatedInputs(Model):
                     (9,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
 
@@ -87,14 +103,16 @@ class ModelSeparatedInputs(Model):
             merged = tensorflow.keras.layers.concatenate(convolutions, axis=-1)
 
             # Add dropout and batch norm (not in paper)
-            merged = Dropout(0.25)(merged)
+            if self.dropout_conv:
+                merged = Dropout(self.dropout_conv)(merged)
             merged = BatchNormalization()(merged)
             conv = Conv1D(
                 100,
                 (1,),
                 padding="valid",
                 kernel_initializer=KERNEL_INIT(),
-                activation="relu",
+                activation="selu",
+                kernel_regularizer=self.regularization,
             )(merged)
             return conv
 
@@ -105,11 +123,20 @@ class ModelSeparatedInputs(Model):
         concatenated = tensorflow.keras.layers.concatenate([part1, part2], axis=1)
 
         max_pool = GlobalMaxPooling1D()(concatenated)
-        drop_out = Dropout(0.5)(max_pool)
-        batch_norm = BatchNormalization()(drop_out)
+        if self.dropout_dense:
+            drop_out = Dropout(self.dropout_dense)(max_pool)
+            batch_norm = BatchNormalization()(drop_out)
+        else:
+            batch_norm = BatchNormalization()(max_pool)
 
-        dense = Dense(10, activation="relu")(batch_norm)
-        predictions = Dense(1, activation="sigmoid")(dense)
+        dense = Dense(10, activation="selu", kernel_regularizer=self.regularization,)(
+            batch_norm
+        )
+        if self.dropout_dense:
+            drop_out = Dropout(0.4)(dense)
+            predictions = Dense(1, activation="sigmoid")(drop_out)
+        else:
+            predictions = Dense(1, activation="sigmoid")(dense)
 
         model = tensorflow.keras.Model(inputs=[input1, input2], outputs=predictions)
 

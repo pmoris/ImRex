@@ -160,6 +160,27 @@ def create_parser():
         default=None,
     )
     parser.add_argument(
+        "--regularization",
+        dest="regularization",
+        type=float,
+        help="Regularization applied to all layers.",
+        default=None,
+    )
+    parser.add_argument(
+        "--dropout_conv",
+        dest="dropout_conv",
+        type=float,
+        help="Dropout rate applied applied to the convolutional layers.",
+        default=None,
+    )
+    parser.add_argument(
+        "--dropout_dense",
+        dest="dropout_dense",
+        type=float,
+        help="Dropout rate applied applied to the dense layers.",
+        default=None,
+    )
+    parser.add_argument(
         "--disable_file_log",
         dest="disable_file_log",
         action="store_false",
@@ -231,7 +252,12 @@ if __name__ == "__main__":
     )
 
     model = ModelSeparatedInputs(
-        name=run_name, optimizer=args.optimizer, learning_rate=args.learning_rate
+        name=run_name,
+        optimizer=args.optimizer,
+        learning_rate=args.learning_rate,
+        regularization=args.regularization,
+        dropout_conv=args.dropout_conv,
+        dropout_dense=args.dropout_dense,
     )
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
