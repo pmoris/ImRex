@@ -2,7 +2,13 @@ import logging
 from typing import Generator, Tuple
 
 import numpy as np
-from sklearn.model_selection import GroupKFold, KFold, LeaveOneGroupOut, RepeatedKFold
+from sklearn.model_selection import (
+    GroupKFold,
+    GroupShuffleSplit,
+    KFold,
+    LeaveOneGroupOut,
+    RepeatedKFold,
+)
 
 from src.data.data_source import DataSource
 from src.processing.data_stream import DataStream
@@ -49,8 +55,9 @@ def cv_splitter(
             X=data_source_array,
             groups=data_source.data[data_source.headers["epitope_header"]],
         )
+
     elif cv_type == "one_epitope_out":
-        cv = LeaveOneGroupOut(n_splits=n_folds)
+        cv = LeaveOneGroupOut()
         logger.info(
             f"Using a Leave One Group Out cross-validation strategy with the following settings:\n{cv}"
         )
@@ -58,18 +65,30 @@ def cv_splitter(
             X=data_source_array,
             groups=data_source.data[data_source.headers["epitope_header"]],
         )
+
     elif cv_type == "kfold":
         cv = KFold(n_splits=n_folds, shuffle=shuffle, random_state=42)
         logger.info(
             f"Using a K-Fold (k = {n_folds}) cross-validation strategy with the following settings:\n{cv}"
         )
         cv_split = cv.split(X=data_source_array)
+
     elif cv_type == "repeatedkfold":
         cv = RepeatedKFold(n_splits=n_folds, n_repeats=5, random_state=42)
         logger.info(
             f"Using a Repeated K-Fold (k = {n_folds}) cross-validation strategy with the following settings:\n{cv}"
         )
         cv_split = cv.split(X=data_source_array)
+
+    elif cv_type == "epitope_grouped_shuffle":
+        cv = GroupShuffleSplit(n_splits=n_folds, test_size=0.2, random_state=42)
+        logger.info(
+            f"Using a repeated epitope-grouped shuffle (k = {n_folds}) cross-validation strategy with the following settings:\n{cv}"
+        )
+        cv_split = cv.split(
+            X=data_source_array,
+            groups=data_source.data[data_source.headers["epitope_header"]],
+        )
 
     # loop through folds and return both the indices (for logging purposes) and the associated DataStreams
     for iteration, (train_index, test_index) in enumerate(cv_split):
