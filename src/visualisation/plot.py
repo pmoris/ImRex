@@ -332,7 +332,10 @@ def plot_metrics(directory):
             for tpe in metrics.type.unique():
                 df = metrics[metrics.type == tpe]
                 value = float(df.tail(1)[metric])
-                labels.append("{} (final = {:.2f})".format(tpe, value))
+                value_std = float(df.tail(1)[std_metric])
+                labels.append(
+                    "{}\n(final = {:.2f} ± {:.2f})".format(tpe, value, value_std)
+                )
 
             sns_plot = sns.lineplot(
                 x="epoch", y=metric, ci=None, hue="type", data=metrics
@@ -349,7 +352,10 @@ def plot_metrics(directory):
 
         else:
             value = float(metrics.tail(1)[metric])
-            labels.append("{} (final = {:.2f})".format(directory, value))
+            value_std = float(metrics.tail(1)[std_metric])
+            labels.append(
+                "{}\n(final = {:.2f} ± {:.2f})".format(directory, value, value_std)
+            )
             sns_plot = sns.lineplot(x="epoch", y=metric, ci=None, data=metrics)
 
         handles, _ = sns_plot.get_legend_handles_labels()
@@ -434,7 +440,8 @@ def plot_loss(directory):
         for tpe in loss_df.type_train_val.unique():
             df = loss_df.loc[loss_df.type_train_val == tpe]
             value = float(df.tail(1)["value"])
-            labels.append("{} (final = {:.2f})".format(tpe, value))
+            value_std = float(df.tail(1)["std_value"])
+            labels.append("{}\n(final = {:.2f} ± {:.2f})".format(tpe, value, value_std))
 
         sns_plot = sns.lineplot(
             x="epoch", y="value", ci=None, hue="type_train_val", data=loss_df
@@ -452,7 +459,10 @@ def plot_loss(directory):
     else:
         for i in loss_df.train_val.unique():
             value = float(df.loc[df.train_val == i].tail(1)["value"])
-            labels.append("{} (final = {:.2f})".format(directory, value))
+            value_std = float(df.tail(1)["std_value"])
+            labels.append(
+                "{}\n(final = {:.2f} ± {:.2f})".format(directory, value, value_std)
+            )
         sns_plot = sns.lineplot(
             x="epoch", y="value", ci=None, hue="type_train_val", data=loss_df
         )
@@ -548,13 +558,15 @@ def plot_roc(directory, ax=None, legend=True):
             df = auc[auc.type == tpe]
             auc_mean = float(df.auc)
             auc_std = float(df.std_auc)
-            labels.append("{} (AUC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std))
+            labels.append("{}\n(AUC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std))
             labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
 
     else:
         auc_mean = float(auc.auc)
-        labels.append("{} (AUC = {:.2f})".format(os.path.basename(directory), auc_mean))
+        labels.append(
+            "{}\n(AUC = {:.2f})".format(os.path.basename(directory), auc_mean)
+        )
         labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, ax=ax)
 
@@ -621,7 +633,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
             prec_mean = float(df.average_precision)
             prec_std = float(df.std_average_precision)
             labels.append(
-                "{} (Avg. Prec. = {:.2f} ± {:.2f})".format(tpe, prec_mean, prec_std)
+                "{}\n(Avg. Prec. = {:.2f} ± {:.2f})".format(tpe, prec_mean, prec_std)
             )
             labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(
@@ -630,7 +642,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
     else:
         prec_mean = float(average_precision.average_precision)
         labels.append(
-            "{} (Avg. Prec. = {:.2f})".format(os.path.basename(directory), prec_mean)
+            "{}\n(Avg. Prec. = {:.2f})".format(os.path.basename(directory), prec_mean)
         )
         labels = [fill(l, 50) for l in labels]
         sns_plot = sns.lineplot(
