@@ -64,7 +64,13 @@ def create_parser():
         dest="cross_validation",
         type=str,
         help="The type of cross-validation strategy to use. Can be any of: ",
-        choices=["kfold", "repeatedkfold", "epitope_grouped", "one_epitope_out"],
+        choices=[
+            "kfold",
+            "repeatedkfold",
+            "epitope_grouped",
+            "one_epitope_out",
+            "epitope_grouped_shuffle",
+        ],
         default=None,
     )
     parser.add_argument(
