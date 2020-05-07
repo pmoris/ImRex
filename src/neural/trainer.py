@@ -1,3 +1,4 @@
+import gc
 import logging
 import multiprocessing
 import os
@@ -7,6 +8,7 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras import callbacks
 from tensorflow.keras import metrics
+from tensorflow.keras.backend import clear_session
 from tensorflow.keras.utils import multi_gpu_model
 
 from src.config import MODEL_DIR, TENSORBOARD_DIR
@@ -377,3 +379,13 @@ class Trainer(object):
 
     def evaluate(self):
         pass  # Moved to post processing step
+
+    def clear_session(self, model):
+        """
+        See: https://github.com/keras-team/keras/issues/2102
+        https://github.com/tensorflow/tensorflow/issues/33030
+        https://stackoverflow.com/questions/58137677/keras-model-training-memory-leak
+        """
+        del model
+        clear_session()
+        gc.collect()
