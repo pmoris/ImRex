@@ -6,7 +6,6 @@ from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.model_scripts import pipeline
-from src.models.model_separated_inputs import ModelSeparatedInputs
 from src.neural.trainer import get_output_path, Trainer
 from src.processing.cv_folds import cv_splitter
 from src.processing.separated_input_dataset_generator import (
@@ -166,6 +165,14 @@ def create_parser():
         default=None,
     )
     parser.add_argument(
+        "--model",
+        dest="model",
+        type=str,
+        choices=["separated", "nettcr", "nettcr_selu",],
+        help="The type of separated input model to use.",
+        default="separated",
+    )
+    parser.add_argument(
         "--regularization",
         dest="regularization",
         type=float,
@@ -257,14 +264,41 @@ if __name__ == "__main__":
         verbose=args.disable_file_log,
     )
 
-    model = ModelSeparatedInputs(
-        name=run_name,
-        optimizer=args.optimizer,
-        learning_rate=args.learning_rate,
-        regularization=args.regularization,
-        dropout_conv=args.dropout_conv,
-        dropout_dense=args.dropout_dense,
-    )
+    if args.model == "separated":
+        from src.models.model_separated_inputs import ModelSeparatedInputs
+
+        model = ModelSeparatedInputs(
+            name=run_name,
+            optimizer=args.optimizer,
+            learning_rate=args.learning_rate,
+            regularization=args.regularization,
+            dropout_conv=args.dropout_conv,
+            dropout_dense=args.dropout_dense,
+        )
+    elif args.model == "nettcr_selu":
+        from src.models.model_separated_inputs_nettcr_selu import (
+            ModelSeparatedInputsNetTcrSelu,
+        )
+
+        model = ModelSeparatedInputsNetTcrSelu(
+            name=run_name,
+            optimizer=args.optimizer,
+            learning_rate=args.learning_rate,
+            regularization=args.regularization,
+            dropout_conv=args.dropout_conv,
+            dropout_dense=args.dropout_dense,
+        )
+
+    elif args.model == "nettcr":
+        from src.models.model_separated_inputs_nettcr import ModelSeparatedInputsNetTcr
+
+        model = ModelSeparatedInputsNetTcr(
+            name=run_name,
+            optimizer=args.optimizer,
+            learning_rate=args.learning_rate,
+            regularization=args.regularization,
+        )
+
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
 

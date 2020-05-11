@@ -4,7 +4,6 @@ from typing import Optional
 # from keras import Model
 # from keras.layers import LeakyReLU
 # from keras.layers import Activation
-# from keras.regularizers import l2
 import tensorflow
 from tensorflow.keras.layers import (
     BatchNormalization,
@@ -24,11 +23,17 @@ LENGTH = 10
 
 class ModelSeparatedInputsNetTcr(Model):
     def __init__(
-        self, optimizer, learning_rate: Optional[float] = None, *args, **kwargs
+        self,
+        optimizer,
+        learning_rate: Optional[float] = None,
+        regularization: Optional[float] = None,
+        *args,
+        **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.optimizer = optimizer
         self.learning_rate = learning_rate
+        self.regularization = l2(regularization) if regularization else None
 
     def _build_model(self):
         n_filters = 100
@@ -46,6 +51,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_pep)
         l_conv_pep_3 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -53,6 +59,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_pep)
         l_conv_pep_5 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -60,6 +67,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_pep)
         l_conv_pep_7 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -67,6 +75,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_pep)
         l_conv_pep_9 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -74,6 +83,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_pep)
 
         # convolutional layers on TCR:
@@ -83,6 +93,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_tcr)
         l_conv_tcr_3 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -90,6 +101,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_tcr)
         l_conv_tcr_5 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -97,6 +109,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_tcr)
         l_conv_tcr_7 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -104,6 +117,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_tcr)
         l_conv_tcr_9 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -111,6 +125,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_in_tcr)
 
         # second convolutional layer:
@@ -126,6 +141,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_conc_1)
         l_conv_2_3 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -133,6 +149,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_conc_3)
         l_conv_2_5 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -140,6 +157,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_conc_5)
         l_conv_2_7 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -147,6 +165,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_conc_7)
         l_conv_2_9 = tensorflow.keras.layers.Conv1D(
             filters=n_filters,
@@ -154,6 +173,7 @@ class ModelSeparatedInputsNetTcr(Model):
             kernel_initializer=tensorflow.keras.initializers.GlorotUniform(),
             padding="same",
             activation="sigmoid",
+            kernel_regularizer=self.regularization,
         )(l_conc_9)
 
         # max pooling:
@@ -170,13 +190,13 @@ class ModelSeparatedInputsNetTcr(Model):
         )
 
         # dense hidden layer:
-        l_dense = tensorflow.keras.layers.Dense(units=n_hid, activation="sigmoid")(
-            l_conc
-        )
+        l_dense = tensorflow.keras.layers.Dense(
+            units=n_hid, activation="sigmoid", kernel_regularizer=self.regularization,
+        )(l_conc)
 
         # dropout:
         l_dense_drop = tensorflow.keras.layers.Dropout(
-            rate=drop_rate, noise_shape=None, seed=None
+            rate=drop_rate, noise_shape=None, seed=None,
         )(l_dense)
 
         # output layer:
