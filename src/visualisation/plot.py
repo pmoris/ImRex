@@ -276,7 +276,7 @@ def concatenate(directory, file):
     df_concat.to_csv(output_path, index=False)
 
 
-def plot_metrics(directory):
+def plot_metrics(directory, y_lim_loss=None):
     metrics_path = os.path.join(directory, "metrics.csv")
 
     if not os.path.exists(metrics_path):
@@ -391,6 +391,8 @@ def plot_metrics(directory):
             sns_plot.set_ylim(0.5, 1)
         elif metric in ["mean_pred", "val_mean_pred"]:
             sns_plot.set_ylim(0, 1)
+        elif metric in ["loss", "val_loss"] and y_lim_loss:
+            sns_plot.set_ylim(0, y_lim_loss)
         sns_plot.set_xlim(0,)
         # Force ticks to be ints
         sns_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -403,7 +405,7 @@ def plot_metrics(directory):
         )
 
 
-def plot_loss(directory):
+def plot_loss(directory, y_lim_loss=None):
     metrics_path = os.path.join(directory, "metrics.csv")
     if not os.path.exists(metrics_path):
         print(f"{metrics_path} not found, skipping plots...")
@@ -477,6 +479,8 @@ def plot_loss(directory):
     )
 
     sns_plot.set_xlim(0,)
+    if y_lim_loss:
+        sns_plot.set_ylim(0, y_lim_loss)
     # Force ticks to be ints
     sns_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
 
@@ -802,10 +806,10 @@ def plot_confusion_matrix(directory, ax=None):
         )
 
 
-def plot_all(directory):
-    plot_metrics(directory)
+def plot_all(directory, y_lim_loss=None):
+    plot_metrics(directory, y_lim_loss=y_lim_loss)
     plt.close("all")
-    plot_loss(directory)
+    plot_loss(directory, y_lim_loss=y_lim_loss)
     plt.close("all")
     plot_roc(directory)
     plt.close("all")

@@ -394,7 +394,7 @@ def features():
 
 
 @bacli.command
-def metrics(directory: str, force: bool = False):
+def metrics(directory: str, force: bool = False, y_lim_loss: float = None):
     # directory
     #   |- iteration 0
     #       |- metrics.csv
@@ -405,11 +405,11 @@ def metrics(directory: str, force: bool = False):
     #       |- ...
     derive_metrics_all(directory, force=force)
     consolidate_all(directory, force=force)
-    plot_all(directory)
+    plot_all(directory, y_lim_loss=y_lim_loss)
 
 
 @bacli.command
-def compare(root_dir: str, force: bool = False):
+def compare(root_dir: str, force: bool = False, y_lim_loss: float = None):
     for directory in subdirs(root_dir):
         if os.path.basename(directory).startswith("_"):
             print(
@@ -424,7 +424,7 @@ def compare(root_dir: str, force: bool = False):
     concatenate_all(root_dir, force=force)
 
     print("Plotting")
-    plot_all(root_dir)
+    plot_all(root_dir, y_lim_loss=y_lim_loss)
 
 
 @bacli.command
