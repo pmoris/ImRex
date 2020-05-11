@@ -80,6 +80,7 @@ class ModelPaddedSmall(Model):
             )
 
         model.add(create_conv(self.depth1, kernel_size=(3, 3), input_shape=input_shape))
+        model.add(BatchNormalization())
         model.add(create_conv(self.depth1, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         if self.dropout_conv:
@@ -87,6 +88,7 @@ class ModelPaddedSmall(Model):
         model.add(BatchNormalization())
 
         model.add(create_conv(self.depth2, kernel_size=(3, 3)))
+        model.add(BatchNormalization())
         model.add(create_conv(self.depth2, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         if self.dropout_conv:
