@@ -100,6 +100,9 @@ preprocess-vdjdb-aug-2019:
 	# 2019-08-08 release: human TRB without spurious sequences and without any 10xgenomics entries and length restrictions
 	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-no10x-size.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11
 
+		# 2019-08-08 release: human TRB without spurious sequences and without any 10xgenomics entries and length restrictions
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-no10x-size-preprint.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
+
 	# 2019-08-08 release: human TRA without spurious sequences and without any 10xgenomics entries and length restrictions
 	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-tra-no10x-size.csv --species human --tcr-chain TRA --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11
 
@@ -141,6 +144,10 @@ preprocess-vdjdb-aug-2019:
 	$(PYTHON_INTERPRETER) src/preprocessing/decoy_epitopes.py -i data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-decoy.csv
 
 	$(PYTHON_INTERPRETER) src/preprocessing/decoy_epitopes.py -i data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-down.csv -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-down-decoy.csv
+
+	$(PYTHON_INTERPRETER) src/preprocessing/decoy_epitopes.py -i data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x-size.csv -o data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x-size-decoy.csv
+
+	$(PYTHON_INTERPRETER) src/preprocessing/decoy_epitopes.py -i data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x-size-down.csv -o data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x-size-down-decoy.csv
 
 	## SINGLE EPITOPES
 	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-size-NLVPMVATV.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --keep-specific-epitopes NLVPMVATV
