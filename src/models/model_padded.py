@@ -8,6 +8,7 @@ from tensorflow.keras.layers import (
     Dropout,
     Flatten,
     MaxPool2D,
+    SpatialDropout2D,
 )
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.regularizers import l2
@@ -76,7 +77,8 @@ class ModelPadded(Model):
         model.add(create_conv(64, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         if self.dropout_conv:
-            model.add(Dropout(self.dropout_conv))
+            # model.add(Dropout(self.dropout_conv))
+            model.add(SpatialDropout2D(self.dropout_conv))
         model.add(BatchNormalization())
 
         model.add(create_conv(128, kernel_size=(3, 3)))
@@ -84,7 +86,8 @@ class ModelPadded(Model):
         model.add(create_conv(64, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         if self.dropout_conv:
-            model.add(Dropout(self.dropout_conv))
+            # model.add(Dropout(self.dropout_conv))
+            model.add(SpatialDropout2D(self.dropout_conv))
         model.add(BatchNormalization())
 
         model.add(Flatten())

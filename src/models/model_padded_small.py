@@ -9,6 +9,7 @@ from tensorflow.keras.layers import (
     Flatten,
     GlobalAveragePooling2D,
     MaxPool2D,
+    SpatialDropout2D,
 )
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.regularizers import l2
@@ -82,14 +83,14 @@ class ModelPaddedSmall(Model):
         model.add(create_conv(self.depth1, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         if self.dropout_conv:
-            model.add(Dropout(self.dropout_conv))
+            model.add(SpatialDropout2D(self.dropout_conv))
         model.add(BatchNormalization())
 
         model.add(create_conv(self.depth2, kernel_size=(3, 3)))
         model.add(create_conv(self.depth2, kernel_size=(3, 3)))
         model.add(MaxPool2D(pool_size=(2, 2)))
         if self.dropout_conv:
-            model.add(Dropout(self.dropout_conv))
+            model.add(SpatialDropout2D(self.dropout_conv))
         model.add(BatchNormalization())
 
         if self.gap:
