@@ -30,6 +30,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
         regularization: Optional[float] = None,
         dropout_conv: Optional[float] = None,
         dropout_dense: Optional[float] = None,
+        activation_function: str = "selu",
         *args,
         **kwargs
     ):
@@ -39,9 +40,13 @@ class ModelSeparatedInputsNetTcrSelu(Model):
         self.regularization = l2(regularization) if regularization else None
         self.dropout_conv = dropout_conv
         self.dropout_dense = dropout_dense
+        self.activation_function = activation_function.lower()
 
     def _build_model(self):
-        KERNEL_INIT = tensorflow.keras.initializers.he_normal
+        if self.activation_function == "selu":
+            KERNEL_INIT = "lecun_normal"
+        else:
+            KERNEL_INIT = "he_normal"
 
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
@@ -54,7 +59,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     (1,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="selu",
+                    activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
             )
@@ -64,7 +69,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     (3,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="selu",
+                    activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
             )
@@ -74,7 +79,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     (5,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="selu",
+                    activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
             )
@@ -84,7 +89,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     (7,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="selu",
+                    activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
             )
@@ -94,7 +99,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     (9,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="selu",
+                    activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
             )
@@ -118,7 +123,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                 kernel_size=1,
                 kernel_initializer=KERNEL_INIT(),
                 padding="same",
-                activation="selu",
+                activation=self.activation_function,
                 kernel_regularizer=self.regularization,
             )(bn)
             for bn in batchnorm_1
@@ -134,9 +139,11 @@ class ModelSeparatedInputsNetTcrSelu(Model):
 
         concat_2 = tensorflow.keras.layers.concatenate(batch_norm_2, axis=1)
 
-        dense = Dense(10, activation="selu", kernel_regularizer=self.regularization,)(
-            concat_2
-        )
+        dense = Dense(
+            10,
+            activation=self.activation_function,
+            kernel_regularizer=self.regularization,
+        )(concat_2)
         if self.dropout_dense:
             drop_out_dense = Dropout(0.4)(dense)
             predictions = Dense(1, activation="sigmoid")(drop_out_dense)

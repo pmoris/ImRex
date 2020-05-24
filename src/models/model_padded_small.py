@@ -59,7 +59,11 @@ class ModelPaddedSmall(Model):
 
         input_shape = (self.width, self.height, self.channels)
         # WEIGHT_DECAY = 1e-6
-        KERNEL_INIT = "he_normal"
+
+        if self.activation_function_conv == "selu":
+            KERNEL_INIT = "lecun_normal"
+        else:
+            KERNEL_INIT = "he_normal"
 
         def create_conv(
             depth,

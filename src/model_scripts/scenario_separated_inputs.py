@@ -194,6 +194,13 @@ def create_parser():
         default=None,
     )
     parser.add_argument(
+        "--activation_function",
+        dest="activation_function",
+        type=str,
+        help="The activation function used for all layers except for the output.",
+        default="selu",
+    )
+    parser.add_argument(
         "--disable_file_log",
         dest="disable_file_log",
         action="store_false",
@@ -287,6 +294,7 @@ if __name__ == "__main__":
             regularization=args.regularization,
             dropout_conv=args.dropout_conv,
             dropout_dense=args.dropout_dense,
+            activation_function=args.activation_function,
         )
 
     elif args.model == "nettcr":
