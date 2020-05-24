@@ -144,9 +144,9 @@ if __name__ == "__main__":
         # plot_all(iteration_dir)
 
         # find latest model
-        model_list = [model for model in iteration_dir.glob("*.h5")]
+        model_list = [model for model in iteration_dir.glob("*epoch*.h5")]
         model_path = sorted(
-            model_list, key=lambda x: x.name.split("epoch")[1], reverse=True
+            model_list, key=lambda x: x.name.split("epoch")[1], reverse=True,
         )[0]
 
         # find test dataset
