@@ -845,3 +845,58 @@ def plot_combined_function(directories, plot_func, title):
         ax.set_title(subtitle)
 
     f.savefig(get_output_path("output", title), bbox_inches="tight")
+
+
+def roc_per_epitope(eval_df, output_path, min_obs=30, min_iterations=5):
+    # get number of testing data points
+    eval_df["n"] = eval_df.pos_data + eval_df.neg_data
+
+    # minimum number of data points required to include auroc in boxplot
+    eval_df = eval_df[eval_df["n"] > min_obs].reset_index(drop=True)
+
+    # only include epitopes that occurred in at least m iterations
+    eval_df = eval_df[eval_df.groupby("epitope")["epitope"].transform("count") == 5]
+
+    fig, ax = plt.subplots(constrained_layout=True, dpi=200, figsize=(16, 8))
+    sns.boxplot(
+        x="epitope",
+        y="roc_auc",
+        data=eval_df.sort_values(by="n", ascending=False),
+        color=palette[0],
+    )
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
+    ax.set_title(f"AUROC per epitope")
+    ax.set_ylabel("AUROC")
+    ax.set_xlabel("Epitope")
+
+    plt.savefig(output_path)
+
+
+def roc_per_epitope_grouped(eval_df, output_path, min_obs=30, min_iterations=5):
+    return None
+
+
+def roc_train_corr(eval_df, output_path):
+    fig, ax = plt.subplots(constrained_layout=True, dpi=200, figsize=(16, 8))
+    g = sns.jointplot(y="roc_auc", x="train_size", data=eval_df)
+    # g.fig.subplots_adjust(top=0.93, wspace=0.3)
+    # g.fig.suptitle("")
+    # g.ax_joint.set_ylim((0,1))
+
+    g.ax_joint.set_xlabel("Number of training observations")
+    g.ax_joint.set_ylabel("AUROC")
+
+    g.fig.set_dpi(200)
+
+    plt.savefig(output_path)
+
+
+def roc_dist_corr(eval_df, output_path):
+    g = sns.jointplot(y="roc_auc", x="median_dist", data=eval_df)
+    g.ax_joint.set_xlabel("Median edit distance")
+    g.ax_joint.set_ylabel("AUROC")
+
+    g.fig.set_dpi(200)
+
+    plt.savefig(output_path)

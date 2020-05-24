@@ -3,6 +3,8 @@ import argparse
 import logging
 from pathlib import Path
 
+import Levenshtein
+import numpy as np
 import pandas as pd
 import tensorflow as tf
 
@@ -19,6 +21,9 @@ from src.processing.separated_input_dataset_generator import (
 from src.visualisation.plot import (
     derive_metrics_all,
     plot_all,
+    roc_dist_corr,
+    roc_per_epitope,
+    roc_train_corr,
 )
 
 
@@ -94,6 +99,13 @@ def create_parser():
     )
     parser.add_argument(
         "--batch_size", dest="batch_size", type=int, help="Batch size.", default=128,
+    )
+    parser.add_argument(
+        "--epitope_grouped",
+        dest="epitope_grouped",
+        action="store_true",
+        help="Different plots should be generated for epitope-grouped models.",
+        default=False,
     )
 
     args = parser.parse_args()
@@ -268,7 +280,71 @@ if __name__ == "__main__":
                 "Make sure the correct model type and padding lengths are specified. The latter can be omitted if every fold contains an example of the shortest and longest length, otherwise they should be provided as input arguments."
             ) from e
         iteration_metrics_df["iteration"] = iteration_dir.name
+
+        # add training dataset size per epitope
+        train_path = list(iteration_dir.glob("train_fold_*.csv"))
+        assert (
+            len(data_path) == 1
+        ), f"Found multiple files named 'train_fold_#.csv' inside {iteration_dir.name}..."
+        train_df = pd.read_csv(train_path[0], sep=";")
+        iteration_metrics_df["train_size"] = iteration_metrics_df.apply(
+            lambda x: np.sum(train_df["antigen.epitope"] == x["epitope"]), axis=1
+        )
+
+        # calculate edit distances to training examples
+        epitope_dist_dict = {}
+        for epitope in iteration_metrics_df["epitope"].unique():
+            epitopes_to_check = train_df.loc[
+                train_df["antigen.epitope"] != epitope, "antigen.epitope"
+            ]
+            distances_dict = {
+                i: Levenshtein.distance(epitope, i) for i in epitopes_to_check.unique()
+            }
+            all_distances = epitopes_to_check.map(lambda x: distances_dict.get(x))
+
+            epitope_dist_dict[epitope] = {
+                "min_dist": min(distances_dict.values()),
+                "median_dist": np.median(all_distances),
+                "25th_quantile": np.percentile(all_distances, 25),
+                "mean_dist": np.mean(all_distances),
+            }
+
+        iteration_metrics_df["min_dist"] = iteration_metrics_df["epitope"].map(
+            lambda x: epitope_dist_dict.get(x).get("min_dist")
+        )
+        iteration_metrics_df["median_dist"] = iteration_metrics_df["epitope"].map(
+            lambda x: epitope_dist_dict.get(x).get("median_dist")
+        )
+        iteration_metrics_df["25th_quantile"] = iteration_metrics_df["epitope"].map(
+            lambda x: epitope_dist_dict.get(x).get("25th_quantile")
+        )
+        iteration_metrics_df["mean_dist"] = iteration_metrics_df["epitope"].map(
+            lambda x: epitope_dist_dict.get(x).get("mean_dist")
+        )
+
+        # combine df for current iteration with list of all iterations
         per_epitope_df = per_epitope_df.append(iteration_metrics_df)
 
     per_epitope_df.to_csv(per_epitope_filepath, index=False)
     logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
+
+    # create plots
+    if not args.epitope_grouped:
+        roc_per_epitope(
+            eval_df=per_epitope_df,
+            output_path=output_dir / "roc_per_epitope.pdf",
+            min_obs=30,
+            min_iterations=5,
+        )
+    else:
+        roc_per_epitope_grouped(
+            eval_df=per_epitope_df, output_path=output_dir / "roc_per_epitope.pdf"
+        )
+
+    roc_train_corr(
+        eval_df=per_epitope_df, output_path=output_dir / "roc_train_correlation.pdf"
+    )
+
+    roc_dist_corr(
+        eval_df=per_epitope_df, output_path=output_dir / "roc_dist_correlation.pdf"
+    )
