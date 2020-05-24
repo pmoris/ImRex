@@ -120,6 +120,28 @@ def create_parser():
         help="Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 0.84 GILGFVFTL 0.80'. Do not use quotes.",
     )
     parser.add_argument(
+        "--terminal_only",
+        dest="terminal_only",
+        action="store_true",
+        default=False,
+        help="Only keep the two terminal amino acids on each side of the CDR3 (i.e. 4 aa in total).",
+    )
+    parser.add_argument(
+        "--terminal_replaced",
+        dest="terminal_replaced",
+        type=str,
+        choices=["X", "G"],
+        default=None,
+        help="Replace the two terminal amino acids on each side of the CDR3 (i.e. 4 aa in total) by an X or glycine.",
+    )
+    parser.add_argument(
+        "--middle_replaced",
+        type=str,
+        choices=["X", "G"],
+        default=None,
+        help="Replace everything but the two terminal amino acids on each side of the CDR3 (i.e. 4 aa in total) by an X or glycine.",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         dest="output",
@@ -145,6 +167,9 @@ def filter_vdjdb(  # noqa: C901
     keep_specific_epitopes: list = None,
     length_restriction: list = None,
     downsample: list = None,
+    terminal_only=False,
+    terminal_replaced=None,
+    middle_replaced=None,
 ):
     """Filter relevant CDR3-epitope pairs from VDJdb files and returns a dataframe.
 
@@ -174,6 +199,12 @@ def filter_vdjdb(  # noqa: C901
         Specify the sequence length restrictions. Format: cdr3-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13', by default None
     Downsample: list
         Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 0.84 GILGFVFTL 0.80', by default None
+    terminal_only: bool
+        Only keep the first and the last two amino acids of the CDR3 sequence.
+    terminal_replaced: str
+        Replace the first and the last two amino acids of the CDR3 sequence by either an X or a G.
+    middle_replaced: str,
+        Replace everything but the first and the last two amino acids of the CDR3 sequence by either an X or a G.
 
     Returns
     -------
@@ -349,6 +380,25 @@ def filter_vdjdb(  # noqa: C901
         df = df.loc[mask]
         logger.info(f"Filtered down to {df.shape[0]} entries...")
 
+    if args.terminal_only:
+        pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
+        df["cdr3"] = df["cdr3"].str.replace(
+            pattern, lambda m: m.group("terminalstart") + m.group("terminalend")
+        )
+
+    elif args.terminal_replaced:
+        df["cdr3"] = df["cdr3"].str.replace("^..", terminal_replaced * 2)
+        df["cdr3"] = df["cdr3"].str.replace("..$", terminal_replaced * 2)
+
+    elif args.middle_replaced:
+        pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
+        df["cdr3"] = df["cdr3"].str.replace(
+            pattern,
+            lambda m: m.group("terminalstart")
+            + middle_replaced * len(m.group("middle"))
+            + m.group("terminalend"),
+        )
+
     return df
 
 
@@ -472,6 +522,9 @@ if __name__ == "__main__":
         keep_specific_epitopes=args.keep_specific_epitopes,
         length_restriction=args.length_restriction,
         downsample=args.downsample,
+        terminal_only=args.terminal_only,
+        terminal_replaced=args.terminal_replaced,
+        middle_replaced=args.middle_replaced,
     )
 
     # save output

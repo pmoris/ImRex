@@ -154,6 +154,16 @@ preprocess-vdjdb-aug-2019:
 
 	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-size-GILGFVFTL.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --keep-specific-epitopes GILGFVFTL
 
+	## REPLACED
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-terminal-replaced.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --terminal_replaced G
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-terminal-replaced-down.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --downsample NLVPMVATV 0.84 GILGFVFTL 0.80 --terminal_replaced G
+
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-terminal-only.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --terminal_only
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-terminal-only-down.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --downsample NLVPMVATV 0.84 GILGFVFTL 0.80 --terminal_only
+
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-middle-replaced.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --middle_replaced G
+	$(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-middle-replaced-down.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --downsample NLVPMVATV 0.84 GILGFVFTL 0.80 --middle_replaced G
+
 preprocess-vdjdb-aug-2019-old:
 	mkdir -p data/interim/vdjdb-2019-08-08-old/
 	## $(PYTHON_INTERPRETER) src/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-all-species-tra-trb-non-paired.tsv -o data/interim/vdjdb-human.csv --species human
