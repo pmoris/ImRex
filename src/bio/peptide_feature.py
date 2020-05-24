@@ -25,6 +25,16 @@ from src.definitions.amino_acid_properties import (
     TCREX_HELICITY,
     TCREX_HYDROPHOBICITY,
     TCREX_MUTATION_STABILITY,
+    KIDERA_FACTOR_1,
+    KIDERA_FACTOR_2,
+    KIDERA_FACTOR_3,
+    KIDERA_FACTOR_4,
+    KIDERA_FACTOR_5,
+    KIDERA_FACTOR_6,
+    KIDERA_FACTOR_7,
+    KIDERA_FACTOR_8,
+    KIDERA_FACTOR_9,
+    KIDERA_FACTOR_10,
 )
 
 
@@ -546,6 +556,136 @@ class AtchleyFactor5(PeptideFeature):
         return ATCHLEY_FACTOR_5[aa]
 
 
+@lru_cache()
+class KideraFactor1(PeptideFeature):
+    name = "Kidera_factor_1"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_1
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_1[aa]
+
+
+@lru_cache()
+class KideraFactor2(PeptideFeature):
+    name = "Kidera_factor_2"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_2
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_2[aa]
+
+
+@lru_cache()
+class KideraFactor3(PeptideFeature):
+    name = "Kidera_factor_3"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_3
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_3[aa]
+
+
+@lru_cache()
+class KideraFactor4(PeptideFeature):
+    name = "Kidera_factor_4"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_4
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_4[aa]
+
+
+@lru_cache()
+class KideraFactor5(PeptideFeature):
+    name = "Kidera_factor_5"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_5
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_5[aa]
+
+
+@lru_cache()
+class KideraFactor6(PeptideFeature):
+    name = "Kidera_factor_6"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_6
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_6[aa]
+
+
+@lru_cache()
+class KideraFactor7(PeptideFeature):
+    name = "Kidera_factor_7"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_7
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_7[aa]
+
+
+@lru_cache()
+class KideraFactor8(PeptideFeature):
+    name = "Kidera_factor_8"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_8
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_8[aa]
+
+
+@lru_cache()
+class KideraFactor9(PeptideFeature):
+    name = "Kidera_factor_9"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_9
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_9[aa]
+
+
+@lru_cache()
+class KideraFactor10(PeptideFeature):
+    name = "Kidera_factor_10"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_10
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_10[aa]
+
+
 features_map = {
     "charge": Charge(),
     "hydrophob": Hydrophobicity(),
@@ -565,6 +705,16 @@ features_map = {
     "atchley3": AtchleyFactor3(),
     "atchley4": AtchleyFactor4(),
     "atchley5": AtchleyFactor5(),
+    "kidera1": KideraFactor1(),
+    "kidera2": KideraFactor2(),
+    "kidera3": KideraFactor3(),
+    "kidera4": KideraFactor4(),
+    "kidera5": KideraFactor5(),
+    "kidera6": KideraFactor6(),
+    "kidera7": KideraFactor7(),
+    "kidera8": KideraFactor8(),
+    "kidera9": KideraFactor9(),
+    "kidera10": KideraFactor10(),
 }
 
 operators_map = {
