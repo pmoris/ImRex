@@ -58,7 +58,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     100,
                     (1,),
                     padding="same",
-                    kernel_initializer=KERNEL_INIT(),
+                    kernel_initializer=KERNEL_INIT,
                     activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
@@ -68,7 +68,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     100,
                     (3,),
                     padding="same",
-                    kernel_initializer=KERNEL_INIT(),
+                    kernel_initializer=KERNEL_INIT,
                     activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
@@ -78,7 +78,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     100,
                     (5,),
                     padding="same",
-                    kernel_initializer=KERNEL_INIT(),
+                    kernel_initializer=KERNEL_INIT,
                     activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
@@ -88,7 +88,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     100,
                     (7,),
                     padding="same",
-                    kernel_initializer=KERNEL_INIT(),
+                    kernel_initializer=KERNEL_INIT,
                     activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
@@ -98,7 +98,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
                     100,
                     (9,),
                     padding="same",
-                    kernel_initializer=KERNEL_INIT(),
+                    kernel_initializer=KERNEL_INIT,
                     activation=self.activation_function,
                     kernel_regularizer=self.regularization,
                 )(input)
@@ -121,7 +121,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
             tensorflow.keras.layers.Conv1D(
                 filters=100,
                 kernel_size=1,
-                kernel_initializer=KERNEL_INIT(),
+                kernel_initializer=KERNEL_INIT,
                 padding="same",
                 activation=self.activation_function,
                 kernel_regularizer=self.regularization,
