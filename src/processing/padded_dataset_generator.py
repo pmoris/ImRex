@@ -25,6 +25,7 @@ def padded_dataset_generator(
     export_path: Optional[str] = None,
     neg_augment: Optional[str] = None,
     augment_amount: Optional[int] = None,
+    reverse_augment: Optional[bool] = False,
 ) -> tf.data.Dataset:
     """Create a tensorflow dataset with positive and negative 2d interaction map arrays.
 
@@ -89,6 +90,25 @@ def padded_dataset_generator(
             amount=augment_amount,
         )
 
+    # augment data by reversing sequences
+    if reverse_augment:
+        df_rev_cdr3 = df.copy()
+        df_rev_cdr3["cdr3"] = df_rev_cdr3["cdr3"].map(lambda x: x[::-1])
+
+        df_rev_epitope = df.copy()
+        df_rev_epitope["antigen.epitope"] = df_rev_epitope["antigen.epitope"].map(
+            lambda x: x[::-1]
+        )
+
+        df_rev_both = df.copy()
+        df_rev_both["cdr3"] = df_rev_both["cdr3"].map(lambda x: x[::-1])
+        df_rev_both["antigen.epitope"] = df_rev_both["antigen.epitope"].map(
+            lambda x: x[::-1]
+        )
+
+        df = pd.concat([df, df_rev_cdr3, df_rev_epitope, df_rev_both])
+        df = df.reset_index(drop=True)
+
     # export dataset with sequences and labels as csv
     if export_path:
         logger.info(f"Saving train/test fold in: {export_path}")
@@ -98,6 +118,19 @@ def padded_dataset_generator(
     zipped = Zipper(
         DataStream(zip(df["cdr3"], df["antigen.epitope"])), DataStream(df["y"])
     )
+
+    # # augment data by reversing sequences
+    # # does not work because zipped is exhausted on the first pass
+    # if reverse_augment:
+    #     from itertools import chain
+
+    #     rev_cdr3 = Reverser(zipped, target="cdr3")
+    #     rev_epitope = Reverser(zipped, target="epitope")
+    #     rev_both = Reverser(zipped, target=None)
+    #     zipped = DataStream(chain(rev_cdr3, rev_epitope, rev_both))
+    #     logger.info(
+    #         f"Augmenting data by reversing sequence direction. Total number of training samples is {len(zipped)}."
+    #     )
 
     # create 2d input arrays and allow reverse lookup back to sequences
     zipped = inverse_map.input(zipped)

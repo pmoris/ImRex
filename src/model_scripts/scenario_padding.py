@@ -260,6 +260,13 @@ def create_parser():
         default=None,
     )
     parser.add_argument(
+        "--reverse_augment",
+        dest="reverse_augment",
+        action="store_true",
+        help="Augment the training data by reversing the sequences.",
+        default=False,
+    )
+    parser.add_argument(
         "--disable_file_log",
         dest="disable_file_log",
         action="store_false",
@@ -479,6 +486,7 @@ if __name__ == "__main__":
             export_path=train_fold_output,
             neg_augment=args.neg_augment,
             augment_amount=args.augment_amount,
+            reverse_augment=args.reverse_augment,
         )
         val_data = padded_dataset_generator(
             data_stream=val,
