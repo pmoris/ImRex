@@ -1,5 +1,6 @@
 import itertools
 import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -463,4 +464,44 @@ def evaluate_self_plots(root_dir: str):
     roc_dist_corr(
         eval_df=per_epitope_df,
         output_path=os.path.join(input_directory, "roc_dist_correlation.pdf"),
+    )
+
+
+@bacli.command
+def evaluate_self_comparison_plots(root_dir: str,):
+    df_list = list()
+
+    for directory in subdirs(root_dir):
+        if os.path.basename(directory).startswith("_"):
+            print(
+                "Found directory:", directory, "which starts with underscore, skipping"
+            )
+            continue
+
+        print(
+            f"Retrieving metrics per epitope from evaluate_test_folds subdirectory of {directory}"
+        )
+
+        eval_list = [
+            i
+            for i in directory.rglob("*metrics_per_epitope*.csv")
+            if not i.parent.name.startswith("_")
+        ]
+
+        assert (
+            len(eval_list) == 1
+        ), f"Found multiple evaluate_test_folds.csv files in {directory}, aborting..."
+
+        df = pd.read_csv(eval_list[0])
+        df["type"] = directory.name
+        df_list.append(df)
+
+    df_concat = pd.concat(df_list)
+
+    roc_per_epitope(
+        eval_df=df_concat,
+        output_path=os.path.join(root_dir, "roc_per_epitope.pdf"),
+        min_obs=30,
+        min_iterations=3,
+        comparison=True,
     )

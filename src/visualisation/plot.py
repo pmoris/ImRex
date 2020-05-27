@@ -890,34 +890,43 @@ def plot_combined_function(directories, plot_func, title):
     f.savefig(get_output_path("output", title), bbox_inches="tight")
 
 
-def roc_per_epitope(eval_df, output_path, min_obs=30, min_iterations=5):
+def roc_per_epitope(
+    eval_df, output_path, min_obs=30, min_iterations=5, comparison=False
+):
     # get number of testing data points
     eval_df["n"] = eval_df.pos_data + eval_df.neg_data
 
     # minimum number of data points required to include auroc in boxplot
-    eval_df = eval_df[eval_df["n"] > min_obs].reset_index(drop=True)
+    eval_df = eval_df[eval_df["n"] >= min_obs].reset_index(drop=True)
 
     # only include epitopes that occurred in at least m iterations
-    eval_df = eval_df[eval_df.groupby("epitope")["epitope"].transform("count") == 5]
+    if comparison:
+        eval_df = eval_df[
+            eval_df.groupby(["epitope", "type"])["epitope"].transform("count")
+            >= min_iterations
+        ]
+        hue = "type"
+    else:
+        eval_df = eval_df[
+            eval_df.groupby("epitope")["epitope"].transform("count") >= min_iterations
+        ]
+        hue = None
 
     fig, ax = plt.subplots(constrained_layout=True, dpi=200, figsize=(16, 8))
     sns.boxplot(
         x="epitope",
         y="roc_auc",
+        hue=hue,
         data=eval_df.sort_values(by="n", ascending=False),
         color=palette[0],
     )
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
-    ax.set_title(f"AUROC per epitope")
+    # ax.set_title(f"AUROC per epitope")
     ax.set_ylabel("AUROC")
     ax.set_xlabel("Epitope")
-
+    ax.legend().set_title("")
     plt.savefig(output_path)
-
-
-def roc_per_epitope_grouped(eval_df, output_path, min_obs=30, min_iterations=5):
-    return None
 
 
 def roc_train_corr(eval_df, output_path):
