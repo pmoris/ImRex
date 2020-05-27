@@ -60,6 +60,7 @@ palette = sns.color_palette(
     ]
 )
 
+palette_single = sns.color_palette("Blues")
 sns.set_palette(palette)
 sns.set_style("whitegrid")
 
@@ -180,6 +181,34 @@ def consolidate_all(directory, force=False):
 
         consolidate(directory, file, col)
 
+    # create auc per epitope csv for later box plot auroc comparisons
+    consolidate_auc(directory)
+
+
+def consolidate_auc(directory):
+    dfs = list()
+    for subdir in filter(
+        lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)
+    ):
+        p = os.path.join(subdir, "auc.csv")
+
+        if not os.path.exists(p):
+            print(f"auc.csv not found in {subdir}, skipping...")
+            continue
+
+        df = pd.read_csv(p)
+        df["iteration"] = os.path.basename(subdir)
+        dfs.append(df)
+
+    if not dfs:
+        print(f"No auc.csv found in any subdirectory of {directory}, skipping...")
+        return
+
+    output_path = os.path.join(directory, "auc_per_iteration.csv")
+    df_concat = pd.concat(dfs)
+    df_concat["type"] = os.path.basename(os.path.abspath(directory))
+    df_concat.to_csv(output_path, index=False)
+
 
 def consolidate(directory, file, col):
     dfs = list()
@@ -235,7 +264,7 @@ def consolidate(directory, file, col):
 
 
 def concatenate_all(directory, force=False):
-    for file, col in FILES:
+    for file, col in FILES + [("auc_per_iteration.csv", "index")]:
         # Can't concatenate unagregated csv's
         if col is None:
             continue
@@ -806,6 +835,18 @@ def plot_confusion_matrix(directory, ax=None):
         )
 
 
+def plot_roc_boxplot(directory):
+    fig, ax = plt.subplots(constrained_layout=True, dpi=200)  # , figsize=(12,16))
+    df = pd.read_csv("auc_per_iteration.csv")
+    sns_plot = sns.boxplot(x="type", y="auc", data=df, color=palette_single[3])
+    plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
+    plt.xlabel(None)
+    plt.ylabel("AUROC")
+    sns_plot.get_figure().savefig(
+        get_output_path(directory, "roc_boxplot"), bbox_inches="tight"
+    )
+
+
 def plot_all(directory, y_lim_loss=None):
     plot_metrics(directory, y_lim_loss=y_lim_loss)
     plt.close("all")
@@ -820,6 +861,8 @@ def plot_all(directory, y_lim_loss=None):
     plot_predictions(directory)
     plt.close("all")
     plot_confusion_matrix(directory)
+    plt.close("all")
+    plot_roc_boxplot(directory)
     plt.close("all")
 
 

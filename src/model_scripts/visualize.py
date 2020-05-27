@@ -38,6 +38,7 @@ from src.visualisation.plot import (
     derive_metrics_all,
     plot_all,
     # palette,
+    plot_roc_boxplot,
     plot_combined,
 )
 
