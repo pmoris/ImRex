@@ -50,12 +50,12 @@ def create_parser():
         "--neg_ref",
         dest="neg_ref",
         type=str,
-        help="Generate negatives from CDR3 reference sequences or by shuffling positive examples.",
+        help="File from which to generate negatives from a set of CDR3 reference sequences.",
         default=None,
     )
     parser.add_argument(
-        "--neg_gen",
-        dest="neg_gen",
+        "--neg_shuffle",
+        dest="neg_shuffle",
         action="store_true",
         help="Generate negatives through shuffling the positive pairs in the supplied dataset.",
         default=False,
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         feature_builder = None
 
     logger.info("neg_ref: " + str(args.neg_ref))
-    logger.info("neg_gen: " + str(args.neg_gen))
+    logger.info("neg_shuffle: " + str(args.neg_shuffle))
 
     # store range restrictions for cdr3 and epitope
     cdr3_range = (args.min_length_cdr3, args.max_length_cdr3)
@@ -205,14 +205,14 @@ if __name__ == "__main__":
         data_source.generate_negatives_from_ref(negative_source)
 
     # or generate negatives through shuffling
-    elif args.neg_gen:
+    elif args.neg_shuffle:
         logger.info(
             f"Generating negative examples through shuffling the positive dataset."
         )
         if "y" in data_source.data.columns:
             if data_source.data.loc[data_source.data["y"] == 0].shape[0] > 0:
                 raise RuntimeError(
-                    "Dataset already contains negative class labels. Do not use --neg_gen argument."
+                    "Dataset already contains negative class labels. Do not use --neg_shuffle argument."
                 )
         data_source.add_pos_labels()
         data_source.generate_negatives()
@@ -221,7 +221,7 @@ if __name__ == "__main__":
     else:
         if "y" not in data_source.data.columns:
             raise RuntimeError(
-                "Dataset should contain positive and negative class labels if neither --neg_ref or --neg_gen arguments are used."
+                "Dataset should contain positive and negative class labels if neither --neg_ref or --neg_shuffle arguments are used."
             )
         logger.info(
             f"Not generating negatives. The supplied dataset already contains both positives and negatives: {data_source.data.groupby('y').size()}"

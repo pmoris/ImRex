@@ -58,7 +58,7 @@ def create_parser():
         "--features",
         dest="features",
         type=str,
-        help="A string of comma separated values listed in peptide_feature.featuresMap.",
+        help="A string of comma separated values listed in peptide_feature.featuresMap. Ignored for separate input models.",
         default="hydrophob,isoelectric,mass,hydrophil,charge",
     )
     parser.add_argument(
@@ -66,7 +66,7 @@ def create_parser():
         dest="operator",
         type=str,
         choices=["prod", "diff", "absdiff", "layer", "best"],
-        help="Can be any of: prod, diff, absdiff, layer or best.",
+        help="Can be any of: prod, diff, absdiff, layer or best. Ignored for separate input models.",
         default="absdiff",
     )
     parser.add_argument(
