@@ -40,6 +40,9 @@ from src.visualisation.plot import (
     # palette,
     plot_roc_boxplot,
     plot_combined,
+    roc_dist_corr,
+    roc_per_epitope,
+    roc_train_corr,
 )
 
 
@@ -431,3 +434,33 @@ def compare(root_dir: str, force: bool = False, y_lim_loss: float = None):
 @bacli.command
 def joinplot(directories: list):
     plot_combined([d for d in directories if not os.path.basename(d).startswith("_")])
+
+
+@bacli.command
+def evaluate_self_plots(root_dir: str):
+    # check input directory
+    input_directory = root_dir
+    # input_directory = Path(args.input)
+    # assert input_directory.is_dir(), "Input is not a directory..."
+
+    # find metrics_per_epitope.csv
+    per_epitope_df = pd.read_csv(
+        os.path.join(input_directory, "metrics_per_epitope.csv")
+    )
+
+    roc_per_epitope(
+        eval_df=per_epitope_df,
+        output_path=os.path.join(input_directory, "roc_per_epitope.pdf"),
+        min_obs=30,
+        min_iterations=3,
+    )
+
+    roc_train_corr(
+        eval_df=per_epitope_df,
+        output_path=os.path.join(input_directory, "roc_train_correlation.pdf"),
+    )
+
+    roc_dist_corr(
+        eval_df=per_epitope_df,
+        output_path=os.path.join(input_directory, "roc_dist_correlation.pdf"),
+    )
