@@ -127,6 +127,13 @@ def create_parser():
         help="Only keep the two terminal amino acids on each side of the CDR3 (i.e. 4 aa in total).",
     )
     parser.add_argument(
+        "--middle_only",
+        dest="middle_only",
+        action="store_true",
+        default=False,
+        help="Trim the two terminal amino acids on each side of the CDR3 (i.e. 4 aa in total).",
+    )
+    parser.add_argument(
         "--terminal_replaced",
         dest="terminal_replaced",
         type=str,
@@ -168,6 +175,7 @@ def filter_vdjdb(  # noqa: C901
     length_restriction: list = None,
     downsample: list = None,
     terminal_only=False,
+    middle_only=False,
     terminal_replaced=None,
     middle_replaced=None,
 ):
@@ -201,6 +209,8 @@ def filter_vdjdb(  # noqa: C901
         Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 0.84 GILGFVFTL 0.80', by default None
     terminal_only: bool
         Only keep the first and the last two amino acids of the CDR3 sequence.
+    middle_only: bool
+        Trim the first and the last two amino acids of the CDR3 sequence.
     terminal_replaced: str
         Replace the first and the last two amino acids of the CDR3 sequence by either an X or a G.
     middle_replaced: str,
@@ -380,11 +390,15 @@ def filter_vdjdb(  # noqa: C901
         df = df.loc[mask]
         logger.info(f"Filtered down to {df.shape[0]} entries...")
 
-    if args.terminal_only:
+    elif args.terminal_only:
         pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
         df["cdr3"] = df["cdr3"].str.replace(
             pattern, lambda m: m.group("terminalstart") + m.group("terminalend")
         )
+
+    elif args.middle_only:
+        pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
+        df["cdr3"] = df["cdr3"].str.replace(pattern, lambda m: m.group("middle"),)
 
     elif args.terminal_replaced:
         df["cdr3"] = df["cdr3"].str.replace("^..", terminal_replaced * 2)
@@ -398,6 +412,22 @@ def filter_vdjdb(  # noqa: C901
             + middle_replaced * len(m.group("middle"))
             + m.group("terminalend"),
         )
+
+    if any(
+        [
+            args.terminal_only,
+            args.middle_only,
+            args.terminal_replaced,
+            args.middle_replaced,
+        ]
+    ):
+        # remove duplicates
+        pre_duplicate_count = df.shape[0]
+        df = df.drop_duplicates(columns)
+        logger.info(
+            f"Removing {pre_duplicate_count-df.shape[0]} duplicate CDR3-epitope pairs that were introduced after trimming or replacing middle/terminal amino acids in the CDR3 sequence."
+        )
+        logger.info(f"Filtered dataset contains {df.shape[0]} entries.")
 
     return df
 
