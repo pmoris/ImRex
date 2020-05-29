@@ -837,7 +837,7 @@ def plot_confusion_matrix(directory, ax=None):
 
 def plot_roc_boxplot(directory):
     fig, ax = plt.subplots(constrained_layout=True, dpi=200)  # , figsize=(12,16))
-    df = pd.read_csv("auc_per_iteration.csv")
+    df = pd.read_csv(os.path.join(directory, "auc_per_iteration.csv"))
     sns_plot = sns.boxplot(x="type", y="auc", data=df, color=palette_single[3])
     plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
     plt.xlabel(None)
