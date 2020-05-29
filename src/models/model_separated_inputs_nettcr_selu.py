@@ -145,7 +145,7 @@ class ModelSeparatedInputsNetTcrSelu(Model):
             kernel_regularizer=self.regularization,
         )(concat_2)
         if self.dropout_dense:
-            drop_out_dense = Dropout(0.4)(dense)
+            drop_out_dense = Dropout(self.dropout_dense)(dense)
             predictions = Dense(1, activation="sigmoid")(drop_out_dense)
         else:
             predictions = Dense(1, activation="sigmoid")(dense)
