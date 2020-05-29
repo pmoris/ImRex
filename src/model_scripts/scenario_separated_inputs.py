@@ -98,7 +98,7 @@ def create_parser():
         dest="n_folds",
         type=int,
         help="Number of folds to use during cross-validation.",
-        default=5,
+        default=None,
     )
     parser.add_argument(
         "--min_length_cdr3",
