@@ -71,6 +71,7 @@ class ModelPaddedSmall(Model):
             activation=self.activation_function_conv,
             padding="same",
             kernel_initializer=KERNEL_INIT,
+            kernel_regularizer=self.regularization,
             **kwargs,
         ):
             return Conv2D(
@@ -79,7 +80,7 @@ class ModelPaddedSmall(Model):
                 activation=activation,
                 padding=padding,
                 kernel_initializer=kernel_initializer,
-                kernel_regularizer=self.regularization,
+                kernel_regularizer=kernel_regularizer,
                 **kwargs,
             )
 
