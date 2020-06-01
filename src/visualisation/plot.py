@@ -916,6 +916,15 @@ def roc_per_epitope(
             >= min_iterations
         ]
         hue = "type"
+
+        # only include epitopes that have m iterations in each of the different models
+        n_types = eval_df.type.nunique()
+        eval_df = eval_df[
+            eval_df.groupby("epitope").type.transform(
+                lambda x: len(x.unique()) == n_types
+            )
+        ]
+
     else:
         eval_df = eval_df[
             eval_df.groupby("epitope")["epitope"].transform("count") >= min_iterations
