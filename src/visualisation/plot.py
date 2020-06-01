@@ -421,7 +421,7 @@ def plot_metrics(directory, y_lim_loss=None):
         elif metric in ["mean_pred", "val_mean_pred"]:
             sns_plot.set_ylim(0, 1)
         elif metric in ["loss", "val_loss"] and y_lim_loss:
-            sns_plot.set_ylim(0, y_lim_loss)
+            sns_plot.set_ylim(df[metric].min() * 0.9, y_lim_loss)
         sns_plot.set_xlim(0,)
         # Force ticks to be ints
         sns_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -509,7 +509,7 @@ def plot_loss(directory, y_lim_loss=None):
 
     sns_plot.set_xlim(0,)
     if y_lim_loss:
-        sns_plot.set_ylim(0, y_lim_loss)
+        sns_plot.set_ylim(loss_df["value"].min() * 0.9, y_lim_loss)
     # Force ticks to be ints
     sns_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
 
