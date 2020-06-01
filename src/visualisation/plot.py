@@ -841,8 +841,8 @@ def plot_roc_boxplot(directory):
 
     for tpe in df.type.unique():
         df_label = df[df.type == tpe]
-        auc_mean = float(df.auc.mean())
-        auc_std = float(df.auc.std())
+        auc_mean = df_label.auc.mean()
+        auc_std = df_label.auc.std()
         df.loc[
             df.type == tpe, "type-mean-std"
         ] = "{}\n(AUROC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std)
