@@ -836,9 +836,19 @@ def plot_confusion_matrix(directory, ax=None):
 
 
 def plot_roc_boxplot(directory):
-    fig, ax = plt.subplots(constrained_layout=True, dpi=200)  # , figsize=(12,16))
+    fig, ax = plt.subplots(constrained_layout=False, dpi=200)  # , figsize=(12,16))
     df = pd.read_csv(os.path.join(directory, "auc_per_iteration.csv"))
-    sns_plot = sns.boxplot(x="type", y="auc", data=df, color=palette_single[3])
+
+    for tpe in df.type.unique():
+        df_label = df[df.type == tpe]
+        auc_mean = float(df.auc.mean())
+        auc_std = float(df.auc.std())
+        df.loc[
+            df.type == tpe, "type-mean-std"
+        ] = "{}\n(AUROC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std)
+
+    sns_plot = sns.boxplot(x="type-mean-std", y="auc", data=df, color=palette_single[3])
+
     plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
     plt.xlabel(None)
     plt.ylabel("AUROC")
