@@ -329,17 +329,13 @@ if __name__ == "__main__":
     logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
 
     # create plots
-    if not args.epitope_grouped:
-        roc_per_epitope(
-            eval_df=per_epitope_df,
-            output_path=output_dir / "roc_per_epitope.pdf",
-            min_obs=30,
-            min_iterations=5,
-        )
-    else:
-        roc_per_epitope_grouped(
-            eval_df=per_epitope_df, output_path=output_dir / "roc_per_epitope.pdf"
-        )
+    roc_per_epitope(
+        eval_df=per_epitope_df,
+        output_path=output_dir / "roc_per_epitope.pdf",
+        min_obs=30,
+        min_iterations=5,
+        grouped=args.epitope_grouped
+    )
 
     roc_train_corr(
         eval_df=per_epitope_df, output_path=output_dir / "roc_train_correlation.pdf"

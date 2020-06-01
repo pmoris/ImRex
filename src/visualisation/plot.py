@@ -901,7 +901,7 @@ def plot_combined_function(directories, plot_func, title):
 
 
 def roc_per_epitope(
-    eval_df, output_path, min_obs=30, min_iterations=5, comparison=False
+    eval_df, output_path, min_obs=30, min_iterations=5, comparison=False, grouped=False,
 ):
     # get number of testing data points
     eval_df["n"] = eval_df.pos_data + eval_df.neg_data
@@ -932,7 +932,13 @@ def roc_per_epitope(
         hue = None
 
     fig, ax = plt.subplots(constrained_layout=True, dpi=200, figsize=(16, 8))
-    sns.boxplot(
+
+    if not grouped:
+        plotter = sns.boxplot
+    else:
+        plotter = sns.barplot
+
+    plotter(
         x="epitope",
         y="roc_auc",
         hue=hue,
@@ -940,6 +946,7 @@ def roc_per_epitope(
         # color=palette[0],
         palette=palette,
     )
+
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
     # ax.set_title(f"AUROC per epitope")

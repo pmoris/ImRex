@@ -438,7 +438,9 @@ def joinplot(directories: list):
 
 
 @bacli.command
-def evaluate_self_plots(root_dir: str):
+def evaluate_self_plots(
+    root_dir: str, min_obs: int = 30, min_iterations: int = 3, grouped=False
+):
     # check input directory
     input_directory = root_dir
     # input_directory = Path(args.input)
@@ -452,8 +454,9 @@ def evaluate_self_plots(root_dir: str):
     roc_per_epitope(
         eval_df=per_epitope_df,
         output_path=os.path.join(input_directory, "roc_per_epitope.pdf"),
-        min_obs=30,
-        min_iterations=3,
+        min_obs=min_obs,
+        min_iterations=min_iterations,
+        grouped=grouped,
     )
 
     roc_train_corr(
@@ -468,7 +471,9 @@ def evaluate_self_plots(root_dir: str):
 
 
 @bacli.command
-def evaluate_self_comparison_plots(root_dir: str,):
+def evaluate_self_comparison_plots(
+    root_dir: str, min_obs: int = 30, min_iterations: int = 3, grouped=False
+):
     df_list = list()
 
     for directory in subdirs(root_dir):
@@ -501,7 +506,8 @@ def evaluate_self_comparison_plots(root_dir: str,):
     roc_per_epitope(
         eval_df=df_concat,
         output_path=os.path.join(root_dir, "roc_per_epitope.pdf"),
-        min_obs=30,
-        min_iterations=3,
+        min_obs=min_obs,
+        min_iterations=min_iterations,
         comparison=True,
+        grouped=grouped,
     )
