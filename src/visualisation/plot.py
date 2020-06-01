@@ -937,7 +937,8 @@ def roc_per_epitope(
         y="roc_auc",
         hue=hue,
         data=eval_df.sort_values(by="n", ascending=False),
-        color=palette[0],
+        # color=palette[0],
+        palette=palette,
     )
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
