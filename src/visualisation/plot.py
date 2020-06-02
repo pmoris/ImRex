@@ -935,14 +935,16 @@ def roc_per_epitope(
 
     if not grouped:
         plotter = sns.boxplot
+        data = eval_df.sort_values(by="n", ascending=False)
     else:
         plotter = sns.barplot
+        data = eval_df.sort_values("roc_auc", ascending=False)
 
     plotter(
         x="epitope",
         y="roc_auc",
         hue=hue,
-        data=eval_df.sort_values(by="n", ascending=False),
+        data=data,
         # color=palette[0],
         palette=palette,
     )
