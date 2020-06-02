@@ -314,7 +314,7 @@ class Trainer(object):
         callbacks_list = [
             create_checkpointer(model.base_name, iteration),
             create_csv_logger(model.base_name, iteration),
-            create_tensorboard_callback(model.base_name, iteration),
+            # create_tensorboard_callback(model.base_name, iteration),
             PredictionCallBack(val_data, model.base_name, iteration, self.lookup)
             # RocCallback(val_stream, model.base_name, iteration),
             # PrecisionRecallCallback(val_stream, model.base_name, iteration),
