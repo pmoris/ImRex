@@ -25,7 +25,7 @@ LENGTH = 10
 class ModelSeparatedInputs(Model):
     def __init__(
         self,
-        optimizer,
+        optimizer: str,
         learning_rate: Optional[float] = None,
         regularization: Optional[float] = None,
         dropout_conv: Optional[float] = None,

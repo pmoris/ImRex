@@ -7,6 +7,7 @@ from src.bio.peptide_feature import parse_features, parse_operator
 from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
+from src.models.model_padded import ModelPadded
 from src.model_scripts import pipeline
 from src.neural.trainer import get_output_path, Trainer
 from src.processing.cv_folds import cv_splitter
@@ -194,16 +195,28 @@ def create_parser():
         default="model_padded",
     )
     parser.add_argument(
-        "--depth1",
-        dest="depth1",
+        "--depth1_1",
+        dest="depth1_1",
         type=int,
-        help="Depth of the first convolutional layer. Only used for the small models.",
+        help="Depth of the first convolutional layer in the first module.",
     )
     parser.add_argument(
-        "--depth2",
-        dest="depth2",
+        "--depth1_2",
+        dest="depth1_2",
         type=int,
-        help="Depth of the second convolutional layer. Only used for the small models.",
+        help="Depth of the second convolutional layer in the first module.",
+    )
+    parser.add_argument(
+        "--depth2_1",
+        dest="depth2_1",
+        type=int,
+        help="Depth of the first convolutional layer in the second module.",
+    )
+    parser.add_argument(
+        "--depth2_2",
+        dest="depth2_2",
+        type=int,
+        help="Depth of the second convolutional layer in the second module.",
     )
     parser.add_argument(
         "--dropout1",
@@ -347,70 +360,24 @@ if __name__ == "__main__":
         verbose=args.disable_file_log,
     )
 
-    if args.model == "model_padded":
-        from src.models.model_padded import ModelPadded
-
-        model = ModelPadded(
-            width=args.max_length_cdr3,
-            height=args.max_length_epitope,
-            name=run_name,
-            channels=feature_builder.get_number_layers(),
-            optimizer=args.optimizer,
-            learning_rate=args.learning_rate,
-            regularization=args.regularization,
-            activation_function_conv=args.activation_function_conv,
-            activation_function_dense=args.activation_function_dense,
-            dropout_conv=args.dropout_conv,
-            dropout_dense=args.dropout_dense,
-        )
-    elif args.model == "model_padded_small":
-        from src.models.model_padded_small import ModelPaddedSmall
-
-        model = ModelPaddedSmall(
-            width=args.max_length_cdr3,
-            height=args.max_length_epitope,
-            name=run_name,
-            channels=feature_builder.get_number_layers(),
-            optimizer=args.optimizer,
-            learning_rate=args.learning_rate,
-            depth1=args.depth1,
-            depth2=args.depth2,
-            gap=args.gap,
-            regularization=args.regularization,
-            activation_function_conv=args.activation_function_conv,
-            activation_function_dense=args.activation_function_dense,
-            dropout_conv=args.dropout_conv,
-            dropout_dense=args.dropout_dense,
-        )
-
-    # legacy models
-    elif args.model == "model_selu":
-        from src.models.model_padded_selu import ModelPaddedSelu
-
-        model = ModelPaddedSelu(
-            width=args.max_length_cdr3,
-            height=args.max_length_epitope,
-            name=run_name,
-            channels=feature_builder.get_number_layers(),
-            optimizer=args.optimizer,
-            learning_rate=args.learning_rate,
-        )
-    elif args.model == "model_small_selu":
-        from src.models.model_padded_small_selu import ModelPaddedSmallSelu
-
-        model = ModelPaddedSmallSelu(
-            width=args.max_length_cdr3,
-            height=args.max_length_epitope,
-            name=run_name,
-            channels=feature_builder.get_number_layers(),
-            optimizer=args.optimizer,
-            learning_rate=args.learning_rate,
-            depth1=args.depth1,
-            depth2=args.depth2,
-            dropout1=args.dropout1,
-            dropout2=args.dropout2,
-            gap=args.gap,
-        )
+    model = ModelPadded(
+        width=args.max_length_cdr3,
+        height=args.max_length_epitope,
+        name=run_name,
+        channels=feature_builder.get_number_layers(),
+        optimizer=args.optimizer,
+        learning_rate=args.learning_rate,
+        depth1_1=args.depth1_1,
+        depth1_2=args.depth1_2,
+        depth2_1=args.depth2_1,
+        depth2_2=args.depth2_2,
+        gap=args.gap,
+        regularization=args.regularization,
+        activation_function_conv=args.activation_function_conv,
+        activation_function_dense=args.activation_function_dense,
+        dropout_conv=args.dropout_conv,
+        dropout_dense=args.dropout_dense,
+    )
 
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py

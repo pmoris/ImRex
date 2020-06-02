@@ -1,10 +1,6 @@
 """ CNN model for recognizing generated peptides. """
 from typing import Optional
 
-# from keras import Model
-# from keras.layers import LeakyReLU
-# from keras.layers import Activation
-# from keras.regularizers import l2
 import tensorflow
 from tensorflow.keras.layers import (
     BatchNormalization,
@@ -25,12 +21,12 @@ LENGTH = 10
 class ModelSeparatedInputsNetTcrSelu(Model):
     def __init__(
         self,
-        optimizer,
+        optimizer: str,
         learning_rate: Optional[float] = None,
         regularization: Optional[float] = None,
         dropout_conv: Optional[float] = None,
         dropout_dense: Optional[float] = None,
-        activation_function: str = "selu",
+        activation_function: str = "relu",
         *args,
         **kwargs
     ):

@@ -7,6 +7,7 @@ from tensorflow.keras.layers import (
     Dense,
     Dropout,
     Flatten,
+    GlobalAveragePooling2D,
     MaxPool2D,
     SpatialDropout2D,
 )
@@ -26,10 +27,15 @@ class ModelPadded(Model):
         height: int,
         channels: int,
         optimizer: str,
+        depth1_1: int = 128,
+        depth1_2: int = 64,
+        depth2_1: int = 128,
+        depth2_2: int = 64,
+        gap: bool = False,
         learning_rate: Optional[float] = None,
         regularization: Optional[float] = None,
         activation_function_conv: str = "relu",
-        activation_function_dense: str = "tanh",
+        activation_function_dense: str = "relu",
         dropout_conv: Optional[float] = None,
         dropout_dense: Optional[float] = None,
         *args,
@@ -41,6 +47,11 @@ class ModelPadded(Model):
         self.channels = channels
         self.optimizer = optimizer.lower()
         self.learning_rate = learning_rate
+        self.depth1_1 = depth1_1
+        self.depth1_2 = depth1_2
+        self.depth2_1 = depth2_1
+        self.depth2_2 = depth2_2
+        self.gap = gap
         self.regularization = l2(regularization) if regularization else None
         self.activation_function_conv = activation_function_conv.lower()
         self.activation_function_dense = activation_function_dense.lower()
@@ -52,6 +63,7 @@ class ModelPadded(Model):
 
         input_shape = (self.width, self.height, self.channels)
         # WEIGHT_DECAY = 1e-6
+
         if self.activation_function_conv == "selu":
             KERNEL_INIT = "lecun_normal"
         else:
@@ -76,34 +88,38 @@ class ModelPadded(Model):
                 **kwargs,
             )
 
-        model.add(create_conv(128, kernel_size=(3, 3), input_shape=input_shape,))
-        model.add(BatchNormalization())
-        model.add(create_conv(64, kernel_size=(3, 3)))
-        model.add(MaxPool2D(pool_size=(2, 2)))
-        if self.dropout_conv:
-            # model.add(Dropout(self.dropout_conv))
-            model.add(SpatialDropout2D(self.dropout_conv))
-        model.add(BatchNormalization())
-
-        model.add(create_conv(128, kernel_size=(3, 3)))
-        model.add(BatchNormalization())
-        model.add(create_conv(64, kernel_size=(3, 3)))
-        model.add(MaxPool2D(pool_size=(2, 2)))
-        if self.dropout_conv:
-            # model.add(Dropout(self.dropout_conv))
-            model.add(SpatialDropout2D(self.dropout_conv))
-        model.add(BatchNormalization())
-
-        model.add(Flatten())
         model.add(
-            Dense(
-                32,
-                activation=self.activation_function_dense,
-                kernel_regularizer=self.regularization,
-            )
+            create_conv(self.depth1_1, kernel_size=(3, 3), input_shape=input_shape)
         )
-        if self.dropout_dense:
-            model.add(Dropout(self.dropout_dense))
+        model.add(BatchNormalization())
+        model.add(create_conv(self.depth1_2, kernel_size=(3, 3)))
+        model.add(MaxPool2D(pool_size=(2, 2)))
+        if self.dropout_conv:
+            model.add(SpatialDropout2D(self.dropout_conv))
+        model.add(BatchNormalization())
+
+        model.add(create_conv(self.depth2_1, kernel_size=(3, 3)))
+        model.add(BatchNormalization())
+        model.add(create_conv(self.depth2_2, kernel_size=(3, 3)))
+        model.add(MaxPool2D(pool_size=(2, 2)))
+        if self.dropout_conv:
+            model.add(SpatialDropout2D(self.dropout_conv))
+        model.add(BatchNormalization())
+
+        if self.gap:
+            model.add(GlobalAveragePooling2D())
+        else:
+            model.add(Flatten())
+
+            model.add(
+                Dense(
+                    32,
+                    activation=self.activation_function_dense,
+                    kernel_regularizer=self.regularization,
+                )
+            )
+            if self.dropout_dense:
+                model.add(Dropout(self.dropout_dense))
 
         model.add(Dense(NUM_CLASSES, activation="sigmoid"))
 
