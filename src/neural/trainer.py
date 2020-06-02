@@ -332,6 +332,7 @@ class Trainer(object):
                     # "no longer improving" being further defined as "for at least 2 epochs"
                     patience=10,
                     verbose=1,
+                    restore_best_weights=True,
                 )
             )
 
