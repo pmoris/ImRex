@@ -48,7 +48,7 @@ def create_checkpointer(base_name, iteration):
         # The two parameters below mean that we will overwrite
         # the current checkpoint if and only if
         # the `val_loss` score has improved.
-        save_best_only=True,
+        save_best_only=False,
         monitor="val_loss",
         mode="auto",  # For val_acc, this should be max, for val_loss this should be min, etc. In auto mode, the direction is automatically inferred from the name of the monitored quantity.
     )
