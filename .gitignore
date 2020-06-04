@@ -93,3 +93,5 @@ target/
 /models/*
 
 *.fuse*
+
+src/scripts/hpc_scripts/old/

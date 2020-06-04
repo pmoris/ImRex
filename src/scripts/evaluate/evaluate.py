@@ -9,7 +9,7 @@ from src.bio.peptide_feature import parse_features, parse_operator
 from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
-from src.model_scripts import pipeline
+from src.scripts import io_helper
 from src.neural import evaluation
 from src.processing.data_stream import DataStream
 from src.processing.padded_dataset_generator import padded_dataset_generator
@@ -145,9 +145,9 @@ if __name__ == "__main__":
     args = create_parser()
 
     # create logger and log file
-    run_name = pipeline.create_run_name(args.name)
-    output_dir = pipeline.create_evaluate_path(args.name, args.model)
-    pipeline.create_logger(run_name, evaluate_dir=output_dir)
+    run_name = io_helper.create_run_name(args.name)
+    output_dir = io_helper.create_evaluate_path(args.name, args.model)
+    io_helper.create_logger(run_name, evaluate_dir=output_dir)
     logger = logging.getLogger(__name__)
 
     # log arguments that were used

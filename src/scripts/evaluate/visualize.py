@@ -271,7 +271,8 @@ def get_image(
     matrices = list()
     layers = list()
 
-    features = [Mass(), Hydrophobicity(), Charge()]
+    # features = [Mass(), Hydrophobicity(), Charge()]
+    features = [Mass(), Hydrophobicity(), IsoelectricPoint()]
     if cmyk:
         features.append(Hydrophilicity())
 
@@ -300,14 +301,14 @@ def peptide(
     cdr3: str = None,
     tensor: bool = False,
     cmyk: bool = False,
-    operator: str = "best",
+    operator: str = "absdiff",
 ):
     """ Render peptide images. """
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     layers = get_image(epitope, cdr3, tensor, cmyk, operator)
 
-    img2plot(layers, epitope, cdr3, "amino-acid-map.pdf")
+    img2plot(layers, epitope, cdr3, "amino-acid-map2.pdf")
 
 
 def img2plot(layers, epitope, cdr3, name):

@@ -11,7 +11,7 @@ import tensorflow as tf
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
 from src.bio.peptide_feature import parse_features, parse_operator
 from src.data.vdjdb_source import VdjdbSource
-from src.model_scripts import pipeline
+from src.scripts import io_helper
 from src.neural import evaluation
 from src.processing.data_stream import DataStream
 from src.processing.padded_dataset_generator import padded_dataset_generator
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     args = create_parser()
 
     # create run name with timestamp
-    run_name = pipeline.create_run_name("evaluate_test_folds")
+    run_name = io_helper.create_run_name("evaluate_test_folds")
 
     # check input directory
     input_directory = Path(args.input)
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     output_dir.mkdir(parents=True, exist_ok=False)
 
     # create logger in output directory
-    pipeline.create_logger(run_name, evaluate_dir=output_dir)
+    io_helper.create_logger(run_name, evaluate_dir=output_dir)
     logger = logging.getLogger(__name__)
 
     # log arguments that were used
@@ -334,7 +334,7 @@ if __name__ == "__main__":
         output_path=output_dir / "roc_per_epitope.pdf",
         min_obs=30,
         min_iterations=5,
-        grouped=args.epitope_grouped
+        grouped=args.epitope_grouped,
     )
 
     roc_train_corr(

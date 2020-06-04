@@ -5,7 +5,7 @@ import logging
 from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
-from src.model_scripts import pipeline
+from src.scripts import io_helper
 from src.neural.trainer import get_output_path, Trainer
 from src.processing.cv_folds import cv_splitter
 from src.processing.separated_input_dataset_generator import (
@@ -168,7 +168,7 @@ def create_parser():
         "--model",
         dest="model",
         type=str,
-        choices=["separated", "nettcr", "nettcr_selu",],
+        choices=["separated", "nettcr", "nettcr_custom",],
         help="The type of separated input model to use.",
         default="separated",
     )
@@ -217,8 +217,8 @@ if __name__ == "__main__":
     args = create_parser()
 
     # create logger and log file
-    run_name = pipeline.create_run_name(args.name)
-    pipeline.create_logger(run_name, log_to_file=args.disable_file_log)
+    run_name = io_helper.create_run_name(args.name)
+    io_helper.create_logger(run_name, log_to_file=args.disable_file_log)
     logger = logging.getLogger(__name__)
 
     # log arguments that were used
@@ -282,12 +282,12 @@ if __name__ == "__main__":
             dropout_conv=args.dropout_conv,
             dropout_dense=args.dropout_dense,
         )
-    elif args.model == "nettcr_selu":
-        from src.models.model_separated_inputs_nettcr_selu import (
-            ModelSeparatedInputsNetTcrSelu,
+    elif args.model == "nettcr_custom":
+        from src.models.model_separated_inputs_nettcr_custom import (
+            ModelSeparatedInputsNetTcrCustom,
         )
 
-        model = ModelSeparatedInputsNetTcrSelu(
+        model = ModelSeparatedInputsNetTcrCustom(
             name=run_name,
             optimizer=args.optimizer,
             learning_rate=args.learning_rate,

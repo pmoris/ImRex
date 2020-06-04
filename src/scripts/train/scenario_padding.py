@@ -8,7 +8,7 @@ from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.models.model_padded import ModelPadded
-from src.model_scripts import pipeline
+from src.scripts import io_helper
 from src.neural.trainer import get_output_path, Trainer
 from src.processing.cv_folds import cv_splitter
 from src.processing.inverse_map import InverseMap
@@ -296,8 +296,8 @@ if __name__ == "__main__":
     args = create_parser()
 
     # create logger and log file
-    run_name = pipeline.create_run_name(args.name)
-    pipeline.create_logger(run_name, log_to_file=args.disable_file_log)
+    run_name = io_helper.create_run_name(args.name)
+    io_helper.create_logger(run_name, log_to_file=args.disable_file_log)
     logger = logging.getLogger(__name__)
 
     # log arguments that were used

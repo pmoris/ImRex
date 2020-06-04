@@ -18,7 +18,7 @@ NUM_CLASSES = 1
 LENGTH = 10
 
 
-class ModelSeparatedInputsNetTcrSelu(Model):
+class ModelSeparatedInputsNetTcrCustom(Model):
     def __init__(
         self,
         optimizer: str,

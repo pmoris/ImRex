@@ -61,8 +61,11 @@ palette = sns.color_palette(
 )
 
 palette_single = sns.color_palette("Blues")
+# palette = sns.color_palette("Set1")
+
 sns.set_palette(palette)
 sns.set_style("whitegrid")
+# sns.set_style("darkgrid")
 
 
 def get_output_path(directory, title, extension=".pdf"):
