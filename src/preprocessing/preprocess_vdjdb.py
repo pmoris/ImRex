@@ -390,21 +390,21 @@ def filter_vdjdb(  # noqa: C901
         df = df.loc[mask]
         logger.info(f"Filtered down to {df.shape[0]} entries...")
 
-    elif args.terminal_only:
+    elif terminal_only:
         pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
         df["cdr3"] = df["cdr3"].str.replace(
             pattern, lambda m: m.group("terminalstart") + m.group("terminalend")
         )
 
-    elif args.middle_only:
+    elif middle_only:
         pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
         df["cdr3"] = df["cdr3"].str.replace(pattern, lambda m: m.group("middle"),)
 
-    elif args.terminal_replaced:
+    elif terminal_replaced:
         df["cdr3"] = df["cdr3"].str.replace("^..", terminal_replaced * 2)
         df["cdr3"] = df["cdr3"].str.replace("..$", terminal_replaced * 2)
 
-    elif args.middle_replaced:
+    elif middle_replaced:
         pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
         df["cdr3"] = df["cdr3"].str.replace(
             pattern,
@@ -413,14 +413,7 @@ def filter_vdjdb(  # noqa: C901
             + m.group("terminalend"),
         )
 
-    if any(
-        [
-            args.terminal_only,
-            args.middle_only,
-            args.terminal_replaced,
-            args.middle_replaced,
-        ]
-    ):
+    if any([terminal_only, middle_only, terminal_replaced, middle_replaced,]):
         # remove duplicates
         pre_duplicate_count = df.shape[0]
         df = df.drop_duplicates(columns)
@@ -553,6 +546,7 @@ if __name__ == "__main__":
         length_restriction=args.length_restriction,
         downsample=args.downsample,
         terminal_only=args.terminal_only,
+        middle_only=args.middle_only,
         terminal_replaced=args.terminal_replaced,
         middle_replaced=args.middle_replaced,
     )
