@@ -6,7 +6,7 @@ from src.definitions.amino_acid_properties import AMINO_ACIDS
 
 def test_features_map():
     assert peptide_feature.features_map
-    assert len(peptide_feature.features_map) == 18
+    assert len(peptide_feature.features_map) == 28
 
 
 def test_charge():
