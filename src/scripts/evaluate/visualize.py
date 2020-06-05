@@ -272,9 +272,9 @@ def get_image(
     layers = list()
 
     # features = [Mass(), Hydrophobicity(), Charge()]
-    features = [Mass(), Hydrophobicity(), IsoelectricPoint()]
+    features = [Mass(), Hydrophobicity(), Hydrophilicity()]
     if cmyk:
-        features.append(Hydrophilicity())
+        features.append(IsoelectricPoint())
 
     operator = parse_operator(operator)
 
@@ -288,10 +288,10 @@ def get_image(
             pixels = feature.image_matrix(cdr3, epitope, operator=operator)
 
         img = image_from_matrix(pixels, mode=mode, index=index)
-        layers.append((img, feature.name, mode))
+        layers.append((img, feature.name))
 
     img = image_from_matrices(*matrices, mode=mode)
-    layers.append((img, "Combined", mode))
+    layers.append((img, "Combined"))
     return layers
 
 
@@ -304,11 +304,17 @@ def peptide(
     operator: str = "absdiff",
 ):
     """ Render peptide images. """
+
+    plt.rcParams.update({"font.size": 14})
+    plt.rcParams["font.family"] = "sans-serif"
+    plt.rcParams["font.sans-serif"] = "Source Sans Pro"
+    font = {"weight": "normal"}
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     layers = get_image(epitope, cdr3, tensor, cmyk, operator)
 
-    img2plot(layers, epitope, cdr3, "amino-acid-map2.pdf")
+    img2plot(layers, epitope, cdr3, "amino-acid-map.pdf")
 
 
 def img2plot(layers, epitope, cdr3, name):
@@ -330,16 +336,17 @@ def img2plot(layers, epitope, cdr3, name):
     for ax in fig.get_axes():
         ax.label_outer()
 
-    for i, (layer, title, cmap) in enumerate(layers):
+    for i, (layer, title) in enumerate(layers):
         sub = fig.get_axes()[i]
         sub.set_title(title)
         rgb_im = layer.convert("RGB")
         pix = np.array(rgb_im)
-        sub.imshow(pix, origin="lower", cmap=cmap)
+        sub.imshow(pix, origin="lower")
         sub.grid(False)
         for spine in plt.gca().spines.values():
             spine.set_visible(False)
 
+    print(f"saving figure {OUTPUT_DIR}")
     plt.savefig(os.path.join(OUTPUT_DIR, name), bbox_inches="tight")
 
 
