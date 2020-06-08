@@ -366,7 +366,8 @@ def plot_metrics(directory, y_lim_loss=None):
                 value = float(df.tail(1)[metric])
                 value_std = float(df.tail(1)[std_metric])
                 labels.append(
-                    "{}\n(final = {:.2f} ± {:.2f})".format(tpe, value, value_std)
+                    "{}\n(final = {:.2f} ± {:.2f} ".format(tpe, value, value_std)
+                    + r"$s$)"
                 )
 
             sns_plot = sns.lineplot(
@@ -386,7 +387,8 @@ def plot_metrics(directory, y_lim_loss=None):
             value = float(metrics.tail(1)[metric])
             value_std = float(metrics.tail(1)[std_metric])
             labels.append(
-                "{}\n(final = {:.2f} ± {:.2f})".format(directory, value, value_std)
+                "{}\n(final = {:.2f} ± {:.2f} ".format(directory, value, value_std)
+                + r"$s$)"
             )
             sns_plot = sns.lineplot(x="epoch", y=metric, ci=None, data=metrics)
 
@@ -475,7 +477,9 @@ def plot_loss(directory, y_lim_loss=None):
             df = loss_df.loc[loss_df.type_train_val == tpe]
             value = float(df.tail(1)["value"])
             value_std = float(df.tail(1)["std_value"])
-            labels.append("{}\n(final = {:.2f} ± {:.2f})".format(tpe, value, value_std))
+            labels.append(
+                "{}\n(final = {:.2f} ± {:.2f} ".format(tpe, value, value_std) + r"$s$)"
+            )
 
         sns_plot = sns.lineplot(
             x="epoch", y="value", ci=None, hue="type_train_val", data=loss_df
@@ -495,7 +499,8 @@ def plot_loss(directory, y_lim_loss=None):
             value = float(df.loc[df.train_val == i].tail(1)["value"])
             value_std = float(df.tail(1)["std_value"])
             labels.append(
-                "{}\n(final = {:.2f} ± {:.2f})".format(directory, value, value_std)
+                "{}\n(final = {:.2f} ± {:.2f} ".format(directory, value, value_std)
+                + r"$s$)"
             )
         sns_plot = sns.lineplot(
             x="epoch", y="value", ci=None, hue="type_train_val", data=loss_df
@@ -594,8 +599,13 @@ def plot_roc(directory, ax=None, legend=True):
             df = auc[auc.type == tpe]
             auc_mean = float(df.auc)
             auc_std = float(df.std_auc)
-            labels.append("{}\n(AUC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std))
-            labels = [fill(l, 50) for l in labels]
+            labels.append(
+                f"{tpe}\n"
+                + r"($\overline{AUC}$"
+                + " = {:.2f} ± {:.2f} ".format(auc_mean, auc_std)
+                + r"$s$)"
+            )
+            labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
 
     else:
@@ -603,7 +613,7 @@ def plot_roc(directory, ax=None, legend=True):
         labels.append(
             "{}\n(AUC = {:.2f})".format(os.path.basename(directory), auc_mean)
         )
-        labels = [fill(l, 50) for l in labels]
+        labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, ax=ax)
 
     sns_plot.set_title("ROC")
@@ -669,9 +679,10 @@ def plot_precision_recall(directory, ax=None, legend=True):
             prec_mean = float(df.average_precision)
             prec_std = float(df.std_average_precision)
             labels.append(
-                "{}\n(Avg. Prec. = {:.2f} ± {:.2f})".format(tpe, prec_mean, prec_std)
+                "{}\n(Avg. Prec. = {:.2f} ± {:.2f} ".format(tpe, prec_mean, prec_std)
+                + r"$s$)"
             )
-            labels = [fill(l, 50) for l in labels]
+            labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(
             x="recall", y="precision", ci=None, data=precision_recall, hue="type", ax=ax
         )
@@ -680,7 +691,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
         labels.append(
             "{}\n(Avg. Prec. = {:.2f})".format(os.path.basename(directory), prec_mean)
         )
-        labels = [fill(l, 50) for l in labels]
+        labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(
             x="recall", y="precision", ci=None, data=precision_recall, ax=ax
         )
@@ -842,19 +853,47 @@ def plot_roc_boxplot(directory):
     fig, ax = plt.subplots(constrained_layout=False, dpi=200)  # , figsize=(12,16))
     df = pd.read_csv(os.path.join(directory, "auc_per_iteration.csv"))
 
+    # labels = list()
     for tpe in df.type.unique():
         df_label = df[df.type == tpe]
         auc_mean = df_label.auc.mean()
         auc_std = df_label.auc.std()
-        df.loc[
-            df.type == tpe, "type-mean-std"
-        ] = "{}\n(AUROC = {:.2f} ± {:.2f})".format(tpe, auc_mean, auc_std)
+        model_name = (
+            f"{tpe}\n"
+            + r"($\overline{AUROC}$"
+            + " = {:.2f} ± {:.2f} ".format(auc_mean, auc_std)
+            + r"$s$)"
+        )
+        # labels.append(model_name)
+        # labels = [fill(l, 50) for l in labels]
 
-    sns_plot = sns.boxplot(x="type-mean-std", y="auc", data=df, color=palette_single[3])
+        df.loc[df.type == tpe, "type-mean-std"] = model_name
 
-    plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
+    sns_plot = sns.boxplot(x="type-mean-std", y="auc", data=df, palette=palette,)
+    # color=palette_single[3])
+    # hue="type-mean-std" for legend, optionally use custom labels
+
+    # plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
     plt.xlabel(None)
     plt.ylabel("AUROC")
+
+    for patch in ax.artists:
+        r, g, b, a = patch.get_facecolor()
+        patch.set_facecolor((r, g, b, 0.7))
+    # plt/sns_plot.legend() overrides custom legend
+    # for lh in plt.legend().legendHandles:
+    #     lh.set_alpha(0.7)
+
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+    # add legend and remove x labels
+    # must be called after setting alpha or it will override location again
+    ## ax.legend()
+    ## sns_plot.legend(title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15))
+    # sns_plot.set(xticklabels=[])
+
+    # plt.legend(loc="upper left")
+
     sns_plot.get_figure().savefig(
         get_output_path(directory, "roc_boxplot"), bbox_inches="tight"
     )
