@@ -449,6 +449,11 @@ def joinplot(directories: list):
 def evaluate_self_plots(
     root_dir: str, min_obs: int = 30, min_iterations: int = 3, grouped=False
 ):
+
+    # warn about grouped setting
+    if grouped:
+        print("Ignoring min_iterations since grouped=True.")
+
     # check input directory
     input_directory = root_dir
     # input_directory = Path(args.input)
@@ -493,6 +498,10 @@ def evaluate_self_plots(
 def evaluate_self_comparison_plots(
     root_dir: str, min_obs: int = 30, min_iterations: int = 3, grouped=False
 ):
+    # warn about grouped setting
+    if grouped:
+        print("Ignoring min_iterations since grouped=True.")
+
     df_list = list()
 
     for directory in subdirs(root_dir):

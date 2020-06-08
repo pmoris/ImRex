@@ -40,7 +40,6 @@ gradient_palette = palette_g()
 cmap = palette_g(as_cmap=True)
 cmap_i = palette_g(as_cmap=True, reverse=False)
 
-sns.set_style("darkgrid")
 plt.rcParams.update({"font.size": 14})  # 20})
 # plt.rcParams["title_fontsize"] = 10
 plt.rcParams["font.family"] = "sans-serif"
@@ -49,7 +48,7 @@ font = {"weight": "normal"}  # ,'size'   : 22}
 
 # plt.rcParams["figure.figsize"] = (20, 20)
 
-palette = sns.color_palette(
+custom_palette = sns.color_palette(
     [
         rgb(0, 61, 100),  # UA Blue
         rgb(126, 0, 47),  # UA Red
@@ -64,7 +63,7 @@ palette = sns.color_palette(
 palette_single = sns.color_palette("Blues")
 # palette = sns.color_palette("Set1")
 
-sns.set_palette(palette)
+sns.set_palette(custom_palette)
 sns.set_style("whitegrid")
 # sns.set_style("darkgrid")
 
@@ -567,12 +566,12 @@ def plot_roc_pr(directory):
             weight="bold",
         )
 
-    for ax in fig.axes:
-        plt.setp(
-            ax.get_legend().get_texts(), fontsize="10.5"
-        )  # "13")  # for legend text
-        # plt.setp(ax.get_legend().get_title(), fontsize="11")  # "13")
-        # ax.axis("equal")
+    # for ax in fig.axes:
+    #     plt.setp(
+    #         ax.get_legend().get_texts(), fontsize="10.5"
+    #     )  # "13")  # for legend text
+    #     # plt.setp(ax.get_legend().get_title(), fontsize="11")  # "13")
+    #     # ax.axis("equal")
 
     fig.savefig(
         get_output_path(directory, "roc-pr" + "-" + Path(directory).absolute().name),
@@ -614,7 +613,15 @@ def plot_roc(directory, ax=None, legend=True):
                 + r"$s$)"
             )
             labels = [fill(l, 60) for l in labels]
-        sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, hue="type", ax=ax)
+        sns_plot = sns.lineplot(
+            x="fpr",
+            y="tpr",
+            ci=None,
+            data=roc,
+            hue="type",
+            ax=ax,
+            # palette=get_palette(roc, "type"),
+        )
 
     else:
         auc_mean = float(auc.auc)
@@ -890,13 +897,17 @@ def plot_roc_boxplot(directory):
     sns_plot = sns.boxplot(
         x="type-mean-std",
         y="auc",
-        data=df.sort_values(by=["type"], ascending=False),
-        palette=palette,
+        data=df,  # .sort_values(by=["type"], ascending=False),
+        order=sorted(df["type-mean-std"].unique()),
+        palette=get_palette(df, "type-mean-std"),
     )
     # color=palette_single[3])
     # hue="type-mean-std" for legend, optionally use custom labels
 
-    # plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
+    plt.setp(
+        ax.get_xticklabels(), rotation=45, va="top", rotation_mode="default",
+    )
+
     plt.xlabel(None)
     plt.ylabel("AUROC")
 
@@ -906,8 +917,6 @@ def plot_roc_boxplot(directory):
     # plt/sns_plot.legend() overrides custom legend
     # for lh in plt.legend().legendHandles:
     #     lh.set_alpha(0.7)
-
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
     # add legend and remove x labels
     # must be called after setting alpha or it will override location again
@@ -981,6 +990,9 @@ def roc_per_epitope(
     eval_df = eval_df[eval_df["n"] >= min_obs].reset_index(drop=True)
 
     # only include epitopes that occurred in at least m iterations
+    # except for grouped setting
+    if grouped:
+        min_iterations = 1
     if comparison:
         eval_df = eval_df[
             eval_df.groupby(["epitope", "type"])["epitope"].transform("count")
@@ -1004,43 +1016,76 @@ def roc_per_epitope(
 
     fig, ax = plt.subplots(constrained_layout=True, dpi=200, figsize=(16, 8))
 
-    if not grouped:
-        plotter = sns.boxplot
-        # data = eval_df.sort_values(by="n", ascending=False)
-        data = eval_df.sort_values(by=["type", "roc_auc"], ascending=False)
-        colour_palette = (
-            palette if eval_df.type.nunique() < 8 else sns.color_palette("Set1")
+    plotter = sns.barplot if grouped else sns.boxplot
+
+    # if there is only 1 model, i.e. not a comparison plot
+    # sort by roc only and use a single colour
+    if eval_df.type.nunique() == 1:
+        order = (
+            eval_df.groupby(["epitope"])["roc_auc"]
+            .mean()
+            .sort_values(ascending=False)
+            .index
         )
+
+        colour_palette = custom_palette[0]
+
         plotter(
             x="epitope",
             y="roc_auc",
             hue=hue,
-            data=data,
-            # color=palette[0],
+            data=eval_df,
+            # color=palette_single[3],
+            color=colour_palette,
+            order=order,
+            # alpha=0.7,
+        )
+
+    # comparison of multiple models
+    else:
+        # data = eval_df.sort_values(by="n", ascending=False)
+        # data = eval_df.sort_values(by=["type", "roc_auc"], ascending=False)
+        # order = eval_df.sort_values(by=["roc_auc"], ascending=False).index
+
+        # sort by highest mean auroc across types
+        order = (
+            eval_df.groupby(["epitope", "type"])["roc_auc"]
+            .mean()
+            .sort_values(ascending=False)
+            .groupby(level=0)
+            .head(1)
+            .index.get_level_values(0)
+        )
+        # sort by max/mean auroc
+        # order = eval_df.groupby(["epitope"])["roc_auc"].max()
+
+        colour_palette = get_palette(eval_df, "type")
+
+        plotter(
+            x="epitope",
+            y="roc_auc",
+            hue=hue,
+            data=eval_df,
+            palette=colour_palette,
+            order=order,
+            # alpha=0.7
             # boxprops=dict(alpha=0.7),
         )
-    else:
-        plotter = sns.barplot
-        data = eval_df.sort_values(by=["roc_auc", "type"], ascending=False)
-        if eval_df.type.nunique() == 1:
-            colour_palette = palette_single
-            plotter(
-                x="epitope",
-                y="roc_auc",
-                hue=hue,
-                data=data,
-                color=palette_single[3],
-                # boxprops=dict(alpha=0.7),
-            )
-        else:
-            colour_palette = (
-                palette if eval_df.type.nunique() < 8 else sns.color_palette("Set1")
-            )
-            plotter(
-                x="epitope", y="roc_auc", hue=hue, data=data, palette=colour_palette,
-            )
 
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+        # if len(colour_palette) == 7:
+        #     # change alpha value of fill colours for custom palette, cannot be done through seaborn directly
+        #     # see: https://github.com/mwaskom/seaborn/issues/979
+        #     # add_alpha_to_legend(ax, l)
+        #     for patch in ax.artists:
+        #         r, g, b, a = patch.get_facecolor()
+        #         patch.set_facecolor((r, g, b, 0.7))
+        #     for lh in plt.legend().legendHandles:
+        #         lh.set_alpha(0.7)
+
+    plt.setp(
+        ax.get_xticklabels(), rotation=90, va="top", rotation_mode="default",
+    )
+    # plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
     # ax.set_title(f"AUROC per epitope")
     ax.set_ylabel("AUROC")
@@ -1048,16 +1093,6 @@ def roc_per_epitope(
     l = ax.legend()
     l.set_title("")
 
-    if colour_palette == palette:
-        # change alpha value of fill colours, cannot be done through seaborn directly
-        # see: https://github.com/mwaskom/seaborn/issues/979
-        for patch in ax.artists:
-            r, g, b, a = patch.get_facecolor()
-            patch.set_facecolor((r, g, b, 0.7))
-        for lh in l.legendHandles:
-            lh.set_alpha(0.7)
-
-    print(output_path)
     plt.savefig(output_path)
 
 
@@ -1084,3 +1119,25 @@ def roc_dist_corr(eval_df, output_path):
     g.fig.set_dpi(200)
 
     plt.savefig(output_path)
+
+
+def get_palette(df, value):
+    unique_values = sorted(df[value].unique())
+
+    if len(unique_values) < 8:
+        pal = custom_palette
+    else:
+        pal = sns.color_palette("Set1", n_colors=len(unique_values))
+
+    palette_dict = dict(zip(unique_values, pal))
+    return palette_dict
+
+
+def add_alpha_to_legend(ax, l):
+    # change alpha value of fill colours, cannot be done through seaborn directly
+    # see: https://github.com/mwaskom/seaborn/issues/979
+    for patch in ax.artists:
+        r, g, b, a = patch.get_facecolor()
+        patch.set_facecolor((r, g, b, 0.7))
+    for lh in l.legendHandles:
+        lh.set_alpha(0.7)
