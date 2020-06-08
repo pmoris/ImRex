@@ -869,7 +869,12 @@ def plot_roc_boxplot(directory):
 
         df.loc[df.type == tpe, "type-mean-std"] = model_name
 
-    sns_plot = sns.boxplot(x="type-mean-std", y="auc", data=df, palette=palette,)
+    sns_plot = sns.boxplot(
+        x="type-mean-std",
+        y="auc",
+        data=df.sort_values(by=["type"], ascending=False),
+        palette=palette,
+    )
     # color=palette_single[3])
     # hue="type-mean-std" for legend, optionally use custom labels
 
@@ -978,20 +983,38 @@ def roc_per_epitope(
     if not grouped:
         plotter = sns.boxplot
         # data = eval_df.sort_values(by="n", ascending=False)
-        data = eval_df.sort_values(by="roc_auc", ascending=False)
+        data = eval_df.sort_values(by=["type", "roc_auc"], ascending=False)
+        colour_palette = (
+            palette if eval_df.type.nunique() < 8 else sns.color_palette("Set1")
+        )
+        plotter(
+            x="epitope",
+            y="roc_auc",
+            hue=hue,
+            data=data,
+            # color=palette[0],
+            # boxprops=dict(alpha=0.7),
+        )
     else:
         plotter = sns.barplot
-        data = eval_df.sort_values(by="roc_auc", ascending=False)
-
-    plotter(
-        x="epitope",
-        y="roc_auc",
-        hue=hue,
-        data=data,
-        # color=palette[0],
-        palette=palette,
-        # boxprops=dict(alpha=0.7),
-    )
+        data = eval_df.sort_values(by=["roc_auc", "type"], ascending=False)
+        if eval_df.type.nunique() == 1:
+            colour_palette = palette_single
+            plotter(
+                x="epitope",
+                y="roc_auc",
+                hue=hue,
+                data=data,
+                color=palette_single[3],
+                # boxprops=dict(alpha=0.7),
+            )
+        else:
+            colour_palette = (
+                palette if eval_df.type.nunique() < 8 else sns.color_palette("Set1")
+            )
+            plotter(
+                x="epitope", y="roc_auc", hue=hue, data=data, palette=colour_palette,
+            )
 
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
@@ -1001,13 +1024,14 @@ def roc_per_epitope(
     l = ax.legend()
     l.set_title("")
 
-    # change alpha value of fill colours, cannot be done through seaborn directly
-    # see: https://github.com/mwaskom/seaborn/issues/979
-    for patch in ax.artists:
-        r, g, b, a = patch.get_facecolor()
-        patch.set_facecolor((r, g, b, 0.7))
-    for lh in l.legendHandles:
-        lh.set_alpha(0.7)
+    if colour_palette == palette:
+        # change alpha value of fill colours, cannot be done through seaborn directly
+        # see: https://github.com/mwaskom/seaborn/issues/979
+        for patch in ax.artists:
+            r, g, b, a = patch.get_facecolor()
+            patch.set_facecolor((r, g, b, 0.7))
+        for lh in l.legendHandles:
+            lh.set_alpha(0.7)
 
     plt.savefig(output_path)
 

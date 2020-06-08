@@ -459,6 +459,8 @@ def evaluate_self_plots(
         os.path.join(input_directory, "metrics_per_epitope.csv")
     )
 
+    per_epitope_df["type"] = Path(input_directory).name
+
     roc_per_epitope(
         eval_df=per_epitope_df,
         output_path=os.path.join(input_directory, "roc_per_epitope.pdf"),
