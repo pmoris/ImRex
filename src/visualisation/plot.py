@@ -1,6 +1,7 @@
 from functools import partial
 import math
 import os
+from pathlib import Path
 from textwrap import fill
 
 from matplotlib.gridspec import GridSpec
@@ -435,7 +436,8 @@ def plot_metrics(directory, y_lim_loss=None):
         sns_plot.set_title(metric.capitalize())
 
         sns_plot.get_figure().savefig(
-            get_output_path(directory, metric), bbox_inches="tight"
+            get_output_path(directory, metric + "-" + Path(directory).absolute().name),
+            bbox_inches="tight",
         )
 
 
@@ -525,7 +527,10 @@ def plot_loss(directory, y_lim_loss=None):
     sns_plot.set_title("Train and validation loss")
 
     sns_plot.get_figure().savefig(
-        get_output_path(directory, "train_val_loss"), bbox_inches="tight"
+        get_output_path(
+            directory, "train_val_loss" + "-" + Path(directory).absolute().name
+        ),
+        bbox_inches="tight",
     )
 
 
@@ -569,7 +574,10 @@ def plot_roc_pr(directory):
         # plt.setp(ax.get_legend().get_title(), fontsize="11")  # "13")
         # ax.axis("equal")
 
-    fig.savefig(get_output_path(directory, "roc-pr"), bbox_inches="tight")
+    fig.savefig(
+        get_output_path(directory, "roc-pr" + "-" + Path(directory).absolute().name),
+        bbox_inches="tight",
+    )
 
 
 def plot_roc(directory, ax=None, legend=True):
@@ -638,7 +646,8 @@ def plot_roc(directory, ax=None, legend=True):
     sns_plot.plot([0, 1], [0, 1], "k--")
     if save:
         sns_plot.get_figure().savefig(
-            get_output_path(directory, "roc"), bbox_inches="tight"
+            get_output_path(directory, "roc" + "-" + Path(directory).absolute().name),
+            bbox_inches="tight",
         )
     return True
 
@@ -721,7 +730,10 @@ def plot_precision_recall(directory, ax=None, legend=True):
 
     if save:
         sns_plot.get_figure().savefig(
-            get_output_path(directory, "precision_recall"), bbox_inches="tight"
+            get_output_path(
+                directory, "precision_recall" + "-" + Path(directory).absolute().name
+            ),
+            bbox_inches="tight",
         )
     return True
 
@@ -753,7 +765,10 @@ def plot_predictions(directory):
     sns_plot.set_xlabel("Predicted probability")
     sns_plot.legend(["Negative", "Positive"], title=None)
     sns_plot.get_figure().savefig(
-        get_output_path(directory, "predictions"), bbox_inches="tight"
+        get_output_path(
+            directory, "predictions" + "-" + Path(directory).absolute().name
+        ),
+        bbox_inches="tight",
     )
 
 
@@ -845,7 +860,10 @@ def plot_confusion_matrix(directory, ax=None):
 
     if save:
         ax.get_figure().savefig(
-            get_output_path(directory, "confusion_matrix"), bbox_inches="tight"
+            get_output_path(
+                directory, "confusion_matrix" + "-" + Path(directory).absolute().name
+            ),
+            bbox_inches="tight",
         )
 
 
@@ -900,7 +918,10 @@ def plot_roc_boxplot(directory):
     # plt.legend(loc="upper left")
 
     sns_plot.get_figure().savefig(
-        get_output_path(directory, "roc_boxplot"), bbox_inches="tight"
+        get_output_path(
+            directory, "roc_boxplot" + "-" + Path(directory).absolute().name
+        ),
+        bbox_inches="tight",
     )
 
 
@@ -944,7 +965,10 @@ def plot_combined_function(directories, plot_func, title):
         subtitle = os.path.basename(os.path.normpath(os.path.abspath(directory)))
         ax.set_title(subtitle)
 
-    f.savefig(get_output_path("output", title), bbox_inches="tight")
+    f.savefig(
+        get_output_path("output", title + "-" + Path(directory).absolute().name),
+        bbox_inches="tight",
+    )
 
 
 def roc_per_epitope(
@@ -1033,6 +1057,7 @@ def roc_per_epitope(
         for lh in l.legendHandles:
             lh.set_alpha(0.7)
 
+    print(output_path)
     plt.savefig(output_path)
 
 
