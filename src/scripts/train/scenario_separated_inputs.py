@@ -198,7 +198,7 @@ def create_parser():
         dest="activation_function",
         type=str,
         help="The activation function used for all layers except for the output.",
-        default="selu",
+        default="sigmoid",
     )
     parser.add_argument(
         "--disable_file_log",

@@ -256,7 +256,7 @@ def create_parser():
         dest="activation_function_dense",
         type=str,
         help="The activation function used for the dense layers.",
-        default="tanh",
+        default="relu",
     )
     parser.add_argument(
         "--dropout_conv",
