@@ -950,6 +950,7 @@ def roc_per_epitope(
         data=data,
         # color=palette[0],
         palette=palette,
+        # boxprops=dict(alpha=0.7),
     )
 
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
@@ -957,7 +958,17 @@ def roc_per_epitope(
     # ax.set_title(f"AUROC per epitope")
     ax.set_ylabel("AUROC")
     ax.set_xlabel("Epitope")
-    ax.legend().set_title("")
+    l = ax.legend()
+    l.set_title("")
+
+    # change alpha value of fill colours, cannot be done through seaborn directly
+    # see: https://github.com/mwaskom/seaborn/issues/979
+    for patch in ax.artists:
+        r, g, b, a = patch.get_facecolor()
+        patch.set_facecolor((r, g, b, 0.7))
+    for lh in l.legendHandles:
+        lh.set_alpha(0.7)
+
     plt.savefig(output_path)
 
 
