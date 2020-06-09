@@ -470,7 +470,9 @@ def evaluate_self_plots(
         eval_df=per_epitope_df,
         output_path=os.path.join(
             input_directory,
-            "roc_per_epitope-" + Path(root_dir).absolute().name + ".pdf",
+            "roc_per_epitope-"
+            + str(Path(root_dir).absolute().name).replace(" ", "-")
+            + ".pdf",
         ),
         min_obs=min_obs,
         min_iterations=min_iterations,
@@ -481,7 +483,9 @@ def evaluate_self_plots(
         eval_df=per_epitope_df,
         output_path=os.path.join(
             input_directory,
-            "roc_train_correlation-" + Path(root_dir).absolute().name + ".pdf",
+            "roc_train_correlation-"
+            + str(Path(root_dir).absolute().name).replace(" ", "-")
+            + ".pdf",
         ),
     )
 
@@ -489,7 +493,9 @@ def evaluate_self_plots(
         eval_df=per_epitope_df,
         output_path=os.path.join(
             input_directory,
-            "roc_dist_correlation-" + Path(root_dir).absolute().name + ".pdf",
+            "roc_dist_correlation-"
+            + str(Path(root_dir).absolute().name).replace(" ", "-")
+            + ".pdf",
         ),
     )
 
@@ -534,7 +540,10 @@ def evaluate_self_comparison_plots(
     roc_per_epitope(
         eval_df=df_concat,
         output_path=os.path.join(
-            root_dir, "roc_per_epitope-" + Path(root_dir).absolute().name + ".pdf"
+            root_dir,
+            "roc_per_epitope-"
+            + str(Path(root_dir).absolute().name).replace(" ", "-")
+            + ".pdf",
         ),
         min_obs=min_obs,
         min_iterations=min_iterations,

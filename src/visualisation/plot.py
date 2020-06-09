@@ -48,24 +48,24 @@ font = {"weight": "normal"}  # ,'size'   : 22}
 
 # plt.rcParams["figure.figsize"] = (20, 20)
 
-custom_palette = sns.color_palette(
-    [
-        rgb(0, 61, 100),  # UA Blue
-        rgb(126, 0, 47),  # UA Red
-        rgb(255, 140, 0),  # Orange
-        rgb(153, 50, 204),  # Purple
-        rgb(60, 204, 50),  # Green
-        rgb(50, 201, 204),  # Cyan
-        rgb(244, 66, 143),  # Pink
-    ]
-)
-
+# custom_palette = sns.color_palette(
+#     [
+#         rgb(0, 61, 100),  # UA Blue
+#         rgb(126, 0, 47),  # UA Red
+#         rgb(255, 140, 0),  # Orange
+#         rgb(153, 50, 204),  # Purple
+#         rgb(60, 204, 50),  # Green
+#         rgb(50, 201, 204),  # Cyan
+#         rgb(244, 66, 143),  # Pink
+#     ]
+# )
 palette_single = sns.color_palette("Blues")
 # palette = sns.color_palette("Set1")
 
-sns.set_palette(custom_palette)
-sns.set_style("whitegrid")
-# sns.set_style("darkgrid")
+# sns.set_palette(custom_palette)
+sns.set_palette("Dark2")
+# sns.set_style("whitegrid")
+sns.set_style("darkgrid")
 
 
 def get_output_path(directory, title, extension=".pdf"):
@@ -435,7 +435,10 @@ def plot_metrics(directory, y_lim_loss=None):
         sns_plot.set_title(metric.capitalize())
 
         sns_plot.get_figure().savefig(
-            get_output_path(directory, metric + "-" + Path(directory).absolute().name),
+            get_output_path(
+                directory,
+                metric + "-" + str(Path(directory).absolute().name).replace(" ", "-"),
+            ),
             bbox_inches="tight",
         )
 
@@ -527,7 +530,10 @@ def plot_loss(directory, y_lim_loss=None):
 
     sns_plot.get_figure().savefig(
         get_output_path(
-            directory, "train_val_loss" + "-" + Path(directory).absolute().name
+            directory,
+            "train_val_loss"
+            + "-"
+            + str(Path(directory).absolute().name).replace(" ", "-"),
         ),
         bbox_inches="tight",
     )
@@ -574,7 +580,10 @@ def plot_roc_pr(directory):
     #     # ax.axis("equal")
 
     fig.savefig(
-        get_output_path(directory, "roc-pr" + "-" + Path(directory).absolute().name),
+        get_output_path(
+            directory,
+            "roc-pr" + "-" + str(Path(directory).absolute().name).replace(" ", "-"),
+        ),
         bbox_inches="tight",
     )
 
@@ -612,7 +621,7 @@ def plot_roc(directory, ax=None, legend=True):
                 + " = {:.2f} ± {:.2f} ".format(auc_mean, auc_std)
                 + r"$s$)"
             )
-            labels = [fill(l, 60) for l in labels]
+            # labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(
             x="fpr",
             y="tpr",
@@ -628,7 +637,7 @@ def plot_roc(directory, ax=None, legend=True):
         labels.append(
             "{}\n(AUC = {:.2f})".format(os.path.basename(directory), auc_mean)
         )
-        labels = [fill(l, 60) for l in labels]
+        # labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, ax=ax)
 
     sns_plot.set_title("ROC")
@@ -653,7 +662,10 @@ def plot_roc(directory, ax=None, legend=True):
     sns_plot.plot([0, 1], [0, 1], "k--")
     if save:
         sns_plot.get_figure().savefig(
-            get_output_path(directory, "roc" + "-" + Path(directory).absolute().name),
+            get_output_path(
+                directory,
+                "roc" + "-" + str(Path(directory).absolute().name).replace(" ", "-"),
+            ),
             bbox_inches="tight",
         )
     return True
@@ -698,7 +710,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
                 "{}\n(Avg. Prec. = {:.2f} ± {:.2f} ".format(tpe, prec_mean, prec_std)
                 + r"$s$)"
             )
-            labels = [fill(l, 60) for l in labels]
+            # labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(
             x="recall", y="precision", ci=None, data=precision_recall, hue="type", ax=ax
         )
@@ -707,7 +719,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
         labels.append(
             "{}\n(Avg. Prec. = {:.2f})".format(os.path.basename(directory), prec_mean)
         )
-        labels = [fill(l, 60) for l in labels]
+        # labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(
             x="recall", y="precision", ci=None, data=precision_recall, ax=ax
         )
@@ -738,7 +750,10 @@ def plot_precision_recall(directory, ax=None, legend=True):
     if save:
         sns_plot.get_figure().savefig(
             get_output_path(
-                directory, "precision_recall" + "-" + Path(directory).absolute().name
+                directory,
+                "precision_recall"
+                + "-"
+                + str(Path(directory).absolute().name).replace(" ", "-"),
             ),
             bbox_inches="tight",
         )
@@ -773,7 +788,10 @@ def plot_predictions(directory):
     sns_plot.legend(["Negative", "Positive"], title=None)
     sns_plot.get_figure().savefig(
         get_output_path(
-            directory, "predictions" + "-" + Path(directory).absolute().name
+            directory,
+            "predictions"
+            + "-"
+            + str(Path(directory).absolute().name).replace(" ", "-"),
         ),
         bbox_inches="tight",
     )
@@ -868,7 +886,10 @@ def plot_confusion_matrix(directory, ax=None):
     if save:
         ax.get_figure().savefig(
             get_output_path(
-                directory, "confusion_matrix" + "-" + Path(directory).absolute().name
+                directory,
+                "confusion_matrix"
+                + "-"
+                + str(Path(directory).absolute().name).replace(" ", "-"),
             ),
             bbox_inches="tight",
         )
@@ -900,6 +921,7 @@ def plot_roc_boxplot(directory):
         data=df,  # .sort_values(by=["type"], ascending=False),
         order=sorted(df["type-mean-std"].unique()),
         palette=get_palette(df, "type-mean-std"),
+        hue="type-mean-std",
     )
     # color=palette_single[3])
     # hue="type-mean-std" for legend, optionally use custom labels
@@ -911,9 +933,9 @@ def plot_roc_boxplot(directory):
     plt.xlabel(None)
     plt.ylabel("AUROC")
 
-    for patch in ax.artists:
-        r, g, b, a = patch.get_facecolor()
-        patch.set_facecolor((r, g, b, 0.7))
+    # for patch in ax.artists:
+    #     r, g, b, a = patch.get_facecolor()
+    #     patch.set_facecolor((r, g, b, 0.7))
     # plt/sns_plot.legend() overrides custom legend
     # for lh in plt.legend().legendHandles:
     #     lh.set_alpha(0.7)
@@ -921,14 +943,17 @@ def plot_roc_boxplot(directory):
     # add legend and remove x labels
     # must be called after setting alpha or it will override location again
     ## ax.legend()
-    ## sns_plot.legend(title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15))
-    # sns_plot.set(xticklabels=[])
 
-    # plt.legend(loc="upper left")
+    # legend below figure, requires hue to be set
+    sns_plot.legend(title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15))
+    sns_plot.set(xticklabels=[])
 
     sns_plot.get_figure().savefig(
         get_output_path(
-            directory, "roc_boxplot" + "-" + Path(directory).absolute().name
+            directory,
+            "roc_boxplot"
+            + "-"
+            + str(Path(directory).absolute().name).replace(" ", "-"),
         ),
         bbox_inches="tight",
     )
@@ -975,7 +1000,10 @@ def plot_combined_function(directories, plot_func, title):
         ax.set_title(subtitle)
 
     f.savefig(
-        get_output_path("output", title + "-" + Path(directory).absolute().name),
+        get_output_path(
+            "output",
+            title + "-" + str(Path(directory).absolute().name).replace(" ", "-"),
+        ),
         bbox_inches="tight",
     )
 
@@ -1028,15 +1056,19 @@ def roc_per_epitope(
             .index
         )
 
-        colour_palette = custom_palette[0]
+        # colour_palette = custom_palette[0]
+        colour_palette = sns.color_palette("Dark2")[0]
+        # colour_palette = palette_single[4]
+        # colour_palette = get_palette(eval_df, "type")
 
         plotter(
             x="epitope",
             y="roc_auc",
-            hue=hue,
+            # hue=hue,
             data=eval_df,
             # color=palette_single[3],
             color=colour_palette,
+            # palette=colour_palette,
             order=order,
             # alpha=0.7,
         )
@@ -1124,20 +1156,22 @@ def roc_dist_corr(eval_df, output_path):
 def get_palette(df, value):
     unique_values = sorted(df[value].unique())
 
-    if len(unique_values) < 8:
-        pal = custom_palette
-    else:
-        pal = sns.color_palette("Set1", n_colors=len(unique_values))
+    # if len(unique_values) < 8:
+    #     pal = custom_palette
+    # else:
+    #     pal = sns.color_palette("Set1", n_colors=len(unique_values))
+
+    pal = sns.color_palette("Dark2", n_colors=len(unique_values))
 
     palette_dict = dict(zip(unique_values, pal))
     return palette_dict
 
 
-def add_alpha_to_legend(ax, l):
-    # change alpha value of fill colours, cannot be done through seaborn directly
-    # see: https://github.com/mwaskom/seaborn/issues/979
-    for patch in ax.artists:
-        r, g, b, a = patch.get_facecolor()
-        patch.set_facecolor((r, g, b, 0.7))
-    for lh in l.legendHandles:
-        lh.set_alpha(0.7)
+# def add_alpha_to_legend(ax, l):
+#     # change alpha value of fill colours, cannot be done through seaborn directly
+#     # see: https://github.com/mwaskom/seaborn/issues/979
+#     for patch in ax.artists:
+#         r, g, b, a = patch.get_facecolor()
+#         patch.set_facecolor((r, g, b, 0.7))
+#     for lh in l.legendHandles:
+#         lh.set_alpha(0.7)
