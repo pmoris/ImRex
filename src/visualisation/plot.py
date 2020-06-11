@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 import pandas as pd
+import scipy
 import seaborn as sns
 from sklearn.metrics import (
     auc,
@@ -1009,33 +1010,62 @@ def plot_combined_function(directories, plot_func, title):
 
 
 def roc_per_epitope(
-    eval_df, output_path, min_obs=30, min_iterations=5, comparison=False, grouped=False,
+    eval_df: pd.DataFrame,
+    output_path: str,
+    min_iterations: int = 5,
+    comparison: bool = False,
+    grouped: bool = False,
+    decoy: bool = False,
 ):
-    # get number of testing data points
-    eval_df["n"] = eval_df.pos_data + eval_df.neg_data
-
-    # minimum number of data points required to include auroc in boxplot
-    eval_df = eval_df[eval_df["n"] >= min_obs].reset_index(drop=True)
-
-    # only include epitopes that occurred in at least m iterations
-    # except for grouped setting
-    if grouped:
-        min_iterations = 1
+    # when comparing different model types
     if comparison:
+        # only include epitopes that occurred in at least m iterations (= folds within a model)
         eval_df = eval_df[
             eval_df.groupby(["epitope", "type"])["epitope"].transform("count")
             >= min_iterations
         ]
         hue = "type"
 
-        # only include epitopes that have m iterations in each of the different models
-        n_types = eval_df.type.nunique()
+        # omit all epitopes for which the highest auroc is lower than 0.5
         eval_df = eval_df[
-            eval_df.groupby("epitope").type.transform(
-                lambda x: len(x.unique()) == n_types
-            )
+            eval_df.groupby("epitope")["roc_auc"].transform(lambda x: max(x) >= 0.5)
         ]
+        # same as: eval_df.groupby("epitope")["roc_auc"].transform("max") >= 0.5
 
+        # only include epitopes that have m iterations in each of the different models
+        if not decoy:
+            n_types = eval_df.type.nunique()
+            eval_df = eval_df[
+                eval_df.groupby("epitope").type.transform(
+                    lambda x: x.nunique() == n_types
+                )
+            ]
+
+        # for comparison with decoy models, only include epitopes that have m iterations in all decoy models
+        # or m iterations in all normal models, i.e. "per epitope-set model type groups"
+        else:
+            n_types = eval_df.type.unique()
+            n_types_decoy = len([i for i in n_types if "decoy" in i])
+            n_types_normal = len(n_types) - n_types_decoy
+
+            eval_df_decoy = eval_df[eval_df["type"].str.contains("decoy")]
+            eval_df_normal = eval_df[~eval_df["type"].str.contains("decoy")]
+
+            eval_df_decoy = eval_df_decoy[
+                eval_df_decoy.groupby("epitope").type.transform(
+                    lambda x: x.nunique() == n_types_decoy
+                )
+            ]
+
+            eval_df_normal = eval_df_normal[
+                eval_df_normal.groupby("epitope").type.transform(
+                    lambda x: x.nunique() == n_types_normal
+                )
+            ]
+
+            eval_df = pd.concat([eval_df_decoy, eval_df_normal])
+
+    # when evaluating a single model, only include epitopes that occurred in at least m iterations (= folds within the model)
     else:
         eval_df = eval_df[
             eval_df.groupby("epitope")["epitope"].transform("count") >= min_iterations
@@ -1117,13 +1147,31 @@ def roc_per_epitope(
     plt.setp(
         ax.get_xticklabels(), rotation=90, va="top", rotation_mode="default",
     )
-    # plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-    ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
+    # plt.setp(
+    #     ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor",
+    # )
+    # ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)   # causes bug where some epitopes are omitted from the plot
+    ax.set(ylim=(eval_df.roc_auc.min() * 0.9, 1))
     # ax.set_title(f"AUROC per epitope")
     ax.set_ylabel("AUROC")
     ax.set_xlabel("Epitope")
     l = ax.legend()
     l.set_title("")
+
+    # add wilcox test for grouped plots if there are exactly two model types
+    if comparison and eval_df["type"].nunique() == 2:
+        # sort the values
+        eval_df = eval_df.sort_values(["epitope", "type"])
+        # and calculate the difference in auroc between the model types
+        eval_df["diff"] = eval_df.groupby("epitope")["roc_auc"].transform(
+            lambda x: x.diff()
+        )
+        # compute wilcoxon test and add p-value to legend
+        p = scipy.stats.wilcoxon(eval_df["diff"].dropna(), correction=True)[1]
+        ax.legend(title=r"Wilcoxon signed-rank test $P-value =$ " + str(round(p, 4)))
+
+        # count number of epitopes for which one model is higher than the other, requires sort
+        # eval_df.loc[eval_df["diff"] > 0,["epitope","type","roc_auc","diff"]].count()
 
     plt.savefig(output_path)
 
@@ -1138,18 +1186,37 @@ def roc_train_corr(eval_df, output_path):
     g.ax_joint.set_xlabel("Number of training observations")
     g.ax_joint.set_ylabel("AUROC")
 
+    g.ax_joint.set_xscale("log")
+    g.ax_marg_x.set_xscale("log")
+    g.ax_joint.set_xlim([1, 10 ** 4])
+    g.ax_marg_x.set_xlim([1, 10 ** 4])
+
     g.fig.set_dpi(200)
 
     plt.savefig(output_path)
 
 
-def roc_dist_corr(eval_df, output_path):
+def roc_min_dist_box(eval_df, output_path):
+    g = sns.boxplot(y="roc_auc", x="min_dist", data=eval_df)
+    sns.swarmplot(y="roc_auc", x="min_dist", data=eval_df, color=".25")
+    g.set_xlabel("Minimum edit distance")
+    g.set_ylabel("AUROC")
+    plt.savefig(output_path)
+
+
+def roc_min_dist_corr(eval_df, output_path):
+    g = sns.jointplot(y="roc_auc", x="min_dist", data=eval_df)
+    g.ax_joint.set_xlabel("Minimum edit distance")
+    g.ax_joint.set_ylabel("AUROC")
+    g.fig.set_dpi(200)
+    plt.savefig(output_path)
+
+
+def roc_median_dist_corr(eval_df, output_path):
     g = sns.jointplot(y="roc_auc", x="median_dist", data=eval_df)
     g.ax_joint.set_xlabel("Median edit distance")
     g.ax_joint.set_ylabel("AUROC")
-
     g.fig.set_dpi(200)
-
     plt.savefig(output_path)
 
 

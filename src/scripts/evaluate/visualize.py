@@ -41,7 +41,9 @@ from src.visualisation.plot import (
     # palette,
     plot_roc_boxplot,
     plot_combined,
-    roc_dist_corr,
+    roc_min_dist_corr,
+    roc_median_dist_corr,
+    roc_min_dist_box,
     roc_per_epitope,
     roc_train_corr,
 )
@@ -447,12 +449,17 @@ def joinplot(directories: list):
 
 @bacli.command
 def evaluate_self_plots(
-    root_dir: str, min_obs: int = 30, min_iterations: int = 3, grouped=False
+    root_dir: str,
+    min_obs: int = 30,
+    min_iterations: int = 3,
+    grouped: bool = False,
+    decoy: bool = False,
 ):
 
     # warn about grouped setting
     if grouped:
         print("Ignoring min_iterations since grouped=True.")
+        min_iterations = 1
 
     # check input directory
     input_directory = root_dir
@@ -466,6 +473,14 @@ def evaluate_self_plots(
 
     per_epitope_df["type"] = Path(input_directory).name
 
+    # get number of testing data points
+    per_epitope_df["n"] = per_epitope_df.pos_data + per_epitope_df.neg_data
+
+    # minimum number of data points required to include
+    per_epitope_df = per_epitope_df[per_epitope_df["n"] >= min_obs].reset_index(
+        drop=True
+    )
+
     roc_per_epitope(
         eval_df=per_epitope_df,
         output_path=os.path.join(
@@ -474,10 +489,12 @@ def evaluate_self_plots(
             + str(Path(root_dir).absolute().name).replace(" ", "-")
             + ".pdf",
         ),
-        min_obs=min_obs,
         min_iterations=min_iterations,
         grouped=grouped,
+        decoy=decoy,
     )
+
+    plt.close("all")
 
     roc_train_corr(
         eval_df=per_epitope_df,
@@ -489,24 +506,72 @@ def evaluate_self_plots(
         ),
     )
 
-    roc_dist_corr(
+    plt.close("all")
+
+    roc_min_dist_box(
         eval_df=per_epitope_df,
         output_path=os.path.join(
             input_directory,
-            "roc_dist_correlation-"
+            "roc_min_dist_boxplot-"
             + str(Path(root_dir).absolute().name).replace(" ", "-")
             + ".pdf",
         ),
     )
 
+    plt.close("all")
+
+    roc_min_dist_corr(
+        eval_df=per_epitope_df,
+        output_path=os.path.join(
+            input_directory,
+            "roc_min_dist_correlation-"
+            + str(Path(root_dir).absolute().name).replace(" ", "-")
+            + ".pdf",
+        ),
+    )
+
+    plt.close("all")
+
+    roc_median_dist_corr(
+        eval_df=per_epitope_df,
+        output_path=os.path.join(
+            input_directory,
+            "roc_median_dist_correlation-"
+            + str(Path(root_dir).absolute().name).replace(" ", "-")
+            + ".pdf",
+        ),
+    )
+
+    plt.close("all")
+
 
 @bacli.command
 def evaluate_self_comparison_plots(
-    root_dir: str, min_obs: int = 30, min_iterations: int = 3, grouped=False
+    root_dir: str,
+    min_obs: int = 30,
+    min_iterations: int = 3,
+    grouped: bool = False,
+    decoy: bool = False,
 ):
-    # warn about grouped setting
+    """Create per-epitope comparison plots for different models.
+
+    Parameters
+    ----------
+    root_dir : str
+        Path to directory containing a subdirectory for each model to be compared.
+    min_obs : int, optional
+        The minimum number of examples an epitope needs before being included in the comparison, by default 30
+    min_iterations : int, optional
+        The minimum number of iterations (per model) an epitope needs to appear in before being included in the comparison, by default 3
+    grouped : bool, optional
+        Whether the underlying data came from an epitope-grouped model, by default False
+    decoy : bool, optional
+        Whether there are decoy models to be compared, in which case the min_iterations across models should be split between decoy and normal, by default False
+    """
+    # warn about grouped setting and do not set a minimum iterations limit.
     if grouped:
         print("Ignoring min_iterations since grouped=True.")
+        min_iterations = 1
 
     df_list = list()
 
@@ -537,16 +602,32 @@ def evaluate_self_comparison_plots(
 
     df_concat = pd.concat(df_list)
 
+    # get number of testing data points
+    df_concat["n"] = df_concat.pos_data + df_concat.neg_data
+
+    # minimum number of data points required to include
+    df_concat = df_concat[df_concat["n"] >= min_obs].reset_index(drop=True)
+
+    # create output name
+    output_path = os.path.join(
+        root_dir,
+        "roc_per_epitope-"
+        + "min_obs"
+        + str(min_obs)
+        + "-min_iterations"
+        + str(min_iterations)
+        + "-"
+        + str(Path(root_dir).absolute().name).replace(" ", "-")
+        + ".pdf",
+    )
+
     roc_per_epitope(
         eval_df=df_concat,
-        output_path=os.path.join(
-            root_dir,
-            "roc_per_epitope-"
-            + str(Path(root_dir).absolute().name).replace(" ", "-")
-            + ".pdf",
-        ),
-        min_obs=min_obs,
+        output_path=output_path,
         min_iterations=min_iterations,
         comparison=True,
         grouped=grouped,
+        decoy=decoy,
     )
+
+    plt.close("all")
