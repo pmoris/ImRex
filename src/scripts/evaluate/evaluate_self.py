@@ -18,13 +18,6 @@ from src.processing.padded_dataset_generator import padded_dataset_generator
 from src.processing.separated_input_dataset_generator import (
     separated_input_dataset_generator,
 )
-from src.visualisation.plot import (
-    derive_metrics_all,
-    plot_all,
-    roc_dist_corr,
-    roc_per_epitope,
-    roc_train_corr,
-)
 
 
 def create_parser():
@@ -327,20 +320,3 @@ if __name__ == "__main__":
 
     per_epitope_df.to_csv(per_epitope_filepath, index=False)
     logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
-
-    # create plots
-    roc_per_epitope(
-        eval_df=per_epitope_df,
-        output_path=output_dir / "roc_per_epitope.pdf",
-        min_obs=30,
-        min_iterations=5,
-        grouped=args.epitope_grouped,
-    )
-
-    roc_train_corr(
-        eval_df=per_epitope_df, output_path=output_dir / "roc_train_correlation.pdf"
-    )
-
-    roc_dist_corr(
-        eval_df=per_epitope_df, output_path=output_dir / "roc_dist_correlation.pdf"
-    )
