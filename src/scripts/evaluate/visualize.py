@@ -566,7 +566,7 @@ def evaluate_self_comparison_plots(
     grouped : bool, optional
         Whether the underlying data came from an epitope-grouped model, by default False
     decoy : bool, optional
-        Whether there are decoy models to be compared, in which case the min_iterations across models should be split between decoy and normal, by default False
+        Whether there are decoy and normal models to be compared, in which case the min_iterations across models should be split between decoy and normal, by default False. Not required when comparing only decoy models. Skips wilcoxon test.
     """
     # warn about grouped setting and do not set a minimum iterations limit.
     if grouped:

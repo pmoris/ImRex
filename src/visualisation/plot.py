@@ -1158,8 +1158,8 @@ def roc_per_epitope(
     l = ax.legend()
     l.set_title("")
 
-    # add wilcox test for grouped plots if there are exactly two model types
-    if comparison and eval_df["type"].nunique() == 2:
+    # add wilcox test for grouped plots if there are exactly two model types, skip for decoy vs normal comparisons
+    if comparison and eval_df["type"].nunique() == 2 and not decoy:
         # sort the values
         eval_df = eval_df.sort_values(["epitope", "type"])
         # and calculate the difference in auroc between the model types
