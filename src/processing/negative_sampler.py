@@ -18,7 +18,14 @@ def add_negatives(df):
 
     # generate negative pairs from list of all cdr3s in positive pairs
     shuffled_pairs = [
-        sample_pairs(cdr3, df, "cdr3", "antigen.epitope") for cdr3 in df["cdr3"]
+        sample_pairs(
+            cdr3=cdr3,
+            df=df,
+            cdr3_column="cdr3",
+            epitope_column="antigen.epitope",
+            seed=seed,
+        )
+        for seed, cdr3 in enumerate(df["cdr3"])
     ]
 
     # convert list of tuples into dataframe and add class label
@@ -52,9 +59,15 @@ def add_negatives(df):
         n += 1
         if n > 50:
             shuffled_pairs = [
-                sample_pairs(cdr3, df, "cdr3", "antigen.epitope")
+                sample_pairs(
+                    cdr3=cdr3,
+                    df=df,
+                    cdr3_column="cdr3",
+                    epitope_column="antigen.epitope",
+                    seed=n,
+                )
                 for cdr3 in df.loc[df["y"] == 1, "cdr3"].sample(
-                    n=len(to_do_df), random_state=42
+                    n=len(to_do_df), random_state=42 + n
                 )
             ]
             logger.warning(
@@ -62,7 +75,13 @@ def add_negatives(df):
             )
         else:
             shuffled_pairs = [
-                sample_pairs(cdr3, df, "cdr3", "antigen.epitope")
+                sample_pairs(
+                    cdr3=cdr3,
+                    df=df,
+                    cdr3_column="cdr3",
+                    epitope_column="antigen.epitope",
+                    seed=n,
+                )
                 for cdr3 in to_do_df["cdr3"]
             ]
         shuffled_df = pd.DataFrame(shuffled_pairs, columns=["cdr3", "antigen.epitope"],)
@@ -84,6 +103,7 @@ def sample_pairs(
     df: pd.DataFrame,
     cdr3_column: str = "cdr3",
     epitope_column: str = "antigen.epitope",
+    seed: int = 42,
 ) -> (str, str):
     """Sample an epitope for the given CDR3 sequence from the pool of other epitopes in the original positive dataset.
 
@@ -101,6 +121,9 @@ def sample_pairs(
         The header for the cdr3 column in the DataFrame.
     epitope_column : str
         The header for the epitope column in the DataFrame.
+    seed : int
+        Random state to use for sampling. Must be incremented upon multiple uses or the same pair
+        will be drawn every time.
 
     Returns
     -------
@@ -130,7 +153,7 @@ def sample_pairs(
 
     # sample 1 epitope from this list to pair with the cdr3 as a negative example
     else:
-        sampled_epitope = possible_epitopes.sample(n=1, random_state=42).reset_index(
+        sampled_epitope = possible_epitopes.sample(n=1, random_state=seed).reset_index(
             drop=True
         )[0]
         return cdr3, sampled_epitope
@@ -167,15 +190,17 @@ def augment_negatives(negative_source, df, cdr3_range, amount):
     ).reset_index(drop=True)
 
     amount = to_do_df.shape[0]
+    seed = 42
     while amount > 0:
+        seed += 1
         epitopes = (
             df.loc[df["y"] == 1, "y"]
-            .sample(n=amount, random_state=42)
+            .sample(n=amount, random_state=seed)
             .reset_index(drop=True)
         )
         cdr3 = (
             negative_source.data[negative_source.headers["cdr3_header"]]
-            .sample(n=amount, random_state=42)
+            .sample(n=amount, random_state=seed)
             .reset_index(drop=True)
             .rename("cdr3")
         )

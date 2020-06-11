@@ -89,10 +89,12 @@ class VdjdbSource(DataSource):
 
         # create new negative pairs for any accidental false negatives
         amount = to_do_df.shape[0]
+        seed = 42
         while amount > 0:
+            seed += 1
             negative_cdr3_series = (
                 negative_source.data[negative_source.headers["cdr3_header"]]
-                .sample(n=amount, random_state=42)
+                .sample(n=amount, random_state=seed)
                 .reset_index(drop=True)
                 .rename(self.headers["cdr3_header"])
             )
@@ -142,8 +144,9 @@ class VdjdbSource(DataSource):
                 df=self.data,
                 cdr3_column=self.headers["cdr3_header"],
                 epitope_column=self.headers["epitope_header"],
+                seed=seed,
             )
-            for cdr3 in self.data[self.headers["cdr3_header"]]
+            for seed, cdr3 in self.data[self.headers["cdr3_header"]]
         ]
 
         # convert list of tuples into dataframe
@@ -203,10 +206,11 @@ class VdjdbSource(DataSource):
                         df=self.data,
                         cdr3_column=self.headers["cdr3_header"],
                         epitope_column=self.headers["epitope_header"],
+                        seed=n,
                     )
                     for cdr3 in self.data.loc[
                         self.data["y"] == 1, self.headers["cdr3_header"]
-                    ].sample(n=len(to_do_df), random_state=42)
+                    ].sample(n=len(to_do_df), random_state=42 + n)
                 ]
                 logger.warning(
                     f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3's will be re-used."
@@ -218,6 +222,7 @@ class VdjdbSource(DataSource):
                         df=self.data,
                         cdr3_column=self.headers["cdr3_header"],
                         epitope_column=self.headers["epitope_header"],
+                        seed=n,
                     )
                     for cdr3 in to_do_df[self.headers["cdr3_header"]]
                 ]
