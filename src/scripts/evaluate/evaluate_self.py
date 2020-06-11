@@ -144,10 +144,6 @@ if __name__ == "__main__":
 
     for iteration_dir in iterations_directories:
 
-        # create metrics and figures (not required)
-        # derive_metrics_all(iteration_dir, force=True)
-        # plot_all(iteration_dir)
-
         # find latest model
         model_list = [model for model in iteration_dir.glob("*epoch*.h5")]
         model_path = sorted(
@@ -272,6 +268,13 @@ if __name__ == "__main__":
             raise ValueError(
                 "Make sure the correct model type and padding lengths are specified. The latter can be omitted if every fold contains an example of the shortest and longest length, otherwise they should be provided as input arguments."
             ) from e
+
+        if iteration_metrics_df.empty:
+            logger.warning(
+                f"Skipping per-epitope performance for {iteration_dir} because there were no valid epitopes, likely because the fold only contained a single epitope with only positive examples because negatives cannot be generated via shuffling then. If other types of negatives were used, this should not occurr and this warning requires further investigation."
+            )
+            continue
+
         iteration_metrics_df["iteration"] = iteration_dir.name
 
         # add training dataset size per epitope
@@ -286,6 +289,7 @@ if __name__ == "__main__":
 
         # calculate edit distances to training examples
         epitope_dist_dict = {}
+
         for epitope in iteration_metrics_df["epitope"].unique():
             epitopes_to_check = train_df.loc[
                 train_df["antigen.epitope"] != epitope, "antigen.epitope"
