@@ -53,7 +53,9 @@ def add_negatives(df):
         if n > 50:
             shuffled_pairs = [
                 sample_pairs(cdr3, df, "cdr3", "antigen.epitope")
-                for cdr3 in df.loc[df["y"] == 1, "cdr3"].sample(len(to_do_df))
+                for cdr3 in df.loc[df["y"] == 1, "cdr3"].sample(
+                    n=len(to_do_df), random_state=42
+                )
             ]
             logger.warning(
                 f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3's will be re-used."
@@ -128,14 +130,18 @@ def sample_pairs(
 
     # sample 1 epitope from this list to pair with the cdr3 as a negative example
     else:
-        sampled_epitope = possible_epitopes.sample(n=1).reset_index(drop=True)[0]
+        sampled_epitope = possible_epitopes.sample(n=1, random_state=42).reset_index(
+            drop=True
+        )[0]
         return cdr3, sampled_epitope
 
 
 def augment_negatives(negative_source, df, cdr3_range, amount):
 
     epitopes = (
-        df.loc[df["y"] == 1, "antigen.epitope"].sample(n=amount).reset_index(drop=True)
+        df.loc[df["y"] == 1, "antigen.epitope"]
+        .sample(n=amount, random_state=42)
+        .reset_index(drop=True)
     )
 
     negative_source = ControlCDR3Source(
@@ -144,7 +150,7 @@ def augment_negatives(negative_source, df, cdr3_range, amount):
 
     cdr3 = (
         negative_source.data[negative_source.headers["cdr3_header"]]
-        .sample(n=amount)
+        .sample(n=amount, random_state=42)
         .reset_index(drop=True)
         .rename("cdr3")
     )
@@ -162,10 +168,14 @@ def augment_negatives(negative_source, df, cdr3_range, amount):
 
     amount = to_do_df.shape[0]
     while amount > 0:
-        epitopes = df.loc[df["y"] == 1, "y"].sample(n=amount).reset_index(drop=True)
+        epitopes = (
+            df.loc[df["y"] == 1, "y"]
+            .sample(n=amount, random_state=42)
+            .reset_index(drop=True)
+        )
         cdr3 = (
             negative_source.data[negative_source.headers["cdr3_header"]]
-            .sample(n=amount)
+            .sample(n=amount, random_state=42)
             .reset_index(drop=True)
             .rename("cdr3")
         )

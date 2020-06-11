@@ -59,7 +59,7 @@ class VdjdbSource(DataSource):
 
         negative_cdr3_series = (
             negative_source.data[negative_source.headers["cdr3_header"]]
-            .sample(n=amount)
+            .sample(n=amount, random_state=42)
             .reset_index(drop=True)
             .rename(self.headers["cdr3_header"])
         )
@@ -92,7 +92,7 @@ class VdjdbSource(DataSource):
         while amount > 0:
             negative_cdr3_series = (
                 negative_source.data[negative_source.headers["cdr3_header"]]
-                .sample(n=amount)
+                .sample(n=amount, random_state=42)
                 .reset_index(drop=True)
                 .rename(self.headers["cdr3_header"])
             )
@@ -206,7 +206,7 @@ class VdjdbSource(DataSource):
                     )
                     for cdr3 in self.data.loc[
                         self.data["y"] == 1, self.headers["cdr3_header"]
-                    ].sample(len(to_do_df))
+                    ].sample(n=len(to_do_df), random_state=42)
                 ]
                 logger.warning(
                     f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3's will be re-used."
