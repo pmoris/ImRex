@@ -45,6 +45,9 @@ def create_parser():
 def create_decoy_epitopes(input: str, weighted: bool = False):  # noqa: A002
     logger = logging.getLogger(__name__)
 
+    # set seed
+    random.seed(42)
+
     # read in data
     df = pd.read_csv(input, sep=";")
 
