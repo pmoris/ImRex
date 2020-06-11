@@ -362,7 +362,9 @@ def filter_vdjdb(  # noqa: C901
     if downsample:
         for epitope, fraction in zip(downsample[::2], downsample[1::2]):
             df = df.drop(
-                df[df["antigen.epitope"] == epitope].sample(frac=float(fraction)).index
+                df[df["antigen.epitope"] == epitope]
+                .sample(frac=float(fraction), random_state=42)
+                .index
             )
             logger.info(f"Removed {float(fraction)} {epitope} observations.")
         logger.info(f"After downsampling, there are {df.shape[0]} remaining entries...")
