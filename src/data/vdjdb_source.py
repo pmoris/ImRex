@@ -164,7 +164,7 @@ class VdjdbSource(DataSource):
                 epitope_column=self.headers["epitope_header"],
                 seed=seed,
             )
-            for seed, cdr3 in self.data[self.headers["cdr3_header"]]
+            for seed, cdr3 in enumerate(self.data[self.headers["cdr3_header"]])
         ]
 
         # convert list of tuples into dataframe
