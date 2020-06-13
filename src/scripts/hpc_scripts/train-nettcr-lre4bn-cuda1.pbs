@@ -86,7 +86,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
---full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv" \
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -126,7 +126,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv epitope_grouped \
 --n_folds 5 \
---full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv" \
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -149,7 +149,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
---full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv" \
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -189,7 +189,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
---full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv" \
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -230,7 +230,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
---full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv" \
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -275,7 +275,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv epitope_grouped \
 --n_folds 5 \
---full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv" \
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -315,7 +315,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv epitope_grouped \
 --n_folds 5 \
---full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv" \
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
