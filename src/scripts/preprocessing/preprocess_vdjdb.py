@@ -7,10 +7,15 @@ import argparse
 import json
 import logging
 from pathlib import Path
+import string
 
+
+from matplotlib import pyplot as plt
+from matplotlib.gridspec import GridSpec
 import pandas as pd
-from pandas.io.json import json_normalize
+
 import pyteomics.parser
+import seaborn as sns
 
 
 def create_parser():
@@ -236,17 +241,17 @@ def filter_vdjdb(  # noqa: C901
     # parse the dict/json-like methods, meta and cdr3fix columns
     df = (
         df.join(
-            json_normalize(
+            pd.json_normalize(
                 df["method"].apply(lambda x: json.loads(r"{}".format(x)))
             ).add_prefix("method.")
         )
         .join(
-            json_normalize(
+            pd.json_normalize(
                 df["meta"].apply(lambda x: json.loads(r"{}".format(x)))
             ).add_prefix("meta.")
         )
         .join(
-            json_normalize(
+            pd.json_normalize(
                 df["cdr3fix"].apply(lambda x: json.loads(r"{}".format(x)))
             ).add_prefix("cdr3fix.")
         )
@@ -358,41 +363,50 @@ def filter_vdjdb(  # noqa: C901
     else:
         logger.info("Not filtering on sequence length...")
 
-    # Downsample epitopes
-    if downsample:
-        for epitope, fraction in zip(downsample[::2], downsample[1::2]):
-            df = df.drop(
-                df[df["antigen.epitope"] == epitope]
-                .sample(frac=float(fraction), random_state=42)
-                .index
-            )
-            logger.info(f"Removed {float(fraction)} {epitope} observations.")
-        logger.info(f"After downsampling, there are {df.shape[0]} remaining entries...")
-
-    # extract CDR3 and antigen sequence columns
-    # columns = ["CDR3", "Epitope"]
-    columns = ["cdr3", "antigen.epitope"]
-    df = df.filter(items=columns)
-
-    # remove duplicates
+    # remove duplicates CDR3-epitope sequence pairs
+    unique_columns = ["cdr3", "antigen.epitope"]
     pre_duplicate_count = df.shape[0]
-    df = df.drop_duplicates(columns)
+    df = df.drop_duplicates(unique_columns)
     logger.info(
         f"Removing {pre_duplicate_count-df.shape[0]} duplicate CDR3-epitope pairs."
     )
     logger.info(f"Filtered dataset contains {df.shape[0]} entries.")
 
+    # Downsample epitopes - should happen after de-duplication!
+    if downsample:
+        for epitope, n in zip(downsample[::2], downsample[1::2]):
+            # get indices for n randomly sampled rows
+            sampled_indices = (
+                df[df["antigen.epitope"] == epitope]
+                .sample(n=int(n), random_state=42)
+                .index
+            )
+            # select inverse indices to drop from dataframe
+            drop_indices = df[df["antigen.epitope"] == epitope].index.difference(
+                sampled_indices
+            )
+            # drop those from the dataframe
+            df = df.drop(drop_indices)
+            # check remaining rows for this epitope
+            m = len(drop_indices)
+            logger.info(
+                f"Filtered down to {n} {epitope} observations, after removing {m}."
+            )
+        logger.info(f"After downsampling, there are {df.shape[0]} remaining entries...")
+
     # check if entries are valid amino acid sequences
     # is_amino_acid_sequence_vectorized = np.vectorize(is_amino_acid_sequence)
     # is_amino_acid_sequence_vectorized(df.unstack().values)
-    mask = df.applymap(lambda x: is_amino_acid_sequence(x)).all(axis=1)
+    mask = df[unique_columns].applymap(lambda x: is_amino_acid_sequence(x)).all(axis=1)
     if not mask.all():
         logger.warning("Removing the following invalid amino acid sequences...")
         [logger.warning(row) for row in df.loc[~mask].values]
         df = df.loc[mask]
         logger.info(f"Filtered down to {df.shape[0]} entries...")
 
-    elif terminal_only:
+    # replace terminal ends / middle region
+    # needs to happen at the very end of the filtering steps and requires an additional deduplication round
+    if terminal_only:
         pattern = r"(?P<terminalstart>^.{2})(?P<middle>.*)(?P<terminalend>.{2}$)"
         df["cdr3"] = df["cdr3"].str.replace(
             pattern, lambda m: m.group("terminalstart") + m.group("terminalend")
@@ -415,16 +429,199 @@ def filter_vdjdb(  # noqa: C901
             + m.group("terminalend"),
         )
 
+    # remove duplicates created by replacing amino acids
     if any([terminal_only, middle_only, terminal_replaced, middle_replaced,]):
-        # remove duplicates
         pre_duplicate_count = df.shape[0]
-        df = df.drop_duplicates(columns)
+        df = df.drop_duplicates(unique_columns)
         logger.info(
             f"Removing {pre_duplicate_count-df.shape[0]} duplicate CDR3-epitope pairs that were introduced after trimming or replacing middle/terminal amino acids in the CDR3 sequence."
         )
         logger.info(f"Filtered dataset contains {df.shape[0]} entries.")
 
     return df
+
+
+def visualise_data(df: pd.DataFrame, plot_file):
+    sns.set_palette("Set1")
+    sns.set_style("darkgrid")
+    plt.rcParams["patch.edgecolor"] = "0.2"
+    plt.rcParams["patch.linewidth"] = ".8"
+    # plt.rc('patch', edgecolor="0.2", linewidth=.8, alpha=.75)
+    # plt.rcParams['patch.alpha'] = '.75'
+    # plt.rcParams['figure.figsize'] = (12, 8)
+
+    # set font style
+    plt.rcParams.update({"font.size": 11})
+    plt.rcParams["font.family"] = "sans-serif"
+    plt.rcParams[
+        "font.sans-serif"
+    ] = "Source Sans Pro"  # ['Fira Sans', 'Source Sans Pro']
+    font = {"weight": "normal"}  # ,'size'   : 22}
+
+    pal = sns.color_palette("BuGn_r")
+
+    fig = plt.figure(constrained_layout=True, dpi=200, figsize=(12, 16))
+    gs = GridSpec(6, 2, figure=fig)
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax3 = fig.add_subplot(gs[1, 0])
+    ax4 = fig.add_subplot(gs[1, 1])
+    ax5 = fig.add_subplot(gs[2, :])
+    ax6 = fig.add_subplot(gs[3, :])
+    ax7 = fig.add_subplot(gs[4, :])
+    ax8 = fig.add_subplot(gs[5, :])
+
+    df["cdr3.len"] = df["cdr3"].str.len()
+    df["antigen.epitope.len"] = df["antigen.epitope"].str.len()
+
+    # cdr3 length - TRB
+
+    if not df.loc[df["mhc.class"] == "MHCI"].empty:
+        sns.countplot(
+            x="cdr3.len",
+            hue="gene",
+            data=df.loc[df["mhc.class"] == "MHCI"].sort_values(by="gene"),
+            alpha=0.8,
+            palette=pal,
+            ax=ax1,
+        )
+    # epitope length - TRB
+    if not df.loc[df["mhc.class"] == "MHCI"].empty:
+        sns.countplot(
+            x="antigen.epitope.len",
+            hue="gene",
+            data=df.loc[df["mhc.class"] == "MHCI"].sort_values(by="gene"),
+            alpha=0.8,
+            palette=pal,
+            ax=ax2,
+        )
+    # cdr3 length - TRA
+    if not df.loc[df["mhc.class"] == "MHCII"].empty:
+        sns.countplot(
+            x="cdr3.len",
+            hue="gene",
+            data=df.loc[df["mhc.class"] == "MHCII"].sort_values(by="gene"),
+            alpha=0.8,
+            palette=pal,
+            ax=ax3,
+        )
+    # epitope length - TRA
+    if not df.loc[df["mhc.class"] == "MHCII"].empty:
+        sns.countplot(
+            x="antigen.epitope.len",
+            hue="gene",
+            data=df.loc[df["mhc.class"] == "MHCII"].sort_values(by="gene"),
+            alpha=0.8,
+            palette=pal,
+            ax=ax4,
+        )
+
+    [i.set_ylabel("Number of TCR-epitope pairs") for i in [ax1, ax2, ax3, ax4]]
+    # [i.set(yscale="log") for i in [ax1,ax2,ax3,ax4]]
+    [i.legend(title="TCR chain", loc="upper left") for i in [ax1, ax2, ax3, ax4]]
+
+    ax2.set_title("Epitope length distribution for MHCI")
+    ax4.set_title("Epitope length distribution for MHCII")
+    ax2.set_xlabel("Epitope length")
+    ax4.set_xlabel("Epitope length")
+
+    ax1.set_title("CDR3 length distribution for MHCI")
+    ax3.set_title("CDR3 length distribution for MHCII")
+    ax1.set_xlabel("CDR3 length")
+    ax3.set_xlabel("CDR3 length")
+
+    # epitope distribution
+    sns.countplot(
+        x="antigen.epitope",
+        hue="gene",
+        order=df["antigen.epitope"].value_counts().iloc[:30].index,
+        data=df.sort_values(by="gene"),
+        alpha=0.8,
+        palette=pal,
+        ax=ax5,
+    )
+
+    n_unique_epitopes = df["antigen.epitope"].unique().shape[0]
+
+    ax5.tick_params(labelrotation=90)
+    ax5.set_title(
+        f"Epitope distribution (top 30 most abundant out of {n_unique_epitopes})"
+    )
+    ax5.set_ylabel("Number of TCR-epitope pairs")
+    ax5.set_xlabel("Epitope")
+    ax5.legend(title="TCR chain", loc="upper right")
+
+    # MHC distribution A
+    sns.countplot(
+        x="mhc.a",
+        hue="gene",
+        order=df["mhc.a"].value_counts().index,
+        data=df.sort_values(by="gene"),
+        palette=pal,
+        alpha=0.8,
+        ax=ax6,
+    )
+
+    ax6.tick_params(labelrotation=90)
+    ax6.set_ylabel("Number of TCR-epitope pairs")
+    ax6.set_xlabel("MHC alpha subunit")
+    ax6.set_title("MHC alpha subunit allele distribution")
+    ax6.legend(title="TCR chain", loc="upper right")
+
+    # MHC distribution B
+    sns.countplot(
+        x="mhc.b",
+        hue="gene",
+        order=df["mhc.b"].value_counts().index,
+        data=df.sort_values(by="gene"),
+        palette=pal,
+        alpha=0.8,
+        ax=ax7,
+    )
+
+    ax7.tick_params(labelrotation=90)
+    ax7.set_ylabel("Number of TCR-epitope pairs (log scale)")
+    ax7.set_xlabel("MHC beta subunit")
+    ax7.set_title("MHC beta subunit allele distribution")
+    ax7.legend(title="TCR chain", loc="upper right")
+    ax7.set(yscale="log")
+    ax7.set_ylim((10 ** 0, 10 ** 5))
+
+    # cdr3 counts
+    df["cdr3_count"] = df.groupby("cdr3")["cdr3"].transform("size")
+    # x = df.groupby("cdr3").size().sort_values(ascending=False)
+    ax8 = sns.countplot(
+        x="cdr3_count",
+        hue="gene",
+        data=df.sort_values(by="cdr3_count", ascending=False),
+        alpha=0.8,
+        palette=pal,
+    )
+    ax8.set_ylabel("Count (log scale)")
+    ax8.set_xlabel("Number of epitope partners per CDR3 sequence")
+    ax8.set_title("CDR3 cross-reactivity")
+    # ax8.set_xlabel('Number of occurrences of a given CDR3 in the dataset')
+    # ax8.set_title('CDR3 promiscuity')
+    ax8.legend(title="TCR chain", loc="upper right")
+    ax8.set_yscale("log")
+    ax8.set_ylim((10 ** 0, 10 ** 5))
+
+    for n, ax in enumerate(fig.axes):
+        ax.text(
+            -0.07,
+            1.1,
+            string.ascii_uppercase[n],
+            transform=ax.transAxes,
+            size=20,
+            weight="bold",
+        )
+
+    [
+        plt.setp(i.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+        for i in [ax5, ax6, ax7]
+    ]
+
+    plt.savefig(plot_file)
 
 
 def is_amino_acid_sequence(peptide: str):
@@ -511,6 +708,7 @@ if __name__ == "__main__":
     input_file = Path(args.input)
     output_file = Path(args.output)
     log_file = output_file.with_suffix(".log")
+    plot_file = output_file.with_suffix(".pdf")
 
     # file logger
     log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -553,6 +751,23 @@ if __name__ == "__main__":
         middle_replaced=args.middle_replaced,
     )
 
-    # save output
+    # create visualisation of dataset
+    visualise_data(df, plot_file)
+
+    # save entire dataset
+    df.to_csv(
+        (output_file.parent / (output_file.stem + "_full" + output_file.suffix)),
+        index=False,
+        sep=";",
+    )
+    logger.info(f"Saved processed full dataset to {output_file.resolve()}.")
+
+    # save filtered output used for training
+    # extract relevant columns
+    columns = [
+        "cdr3",
+        "antigen.epitope",
+    ]
+    df = df.filter(items=columns)
     df.to_csv(output_file, index=False, sep=";")
-    logger.info(f"Saved processed dataset to {output_file.resolve()}.")
+    logger.info(f"Saved processed CDR3-epitope dataset to {output_file.resolve()}.")
