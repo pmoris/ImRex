@@ -56,7 +56,7 @@
 # PBS_JOBID     The job's PBS identifier.
 # PBS_JOBNAME   The job's name.
 
-conda activate deepTCR-new
+conda activate deepTCR
 
 # Go to the absolute path of the current working directory of the qsub command.
 # This means the qsub command should be performed in the hpc_scripts directory, which is a sub-sub-directory of the project root
@@ -77,31 +77,6 @@ export GPUS=1
 echo "Start of job: ${PBS_JOBNAME}"
 date
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
---batch_size 32 \
---epochs 30 \
---cv repeatedkfold \
---n_folds 5 \
---min_length_cdr3 10 \
---max_length_cdr3 20 \
---min_length_epitope 8 \
---max_length_epitope 11 \
---features "hydrophob,isoelectric,mass,hydrophil" \
---operator "absdiff" \
---data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv \
---model model_padded \
---depth1_1 64 \
---depth1_2 64 \
---depth2_1 32 \
---depth2_2 32 \
---activation_function_conv "relu" \
---activation_function_dense "relu" \
---dropout_conv 0.25 \
---learning_rate 0.0001 \
---include_learning_rate_reduction \
---optimizer rmsprop \
---name "trbmhci-repeated5fold-shuffle-padded6432-b32-lre4-lrr" 2>&1 | tee -a "trbmhci-repeated5fold-shuffle-padded6432-b32-lre4-lrr.log"
-
 # trbmhci 5repeated5fold
 
 python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
@@ -109,6 +84,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -162,6 +138,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -208,8 +185,6 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidown-repeated5fold-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidown-repeated5fold-negref-padded-b32-lre4-lrr.log"
 
-
-
 # decoy
 
 python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
@@ -217,6 +192,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -263,7 +239,6 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidecoy-repeated5fold-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidecoy-repeated5fold-negref-padded-b32-lre4-lrr.log"
 
-
 # down decoy
 
 python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
@@ -271,6 +246,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv repeatedkfold \
 --n_folds 5 \
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -317,64 +293,9 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidowndecoy-repeated5fold-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidowndecoy-repeated5fold-negref-padded-b32-lre4-lrr.log"
 
-
-
-
 #################################
 
 # epitope-grouped
-
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
---batch_size 32 \
---epochs 30 \
---cv epitope_grouped_shuffle \
---n_folds 5 \
---min_length_cdr3 10 \
---max_length_cdr3 20 \
---min_length_epitope 8 \
---max_length_epitope 11 \
---features "hydrophob,isoelectric,mass,hydrophil" \
---operator "absdiff" \
---data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv \
---model model_padded \
---depth1_1 128 \
---depth1_2 64 \
---depth2_1 128 \
---depth2_2 64 \
---activation_function_conv "relu" \
---activation_function_dense "relu" \
---dropout_conv 0.25 \
---learning_rate 0.0001 \
---include_learning_rate_reduction \
---optimizer rmsprop \
---name "trbmhci-epitope_grouped_shuffle-shuffle-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhci-epitope_grouped_shuffle-shuffle-padded-b32-lre4-lrr.log"
-
-
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
---batch_size 32 \
---epochs 30 \
---cv epitope_grouped_shuffle \
---n_folds 5 \
---neg_ref "${PROJECT_ROOT}/data/raw/CDR3_control_sequences.tsv" \
---min_length_cdr3 10 \
---max_length_cdr3 20 \
---min_length_epitope 8 \
---max_length_epitope 11 \
---features "hydrophob,isoelectric,mass,hydrophil" \
---operator "absdiff" \
---data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv \
---model model_padded \
---depth1_1 128 \
---depth1_2 64 \
---depth2_1 128 \
---depth2_2 64 \
---activation_function_conv "relu" \
---activation_function_dense "relu" \
---dropout_conv 0.25 \
---learning_rate 0.0001 \
---include_learning_rate_reduction \
---optimizer rmsprop \
---name "trbmhci-epitope_grouped_shuffle-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhci-epitope_grouped_shuffle-negref-padded-b32-lre4-lrr.log"
 
 # down
 
@@ -383,6 +304,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --epochs 30 \
 --cv epitope_grouped \
 --n_folds 5 \
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
@@ -429,18 +351,21 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidown-epitope_grouped-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidown-epitope_grouped-negref-padded-b32-lre4-lrr.log"
 
+# down decoy
+
 python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --batch_size 32 \
 --epochs 30 \
---cv epitope_grouped_shuffle \
+--cv epitope_grouped \
 --n_folds 5 \
+--full_dataset_path "${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human.csv"
 --min_length_cdr3 10 \
 --max_length_cdr3 20 \
 --min_length_epitope 8 \
 --max_length_epitope 11 \
 --features "hydrophob,isoelectric,mass,hydrophil" \
 --operator "absdiff" \
---data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-down.csv \
+--data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-down-decoy.csv \
 --model model_padded \
 --depth1_1 128 \
 --depth1_2 64 \
@@ -452,7 +377,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --learning_rate 0.0001 \
 --include_learning_rate_reduction \
 --optimizer rmsprop \
---name "trbmhcidown-epitope_grouped_shuffle-shuffle-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidown-epitope_grouped_shuffle-shuffle-padded-b32-lre4-lrr.log"
+--name "trbmhcidowndecoy-epitope_grouped-shuffle-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidowndecoy-epitope_grouped-shuffle-padded-b32-lre4-lrr.log"
 
 python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --batch_size 32 \
@@ -466,7 +391,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --max_length_epitope 11 \
 --features "hydrophob,isoelectric,mass,hydrophil" \
 --operator "absdiff" \
---data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-down.csv \
+--data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-down-decoy.csv \
 --model model_padded \
 --depth1_1 128 \
 --depth1_2 64 \
@@ -478,67 +403,4 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --learning_rate 0.0001 \
 --include_learning_rate_reduction \
 --optimizer rmsprop \
---name "trbmhcidown-epitope_grouped_shuffle-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidown-epitope_grouped_shuffle-negref-padded-b32-lre4-lrr.log"
-
-# decoy
-
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
---batch_size 32 \
---epochs 30 \
---cv epitope_grouped_shuffle \
---n_folds 5 \
---min_length_cdr3 10 \
---max_length_cdr3 20 \
---min_length_epitope 8 \
---max_length_epitope 11 \
---features "hydrophob,isoelectric,mass,hydrophil" \
---operator "absdiff" \
---data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-decoy.csv \
---model model_padded \
---depth1_1 128 \
---depth1_2 64 \
---depth2_1 128 \
---depth2_2 64 \
---activation_function_conv "relu" \
---activation_function_dense "relu" \
---dropout_conv 0.25 \
---learning_rate 0.0001 \
---include_learning_rate_reduction \
---optimizer rmsprop \
---name "trbmhcidecoy-epitope_grouped_shuffle-shuffle-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidecoy-epitope_grouped_shuffle-shuffle-padded-b32-lre4-lrr.log"
-
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
---batch_size 32 \
---epochs 30 \
---cv epitope_grouped_shuffle \
---n_folds 5 \
---neg_ref "${PROJECT_ROOT}/data/raw/CDR3_control_sequences.tsv" \
---min_length_cdr3 10 \
---max_length_cdr3 20 \
---min_length_epitope 8 \
---max_length_epitope 11 \
---features "hydrophob,isoelectric,mass,hydrophil" \
---operator "absdiff" \
---data_path ${PROJECT_ROOT}/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-decoy.csv \
---model model_padded \
---depth1_1 128 \
---depth1_2 64 \
---depth2_1 128 \
---depth2_2 64 \
---activation_function_conv "relu" \
---activation_function_dense "relu" \
---dropout_conv 0.25 \
---learning_rate 0.0001 \
---include_learning_rate_reduction \
---optimizer rmsprop \
---name "trbmhcidecoy-epitope_grouped_shuffle-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidecoy-epitope_grouped_shuffle-negref-padded-b32-lre4-lrr.log"
-
-
-
-
-
-
-
-
-
-
+--name "trbmhcidowndecoy-epitope_grouped-negref-padded-b32-lre4-lrr" 2>&1 | tee -a "trbmhcidowndecoy-epitope_grouped-negref-padded-b32-lre4-lrr.log"
