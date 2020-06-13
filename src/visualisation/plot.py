@@ -1091,17 +1091,42 @@ def roc_per_epitope(
         # colour_palette = palette_single[4]
         # colour_palette = get_palette(eval_df, "type")
 
+        import matplotlib as mpl
+
+        dist = "min_dist"
+        my_cmap = plt.cm.get_cmap("Greens")
+        data_color = eval_df[dist]
+
+        # NOTE: colors are simply passed in their direct order to seaborn, i.e. the order argument is not utilised.
+        # consequently the colors should be sorted manually
+        eval_df["epitope"] = pd.Categorical(eval_df["epitope"], order)
+        colors = mpl.cm.ScalarMappable(cmap="Greens").to_rgba(
+            eval_df.sort_values("epitope")[dist]
+        )
+        sm = mpl.cm.ScalarMappable(
+            cmap=my_cmap, norm=plt.Normalize(min(data_color), max(data_color))
+        )
+        sm.set_array([])
+
+        cbar = plt.colorbar(sm)
+        cbar.set_label(
+            "Median edit distance to training epitopes", rotation=270, labelpad=25
+        )
+
         plotter(
             x="epitope",
             y="roc_auc",
             # hue=hue,
             data=eval_df,
-            # color=palette_single[3],
-            color=colour_palette,
-            # palette=colour_palette,
+            # color=colour_palette,
+            # palette=mpl.cm.ScalarMappable(cmap="magma").to_rgba(eval_df["mean_dist"]),
+            palette=colors,
             order=order,
             # alpha=0.7,
         )
+
+        # optionally overlap individual data points
+        # sns.swarmplot(x="epitope", y="roc_auc", data=eval_df, color=".25")
 
     # comparison of multiple models
     else:
@@ -1134,6 +1159,7 @@ def roc_per_epitope(
             # boxprops=dict(alpha=0.7),
         )
 
+        # optionally use scatter plot instead of box plot
         # sns.scatterplot(
         #     x="mean_dist",
         #     y="roc_auc",
@@ -1163,8 +1189,10 @@ def roc_per_epitope(
     # plt.setp(
     #     ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor",
     # )
+
     # ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)   # causes bug where some epitopes are omitted from the plot
     ax.set(ylim=(eval_df.roc_auc.min() * 0.9, 1))
+
     # ax.set_title(f"AUROC per epitope")
     ax.set_ylabel("AUROC")
     ax.set_xlabel("Epitope")
