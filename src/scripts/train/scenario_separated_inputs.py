@@ -335,15 +335,12 @@ if __name__ == "__main__":
 
     # otherwise, generate negatives through shuffling
     else:
-        # get path to full dataset to check for false negatives
-        full_dataset_path = Path(args.full_dataset_path)
-
         # if neg_gen_full is True, generate negatives once on the entire dataset
         if args.neg_gen_full:
             logger.info(
                 f"Generating negative examples through shuffling on the entire dataset prior to train/test fold creation."
             )
-            data_source.generate_negatives(full_dataset_path)
+            data_source.generate_negatives(args.full_dataset_path)
             neg_shuffle = False
 
         # otherwise, generate negatives within each train/test set during tf dataset creation
@@ -392,7 +389,7 @@ if __name__ == "__main__":
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,
-            full_dataset_path=full_dataset_path,
+            full_dataset_path=args.full_dataset_path,
             export_path=train_fold_output,
             neg_augment=args.neg_augment,
             augment_amount=args.augment_amount,
@@ -402,7 +399,7 @@ if __name__ == "__main__":
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,
-            full_dataset_path=full_dataset_path,
+            full_dataset_path=args.full_dataset_path,
             export_path=test_fold_output,
             neg_augment=args.neg_augment,
             augment_amount=args.augment_amount,

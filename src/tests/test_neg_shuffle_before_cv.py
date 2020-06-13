@@ -15,7 +15,9 @@ def test_generate_negatives():
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
     data_source.add_pos_labels()
-    data_source.generate_negatives()
+    data_source.generate_negatives(
+        full_dataset_path=PROJECT_ROOT / "src/tests/test_vdjdb.csv"
+    )
     assert (
         data_source.data.groupby("y").size()[0]
         == data_source.data.groupby("y").size()[1]
@@ -47,8 +49,10 @@ def test_sample_pairs_nan():
     # append as additional positive data
     data_source.data = data_source.data.append(universal_binder_df)
 
-    # generate negatives through sampling
-    data_source.generate_negatives()
+    # generate negatives through shuffling
+    data_source.generate_negatives(
+        full_dataset_path=PROJECT_ROOT / "src/tests/test_vdjdb.csv"
+    )
 
     # assert that all occurrences of "fake_cdr3" are the original positives, and not new negatives
     fakes = data_source.data.loc[
@@ -74,14 +78,29 @@ def test_sample_pairs_to_do_neg():
     )
     data_source.add_pos_labels()
 
+    full_df = (
+        pd.read_csv(
+            PROJECT_ROOT / "src/tests/test_vdjdb.csv",
+            sep=";",
+            usecols=["cdr3", "antigen.epitope"],
+        )
+        .filter(["cdr3", "antigen.epitope"])
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+
     shuffled_pairs = [
         sample_pairs(
             cdr3=cdr3,
             df=data_source.data,
+            full_df=full_df,
             cdr3_column=data_source.headers["cdr3_header"],
             epitope_column=data_source.headers["epitope_header"],
+            seed=seed,
         )
-        for cdr3 in data_source.data[data_source.headers["cdr3_header"]]
+        for seed, cdr3 in enumerate(
+            data_source.data[data_source.headers["cdr3_header"]]
+        )
     ]
 
     # convert list of tuples into dataframe
@@ -126,7 +145,9 @@ def test_cv():
     )
     data_source.add_pos_labels()
 
-    data_source.generate_negatives()
+    data_source.generate_negatives(
+        full_dataset_path=PROJECT_ROOT / "src/tests/test_vdjdb.csv"
+    )
 
     train, val = splitter(data_source, test_size=0.2)
 

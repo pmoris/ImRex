@@ -130,15 +130,26 @@ class VdjdbSource(DataSource):
                 keep="first",
             ).reset_index(drop=True)
 
-    def generate_negatives(self, full_dataset_path: Path):
+    def generate_negatives(self, full_dataset_path: str):
+        """Generate negative CDR3-epitope pairs through shuffling and add them to the underlying DataFrame.
+
+        Parameters
+        ----------
+        full_dataset_path : str
+            Path to the entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling. Should only contain positive values.
+
+            Length trimming = OK
+            CV folds =  not OK, in the grouped-kfold setting it does not matter, because when a certain CDR3 is paired with two different epitopes, and they end up in different folds, it's impossible for the CDR3 to be accidentally matched up to the other epitope again, because it's not available for selection. In the normal CV setting it could matter though.
+            Downsampling = not OK, a CDR3 could lose representative samples of it being paired with specific epitopes, and could end up being paired with them again as false negatives during shuffling.
+            MHC = OK, a few CDR3s occur for both classes, but none of the epitopes do. Consequently it's impossible for a CDR3 to be paired with an epitope that could be a false negative in the full dataset.
+            TRAB = OK, none of the CDR3s are identical between TRA and TRB genes. Consequently it's impossible for a CDR3 to be paired with an epitope that could be a false negative in the full dataset.
+        """
         logger = logging.getLogger(__name__)
 
         logger.info(
             f"Generating {self.data.shape[0]} negatives by shuffling the positive sequence pairs."
         )
-        logger.info(
-            f"Using {full_dataset_path.absolute} to avoid generating false negatives."
-        )
+        logger.info(f"Using {full_dataset_path} to avoid generating false negatives.")
 
         # print warning and skip generation if there is only 1 epitope
         if len(self.data[self.headers["epitope_header"]].unique()) == 1:
@@ -149,9 +160,7 @@ class VdjdbSource(DataSource):
 
         # read in full dataset and remove duplicates to avoid generating false negatives
         full_df = (
-            pd.read_csv(
-                full_dataset_path, sep="\t", usecols=["cdr3", "antigen.epitope"]
-            )
+            pd.read_csv(full_dataset_path, sep=";", usecols=["cdr3", "antigen.epitope"])
             .drop_duplicates()
             .reset_index(drop=True)
         )

@@ -12,7 +12,7 @@
 # import tempfile
 
 from src.config import PROJECT_ROOT
-import src.preprocessing.preprocess_vdjdb
+import src.scripts.preprocessing.preprocess_vdjdb
 
 # enable file logger because preprocessing function expects it...
 # log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

@@ -71,12 +71,15 @@ def test_tf_dataset_shuffle_array():
     data_source.add_pos_labels()
     data_stream = DataStream(data_source)
 
+    full_dataset_path = PROJECT_ROOT / "src/tests/test_vdjdb.csv"
+
     tf_dataset = padded_dataset_generator(
         data_stream=data_stream,
         feature_builder=feature_builder,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
         neg_shuffle=True,
+        full_dataset_path=full_dataset_path,
     )
 
     tf_dataset = tf_dataset.shuffle(
@@ -169,12 +172,15 @@ def test_output_shape():
 
     data_stream = DataStream(data_source)
 
+    full_dataset_path = PROJECT_ROOT / "src/tests/test_vdjdb.csv"
+
     tf_dataset = padded_dataset_generator(
         data_stream=data_stream,
         feature_builder=feature_builder,
         cdr3_range=(10, 20),
         epitope_range=(8, 11),
         neg_shuffle=True,
+        full_dataset_path=full_dataset_path,
     )
 
     assert len(list(tf_dataset.as_numpy_iterator())) == 2 * n_pos

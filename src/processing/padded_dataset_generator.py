@@ -80,12 +80,6 @@ def padded_dataset_generator(
         assert (
             full_dataset_path
         ), "The path to the full dataset should be supplied when generating negatives through shuffling."
-        logger.info(
-            f"Generating {df.shape[0]} negatives by shuffling the positive sequence pairs."
-        )
-        logger.info(
-            f"Using {full_dataset_path.absolute} to avoid generating false negatives."
-        )
         df = add_negatives(df, full_dataset_path)
 
     # optionally augment with additional negative reference pairs
