@@ -42,7 +42,7 @@ def create_parser():
         "--neg_ref",
         dest="neg_ref",
         type=str,
-        help="Whether to generate negatives from CDR3 reference sequences or by shuffling positive examples.",
+        help="Path with CDR3 reference sequences from which to generate negatives. Disables shuffling.",
         default=None,
     )
     parser.add_argument(
@@ -78,7 +78,7 @@ def create_parser():
         dest="full_dataset_path",
         type=str,
         help="The entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling.",
-        default=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
+        default=None,
     )
     parser.add_argument(
         "--neg_gen_full",
@@ -261,6 +261,10 @@ if __name__ == "__main__":
         raise RuntimeError(
             "For cross-validation, both the number of folds and the type of cv should be specified."
         )
+    elif args.neg_ref and args.full_dataset_path:
+        raise RuntimeError(
+            "When generating negatives from a reference dataset, a full untouched dataset should not be provided, as it's only used to avoid generating false negatives during shuffling of sequence pairs."
+        )
 
     logger.info("neg_ref: " + str(args.neg_ref))
     logger.info("cv_type: " + str(args.cross_validation))
@@ -385,20 +389,20 @@ if __name__ == "__main__":
 
         train_data = separated_input_dataset_generator(
             data_stream=train,
-            full_dataset_path=full_dataset_path,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,
+            full_dataset_path=full_dataset_path,
             export_path=train_fold_output,
             neg_augment=args.neg_augment,
             augment_amount=args.augment_amount,
         )
         val_data = separated_input_dataset_generator(
             data_stream=val,
-            full_dataset_path=full_dataset_path,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,
+            full_dataset_path=full_dataset_path,
             export_path=test_fold_output,
             neg_augment=args.neg_augment,
             augment_amount=args.augment_amount,

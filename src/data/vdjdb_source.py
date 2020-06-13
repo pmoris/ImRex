@@ -1,5 +1,6 @@
+import gc
 import logging
-from path import Pathlib
+from pathlib import Path
 import sys
 
 import pandas as pd
@@ -148,8 +149,9 @@ class VdjdbSource(DataSource):
 
         # read in full dataset and remove duplicates to avoid generating false negatives
         full_df = (
-            pd.read_csv(full_dataset_path)
-            .filter(["cdr3", "antigen.epitope"])
+            pd.read_csv(
+                full_dataset_path, sep="\t", usecols=["cdr3", "antigen.epitope"]
+            )
             .drop_duplicates()
             .reset_index(drop=True)
         )
@@ -272,6 +274,11 @@ class VdjdbSource(DataSource):
                 how="any",
                 subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
             )
+
+        # clean up full dataset from memory
+        del full_df
+        full_df = ""
+        gc.collect()
 
     def length_filter(
         self,

@@ -1,3 +1,4 @@
+import gc
 import logging
 
 import numpy as np
@@ -32,8 +33,7 @@ def add_negatives(df, full_dataset_path):
 
     # read in full dataset and remove duplicates to avoid generating false negatives
     full_df = (
-        pd.read_csv(full_dataset_path)
-        .filter(["cdr3", "antigen.epitope"])
+        pd.read_csv(full_dataset_path, sep="\t", usecols=["cdr3", "antigen.epitope"])
         .drop_duplicates()
         .reset_index(drop=True)
     )
@@ -120,6 +120,11 @@ def add_negatives(df, full_dataset_path):
         ).reset_index(drop=True)
         df = df.dropna(axis=0, how="any", subset=["antigen.epitope"])
 
+    # clean up full dataset from memory
+    del full_df
+    full_df = ""
+    gc.collect()
+
     return df
 
 
@@ -198,9 +203,7 @@ def sample_pairs(
     # because the negatives should have a similar epitope distribution to the positives, i.e.
     # the list of possible epitopes should not be deduplicated or uniqued.
     else:
-        sampled_epitope = possible_epitopes.sample(n=1, random_state=seed).reset_index(
-            drop=True
-        )[0]
+        sampled_epitope = possible_epitopes.sample(n=1, random_state=seed).iloc[0]
         return cdr3, sampled_epitope
 
 
