@@ -71,6 +71,9 @@ data-vdjdb-aug-2019:
 preprocess-vdjdb-aug-2019:
 	mkdir -p data/interim/vdjdb-2019-08-08/
 
+	## full untouched dataset for negative data generation through shuffling
+	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human.csv --species human --drop-spurious
+
 	## NO DOWNSAMPLING
 	### MHCI
 	# 2019-08-08 release: human TRB MHCI without spurious sequences and without any 10xgenomics entries and length restrictions
