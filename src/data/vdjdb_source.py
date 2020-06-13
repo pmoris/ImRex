@@ -1,4 +1,5 @@
 import logging
+from path import Pathlib
 import sys
 
 import pandas as pd
@@ -75,7 +76,7 @@ class VdjdbSource(DataSource):
         # merge with positive dataset
         self.data = self.data.append(negative_df).reset_index(drop=True)
 
-        # remove false negatives
+        # remove false negatives (and accidental negative duplicates)
         to_do_df = self.data.loc[
             self.data.duplicated(
                 subset=[self.headers["cdr3_header"], self.headers["epitope_header"]],
@@ -87,7 +88,7 @@ class VdjdbSource(DataSource):
             keep="first",
         ).reset_index(drop=True)
 
-        # create new negative pairs for any accidental false negatives
+        # create new negative pairs for any accidental false negatives (and accidental negative duplicates)
         amount = to_do_df.shape[0]
         seed = 42
         while amount > 0:
@@ -128,20 +129,37 @@ class VdjdbSource(DataSource):
                 keep="first",
             ).reset_index(drop=True)
 
-    def generate_negatives(self):
+    def generate_negatives(self, full_dataset_path: Path):
         logger = logging.getLogger(__name__)
+
+        logger.info(
+            f"Generating {self.data.shape[0]} negatives by shuffling the positive sequence pairs."
+        )
+        logger.info(
+            f"Using {full_dataset_path.absolute} to avoid generating false negatives."
+        )
+
         # print warning and skip generation if there is only 1 epitope
         if len(self.data[self.headers["epitope_header"]].unique()) == 1:
             logger.warning(
-                "Cannot generate negatives through shuffling when there is only 1 epitope present in the dataset. Skipping generation..."
+                "Cannot generate negatives through shuffling when there is only 1 epitope present in the dataset. Aborting..."
             )
             sys.exit(1)
+
+        # read in full dataset and remove duplicates to avoid generating false negatives
+        full_df = (
+            pd.read_csv(full_dataset_path)
+            .filter(["cdr3", "antigen.epitope"])
+            .drop_duplicates()
+            .reset_index(drop=True)
+        )
 
         # generate negative pairs from list of all cdr3s in positive pairs
         shuffled_pairs = [
             sample_pairs(
                 cdr3=cdr3,
                 df=self.data,
+                full_df=full_df,
                 cdr3_column=self.headers["cdr3_header"],
                 epitope_column=self.headers["epitope_header"],
                 seed=seed,
@@ -204,6 +222,7 @@ class VdjdbSource(DataSource):
                     sample_pairs(
                         cdr3=cdr3,
                         df=self.data,
+                        full_df=full_df,
                         cdr3_column=self.headers["cdr3_header"],
                         epitope_column=self.headers["epitope_header"],
                         seed=n,
@@ -220,6 +239,7 @@ class VdjdbSource(DataSource):
                     sample_pairs(
                         cdr3=cdr3,
                         df=self.data,
+                        full_df=full_df,
                         cdr3_column=self.headers["cdr3_header"],
                         epitope_column=self.headers["epitope_header"],
                         seed=n,

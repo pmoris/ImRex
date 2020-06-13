@@ -1,6 +1,7 @@
 """ Scenario for neural network with dual sequence input. """
 import argparse
 import logging
+from pathlib import Path
 
 from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
@@ -71,6 +72,13 @@ def create_parser():
             "epitope_grouped_shuffle",
         ],
         default=None,
+    )
+    parser.add_argument(
+        "--full_dataset_path",
+        dest="full_dataset_path",
+        type=str,
+        help="The entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling.",
+        default=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
     )
     parser.add_argument(
         "--neg_gen_full",
@@ -323,12 +331,15 @@ if __name__ == "__main__":
 
     # otherwise, generate negatives through shuffling
     else:
+        # get path to full dataset to check for false negatives
+        full_dataset_path = Path(args.full_dataset_path)
+
         # if neg_gen_full is True, generate negatives once on the entire dataset
         if args.neg_gen_full:
             logger.info(
                 f"Generating negative examples through shuffling on the entire dataset prior to train/test fold creation."
             )
-            data_source.generate_negatives()
+            data_source.generate_negatives(full_dataset_path)
             neg_shuffle = False
 
         # otherwise, generate negatives within each train/test set during tf dataset creation
@@ -374,6 +385,7 @@ if __name__ == "__main__":
 
         train_data = separated_input_dataset_generator(
             data_stream=train,
+            full_dataset_path=full_dataset_path,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,
@@ -383,6 +395,7 @@ if __name__ == "__main__":
         )
         val_data = separated_input_dataset_generator(
             data_stream=val,
+            full_dataset_path=full_dataset_path,
             cdr3_range=cdr3_range,
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,

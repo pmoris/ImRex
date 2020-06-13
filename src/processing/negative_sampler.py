@@ -6,7 +6,21 @@ import pandas as pd
 from src.data.control_cdr3_source import ControlCDR3Source
 
 
-def add_negatives(df):
+def add_negatives(df, full_dataset_path):
+    """Generate negative CDR3-epitope pairs through shuffling and add them to the DataFrame.
+
+    Parameters
+    ----------
+    df : DataFrame
+        A DataFrame containing CDR3 and epitope sequence pairs, derived from a relevant Stream object. Should only contain positives, as a "y" column with 1s.
+    full_dataset_path : [type]
+        Path to the entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling. Should only contain positive values.
+
+    Returns
+    -------
+    DataFrame
+        A DataFrame with the original positive CDR3-epitope pairs, and new negative pairs created by shuffling the positive ones.
+    """
     logger = logging.getLogger(__name__)
 
     # print warning and skip generation if there is only 1 epitope
@@ -16,11 +30,20 @@ def add_negatives(df):
         )
         return df
 
+    # read in full dataset and remove duplicates to avoid generating false negatives
+    full_df = (
+        pd.read_csv(full_dataset_path)
+        .filter(["cdr3", "antigen.epitope"])
+        .drop_duplicates()
+        .reset_index(drop=True)
+    )
+
     # generate negative pairs from list of all cdr3s in positive pairs
     shuffled_pairs = [
         sample_pairs(
             cdr3=cdr3,
             df=df,
+            full_df=full_df,
             cdr3_column="cdr3",
             epitope_column="antigen.epitope",
             seed=seed,
@@ -62,6 +85,7 @@ def add_negatives(df):
                 sample_pairs(
                     cdr3=cdr3,
                     df=df,
+                    full_df=full_df,
                     cdr3_column="cdr3",
                     epitope_column="antigen.epitope",
                     seed=n,
@@ -78,6 +102,7 @@ def add_negatives(df):
                 sample_pairs(
                     cdr3=cdr3,
                     df=df,
+                    full_df=full_df,
                     cdr3_column="cdr3",
                     epitope_column="antigen.epitope",
                     seed=n,
@@ -101,13 +126,14 @@ def add_negatives(df):
 def sample_pairs(
     cdr3: str,
     df: pd.DataFrame,
+    full_df: pd.DataFrame,
     cdr3_column: str = "cdr3",
     epitope_column: str = "antigen.epitope",
     seed: int = 42,
 ) -> (str, str):
     """Sample an epitope for the given CDR3 sequence from the pool of other epitopes in the original positive dataset.
 
-    NOTE: do not use a random_state for the sample function, since this will result in the same epitope
+    NOTE: do not use a fixed random_state for the sample function, since this will result in the same epitope
     being returned every time (for cdr3s with the same original epitope).
 
     Parameters
@@ -117,6 +143,9 @@ def sample_pairs(
     df : pd.DataFrame
         A positive cdr3-epitope DataFrame with a "cdr3" and "antigen.epitope" column.
         Must have a class label column ("y") with "1" as the positive label.
+    full_df : pd.DataFrame
+        The entire cdr3-epitope DataFrame, before splitting into folds, restricting length or downsampling. Used to avoid
+        generating false negatives. Should only contain positive values.
     cdr3_column : str
         The header for the cdr3 column in the DataFrame.
     epitope_column : str
@@ -130,15 +159,28 @@ def sample_pairs(
     Tuple
         A tuple of a negative cdr3 and epitope sequence pair.
     """
-    # check which epitopes occur as a positive partner for the current cdr3
-    epitopes_to_exclude = df.loc[
-        (df[cdr3_column] == cdr3) & (df["y"] == 1), epitope_column,
-    ]
+
+    # full_df should only contain positive pairs, and consequently no y column should be present yet
+    assert "y" not in full_df.columns
+
+    # check which epitopes occur as a positive partner for the current cdr3 in the full dataset
+    epitopes_to_exclude = full_df.loc[(full_df[cdr3_column] == cdr3), epitope_column]
+    # epitopes_to_exclude = df.loc[
+    #     (df[cdr3_column] == cdr3) & (df["y"] == 1), epitope_column
+    # ]
     # NOTE: for this to work, the original data source should either remain unmodified (to avoid epitopes paired with
     # the cdr3 as a negative example from showing up in this list), or by making sure the class labels are 1, in which
     # case the original dataframe should be given class labels before the sample_pairs function is called for the first time.
 
     # create pd.Series with all epitopes except for those that are positive partners of the current cdr3
+
+    ## isin is faster even if there' just a single epitope, so use it by default
+    ## %timeit df["antigen.epitope"].isin(["LGYGFVNYI"])
+    ## 410 µs ± 19.3 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+
+    ## %timeit df["antigen.epitope"] != "LGYGFVNYI"
+    ## 1.46 ms ± 24.9 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+
     possible_epitopes = df.loc[
         ~df[epitope_column].isin(epitopes_to_exclude), epitope_column,
     ]
@@ -152,6 +194,9 @@ def sample_pairs(
         return cdr3, np.NaN
 
     # sample 1 epitope from this list to pair with the cdr3 as a negative example
+    # sampling should happen uniformly across all epitopes in their original distributions,
+    # because the negatives should have a similar epitope distribution to the positives, i.e.
+    # the list of possible epitopes should not be deduplicated or uniqued.
     else:
         sampled_epitope = possible_epitopes.sample(n=1, random_state=seed).reset_index(
             drop=True
