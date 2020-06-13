@@ -91,7 +91,13 @@ def add_negatives(df: pd.DataFrame, full_dataset_path: str):
     n = 0
     while to_do_df.shape[0] > 0:
         n += 1
-        if n > 50:
+        if n > 100:
+            logger.warning(
+                f"Could not create negative samples for {len(to_do_df)} CDR3 sequences, likely because they had too many different binding partners. Skipping these..."
+            )
+            logger.warning(to_do_df)
+            break
+        elif n == 50:
             shuffled_pairs = [
                 sample_pairs(
                     cdr3=cdr3,
@@ -106,7 +112,7 @@ def add_negatives(df: pd.DataFrame, full_dataset_path: str):
                 )
             ]
             logger.warning(
-                f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3's will be re-used."
+                f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3s will be sampled randomly from the positive set, leading them to be re-used and present in multiple negative pairs. Retrying this step 50 times before giving up. The CDR3s to be omitted are {to_do_df.cdr3}."
             )
         else:
             shuffled_pairs = [
@@ -178,6 +184,14 @@ def sample_pairs(
 
     # full_df should only contain positive pairs, and consequently no y column should be present yet
     assert "y" not in full_df.columns
+
+    # TODO: instead of having to retry matching CDR3s 50 times if they fail to match with a valid epitope
+    # add the negative cdr3-epitope pairs to the epitopes_to_exclude list. Then, if the possible_epitopes
+    # list is empty, this means that all epitopes in the dataset are either present in a positive example of this cdr3,
+    # or a negative one, but either way the set of epitopes is excluded. Then a warning can be printed
+    # and this cdr3 can be rejected. Afterwards, all rejected (nans) should be counted,
+    # and the same amount of new cdr3s should be drawn again, while printing a warning that certain cdr3s are being
+    # re-used in order to achieve the 50:50 pos-neg balance.
 
     # check which epitopes occur as a positive partner for the current cdr3 in the full dataset
     epitopes_to_exclude = full_df.loc[(full_df[cdr3_column] == cdr3), epitope_column]

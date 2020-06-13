@@ -228,7 +228,13 @@ class VdjdbSource(DataSource):
         n = 0
         while to_do_df.shape[0] > 0:
             n += 1
-            if n > 50:
+            if n > 100:
+                logger.warning(
+                    f"Could not create negative samples for {len(to_do_df)} CDR3 sequences, likely because they had too many different binding partners. Skipping these..."
+                )
+                logger.warning(to_do_df)
+                break
+            elif n > 50:
                 shuffled_pairs = [
                     sample_pairs(
                         cdr3=cdr3,
@@ -243,7 +249,7 @@ class VdjdbSource(DataSource):
                     ].sample(n=len(to_do_df), random_state=42 + n)
                 ]
                 logger.warning(
-                    f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3's will be re-used."
+                    f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3s will be sampled randomly from the positive set, leading them to be re-used and present in multiple negative pairs. The CDR3s to be omitted are {to_do_df}"
                 )
             else:
                 shuffled_pairs = [
