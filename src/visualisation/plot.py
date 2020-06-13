@@ -1168,7 +1168,7 @@ def roc_per_epitope(
         )
         # compute wilcoxon test and add p-value to legend
         p = scipy.stats.wilcoxon(eval_df["diff"].dropna(), correction=True)[1]
-        ax.legend(title=r"Wilcoxon signed-rank test $P-value =$ " + str(round(p, 4)))
+        ax.legend(title=r"Wilcoxon signed-rank test $P-value =$ " + str(round(p, 4)),)
 
         # count number of epitopes for which one model is higher than the other, requires sort
         # eval_df.loc[eval_df["diff"] > 0,["epitope","type","roc_auc","diff"]].count()
