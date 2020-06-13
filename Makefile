@@ -48,7 +48,7 @@ lint:
 
 ## Run tests
 test:
-	pytest
+	pytest src/tests
 
 ## Delete all compiled Python files
 clean:
