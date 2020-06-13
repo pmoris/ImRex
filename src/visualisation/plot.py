@@ -1134,6 +1134,19 @@ def roc_per_epitope(
             # boxprops=dict(alpha=0.7),
         )
 
+        # sns.scatterplot(
+        #     x="mean_dist",
+        #     y="roc_auc",
+        #     hue="epitope",
+        #     data=eval_df,
+        #     style="type"
+        #     # palette=colour_palette,
+        # )
+
+        # remove legend title (do not use for single model type plot, this will result in an empty rectangle)
+        l = ax.legend()
+        l.set_title("")
+
         # if len(colour_palette) == 7:
         #     # change alpha value of fill colours for custom palette, cannot be done through seaborn directly
         #     # see: https://github.com/mwaskom/seaborn/issues/979
@@ -1155,8 +1168,6 @@ def roc_per_epitope(
     # ax.set_title(f"AUROC per epitope")
     ax.set_ylabel("AUROC")
     ax.set_xlabel("Epitope")
-    l = ax.legend()
-    l.set_title("")
 
     # add wilcox test for grouped plots if there are exactly two model types, skip for decoy vs normal comparisons
     if comparison and eval_df["type"].nunique() == 2 and not decoy:
