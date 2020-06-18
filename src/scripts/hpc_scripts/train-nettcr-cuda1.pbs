@@ -81,7 +81,7 @@ date
 
 # terminal replaced
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -98,7 +98,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhciterminalreplaced-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "trbmhciterminalreplaced-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -117,7 +117,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 ############## epitope grouped
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
@@ -138,7 +138,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # 5repeated5fold
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -155,7 +155,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "tratrbmhci-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "tratrbmhci-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -174,7 +174,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # down
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -191,7 +191,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "tratrbmhcidown-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "tratrbmhcidown-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -211,7 +211,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 # decoy
 
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -228,7 +228,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "tratrbmhcidecoy-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "tratrbmhcidecoy-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -252,7 +252,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # down
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
@@ -269,7 +269,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "tratrbmhcidown-epitope_grouped-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "tratrbmhcidown-epitope_grouped-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
@@ -288,7 +288,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # down decoy
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
@@ -305,7 +305,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "tratrbmhcidowndecoy-epitope_grouped-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "tratrbmhcidowndecoy-epitope_grouped-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \

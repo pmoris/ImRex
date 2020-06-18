@@ -79,7 +79,7 @@ date
 
 # trbmhci 5repeated5fold
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -96,7 +96,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhci-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "trbmhci-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -115,7 +115,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # down
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -132,7 +132,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidown-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "trbmhcidown-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -151,7 +151,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # decoy
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -168,7 +168,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidecoy-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "trbmhcidecoy-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -187,7 +187,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # down decoy
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -204,7 +204,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidowndecoy-repeated5fold-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "trbmhcidowndecoy-repeated5fold-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv repeatedkfold \
@@ -227,7 +227,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # down
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
@@ -244,7 +244,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidown-epitope_grouped-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "trbmhcidown-epitope_grouped-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
@@ -263,7 +263,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 
 # down decoy
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
@@ -280,7 +280,7 @@ python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
 --optimizer rmsprop \
 --name "trbmhcidowndecoy-epitope_grouped-shuffle-nettcr-b32-lre3-lrr" 2>&1 | tee -a "trbmhcidowndecoy-epitope_grouped-shuffle-nettcr-b32-lre3-lrr.log"
 
-python ${PROJECT_ROOT}/src/scripts/train/scenario_padding.py \
+python ${PROJECT_ROOT}/src/scripts/train/scenario_separated_inputs.py \
 --batch_size 32 \
 --epochs 30 \
 --cv epitope_grouped \
