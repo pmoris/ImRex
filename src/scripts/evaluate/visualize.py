@@ -650,7 +650,7 @@ def evaluate_self_comparison_plots(
 
         assert (
             len(eval_list) == 1
-        ), f"Found multiple evaluate_test_folds.csv files in {directory}, aborting..."
+        ), f"Found no or multiple evaluate_test_folds.csv files in {directory}, aborting..."
 
         df = pd.read_csv(eval_list[0])
         df["type"] = directory.name
