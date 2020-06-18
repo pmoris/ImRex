@@ -409,6 +409,61 @@ def features():
 
 
 @bacli.command
+def folds(directory: str):
+    # directory
+    #   |- iteration 0
+    #       |- train_fold_0.csv
+    #       |- test_fold_0.csv
+    #   |- iteration 1
+    #       |- train_fold_1.csv
+    #       |- test_fold_1.csv
+    #   |- ...
+
+    input_directory = Path(directory)
+
+    test_fold_list = [
+        i
+        for i in input_directory.rglob("test_fold_*.csv")
+        if not i.parent.name.startswith("_")
+    ]
+
+    df_list = []
+    for i, fold in enumerate(test_fold_list):
+        df = pd.read_csv(fold, sep=";")
+        df["fold"] = i
+        df_list.append(df)
+    df = pd.concat(df_list).reset_index(drop=True)
+
+    df = df.sort_values(by=["antigen.epitope", "y"]).reset_index(drop=True)
+
+    # only plot image if there are fewer than 5 folds because
+    # it takes too long otherwise and the image becomes too large
+    if df["fold"].nunique() <= 5:
+        plot_cv_folds(df, input_directory / "cv_folds.pdf")
+
+    # save csv with test fold sample counts
+    df.groupby(["fold", "antigen.epitope", "y"]).agg("size").groupby(
+        level=0, group_keys=False
+    ).apply(lambda x: x.sort_values(ascending=False).head(len(df))).to_csv(
+        input_directory / "folds_pos_neg_split.csv"
+    )
+
+    df.groupby(["fold", "antigen.epitope"]).agg("size").groupby(
+        level=0, group_keys=False
+    ).apply(lambda x: x.sort_values(ascending=False).head(len(df))).to_csv(
+        input_directory / "folds_pos_neg.csv"
+    )
+
+    df[df["y"] == 1].groupby(["fold", "antigen.epitope"]).agg("size").groupby(
+        level=0, group_keys=False
+    ).apply(
+        lambda x: x.sort_values(ascending=False).head(len(df[df["y"] == 1]))
+    ).to_csv(
+        input_directory / "folds_pos_only.csv"
+    )
+
+
+@bacli.command
 def metrics(directory: str, force: bool = False, y_lim_loss: float = None):
     # directory
     #   |- iteration 0

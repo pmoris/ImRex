@@ -5,6 +5,7 @@ from pathlib import Path
 from textwrap import fill
 
 from matplotlib.gridspec import GridSpec
+from matplotlib.patches import Patch
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import numpy as np
@@ -1281,3 +1282,76 @@ def get_palette(df, value):
 #         patch.set_facecolor((r, g, b, 0.7))
 #     for lh in l.legendHandles:
 #         lh.set_alpha(0.7)
+
+
+def plot_cv_folds(df, output_path):
+    fold_indices = [
+        (df.index.difference(df[df["fold"] == i].index), df[df["fold"] == i].index)
+        for i in df["fold"].unique()
+    ]
+    X = df.cdr3
+    y = df.y
+    groups = pd.factorize(df["antigen.epitope"])[0]
+    n_splits = df.fold.nunique()
+    lw = 30
+
+    cmap_data = plt.cm.tab20c
+    cmap_cv = plt.cm.coolwarm
+
+    fig, ax = plt.subplots(figsize=(20, 8))
+
+    # Generate the training/testing visualizations for each CV split
+    for ii, (tr, tt) in enumerate(fold_indices):
+        # Fill in indices with the training/test groups
+        indices = np.array([np.nan] * len(X))
+        indices[tt] = 1
+        indices[tr] = 0
+
+        # Visualize the results
+        ax.scatter(
+            range(len(indices)),
+            [ii + 0.5] * len(indices),
+            c=indices,
+            marker="_",
+            lw=lw,
+            cmap=cmap_cv,
+            vmin=-0.2,
+            vmax=1.2,
+        )
+
+    # Plot the data classes and groups at the end
+    ax.scatter(
+        range(len(X)), [ii + 1.5] * len(X), c=y, marker="_", lw=lw, cmap=cmap_data
+    )
+
+    # create color map that cycles for groups
+    color_dict = {
+        i: cmap_data.colors[i % len(cmap_data.colors)] for i in np.unique(groups)
+    }
+    color_list = [color_dict[i] for i in groups]
+    ax.scatter(range(len(X)), [ii + 2.5] * len(X), marker="_", lw=lw, color=color_list)
+
+    # Formatting
+    yticklabels = list(range(n_splits)) + ["class", "group"]
+    ax.set(
+        yticks=np.arange(n_splits + 2) + 0.5,
+        yticklabels=yticklabels,
+        xlabel="Sample index (sorted by epitope and class label)",
+        ylabel="CV iteration",
+        ylim=[n_splits + 2.2, -0.2],
+        xlim=[0, len(X)],
+    )
+    ax.set_title("Cross-validation folds", fontsize=15)
+
+    ax.legend(
+        [Patch(color=cmap_cv(0.8)), Patch(color=cmap_cv(0.02))],
+        ["Testing set", "Training set"],
+        loc=(1.02, 0.8),
+    )
+    # Make the legend fit
+    plt.tight_layout()
+    fig.subplots_adjust(right=0.7)
+
+    plt.savefig(output_path)
+
+    plt.close("all")
