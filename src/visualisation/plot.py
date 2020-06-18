@@ -108,6 +108,8 @@ def derive_metrics_all(directory, force=False):
         derive_roc(p, y_true, y_pred, force=force)
         derive_pr(p, y_true, y_pred, force=force)
 
+        plot_predictions(subdir)
+
 
 def derive_roc(subdir, y_true, y_pred, force=False):
     roc_path = os.path.join(subdir, "roc.csv")
