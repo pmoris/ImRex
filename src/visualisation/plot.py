@@ -1031,7 +1031,7 @@ def roc_per_epitope(
 
         # omit all epitopes for which the highest auroc is lower than 0.5
         eval_df = eval_df[
-            eval_df.groupby("epitope")["roc_auc"].transform(lambda x: max(x) >= 0.5)
+            eval_df.groupby("epitope")["roc_auc"].transform(lambda x: max(x) > 0.5)
         ]
         # same as: eval_df.groupby("epitope")["roc_auc"].transform("max") >= 0.5
 
