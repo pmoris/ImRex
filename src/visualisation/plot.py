@@ -1254,8 +1254,17 @@ def roc_train_corr(eval_df, output_path):
 
     g.ax_joint.set_xscale("log")
     g.ax_marg_x.set_xscale("log")
-    g.ax_joint.set_xlim([1, 10 ** 4])
-    g.ax_marg_x.set_xlim([1, 10 ** 4])
+    # g.ax_joint.set_xlim(
+    #     [eval_df["train_size"].min() - 100, eval_df["train_size"].max() + 100]
+    # )
+    # g.ax_marg_x.set_xlim(
+    #     [eval_df["train_size"].min() - 100, eval_df["train_size"].max() + 100]
+    # )
+
+    r, p = scipy.stats.spearmanr(eval_df["roc_auc"], eval_df["train_size"])
+    annot_kws = {"prop": {"family": "monospace", "weight": "bold", "size": 15}}
+    phantom = g.ax_joint.plot([], [], linestyle="", alpha=0)
+    g.ax_joint.legend([phantom], ["r={:f}, p={:f}".format(r, p)], **annot_kws)
 
     g.fig.set_dpi(200)
 
@@ -1263,10 +1272,32 @@ def roc_train_corr(eval_df, output_path):
 
 
 def roc_min_dist_box(eval_df, output_path):
-    g = sns.boxplot(y="roc_auc", x="min_dist", data=eval_df)
-    sns.swarmplot(y="roc_auc", x="min_dist", data=eval_df, color=".25")
+    g = sns.boxplot(
+        y="roc_auc", x="min_dist", data=eval_df, color=sns.color_palette("Dark2")[0],
+    )
+    # sns.swarmplot(y="roc_auc", x="min_dist", data=eval_df, color=".25")
     g.set_xlabel("Minimum edit distance")
     g.set_ylabel("AUROC")
+
+    r, p = scipy.stats.spearmanr(eval_df["roc_auc"], eval_df["min_dist"])
+    # annot_kws = {"prop": {"family": "monospace", "weight": "bold", "size": 15}}
+    # phantom = g.plot([], [], linestyle="", alpha=0)
+    # g.legend([phantom], ["r={:f}, p={:f}".format(r, p)], **annot_kws)
+    g.set_title("r={:f}, p={:f}".format(r, p))
+
+    plt.savefig(output_path)
+
+
+def roc_avg_dist_corr(eval_df, output_path):
+    g = sns.jointplot(y="roc_auc", x="mean_dist", data=eval_df)
+    g.ax_joint.set_xlabel("Average edit distance")
+    g.ax_joint.set_ylabel("AUROC")
+    g.fig.set_dpi(200)
+    r, p = scipy.stats.spearmanr(eval_df["roc_auc"], eval_df["mean_dist"])
+    annot_kws = {"prop": {"family": "monospace", "weight": "bold", "size": 15}}
+    (phantom,) = g.ax_joint.plot([], [], linestyle="", alpha=0)
+    g.ax_joint.legend([phantom], ["r={:f}, p={:f}".format(r, p)], **annot_kws)
+    # g.ax_joint.legend(spearman)
     plt.savefig(output_path)
 
 
