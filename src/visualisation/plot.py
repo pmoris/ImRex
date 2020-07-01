@@ -952,6 +952,30 @@ def plot_roc_boxplot(directory):
     sns_plot.legend(title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15))
     sns_plot.set(xticklabels=[])
 
+    # add wmu test
+
+    if df["type"].nunique() == 2:
+        # sort the values
+        df = df.sort_values(["iteration", "type"]).reset_index(drop=True)
+        # and calculate the difference in auroc between the model types per iteration
+        df["diff"] = df.groupby("iteration")["auc"].transform(lambda x: x.diff())
+
+        # # wilcoxon signed rank test
+        # # compute wilcoxon test and add p-value to legend
+        # p = scipy.stats.wilcoxon(df["diff"].dropna(), correction=True, mode="exact")[1]
+        # ax.legend(title=r"Wilcoxon signed-rank test $P-value =$ " + str(round(p, 4)),)
+
+        # # sign test
+        # x = (df["diff"].dropna() > 0).sum()
+        # n = len(df["diff"].dropna())
+        # p = scipy.stats.binom_test(x, n, 0.5, alternative="two-sided")
+        # ax.legend(title=f"Sign test {p}")
+
+        # MWU test
+        auroc_lists = [df.loc[df["type"] == i, "auc"] for i in df["type"].unique()]
+        p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])  # [1]
+        ax.legend(title=f"MWU test {p}")
+
     sns_plot.get_figure().savefig(
         get_output_path(
             directory,
