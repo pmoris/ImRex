@@ -922,7 +922,7 @@ def plot_roc_boxplot(directory):
     sns_plot = sns.boxplot(
         x="type-mean-std",
         y="auc",
-        data=df,  # .sort_values(by=["type"], ascending=False),
+        data=df.sort_values(by=["type-mean-std"]),
         order=sorted(df["type-mean-std"].unique()),
         palette=get_palette(df, "type-mean-std"),
         hue="type-mean-std",
