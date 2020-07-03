@@ -1239,7 +1239,7 @@ def roc_per_epitope(
         # count number of epitopes for which one model is higher than the other, requires sort
         # eval_df.loc[eval_df["diff"] > 0,["epitope","type","roc_auc","diff"]].count()
 
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches="tight")
 
 
 def roc_train_corr(eval_df, output_path):
@@ -1268,7 +1268,7 @@ def roc_train_corr(eval_df, output_path):
 
     g.fig.set_dpi(200)
 
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches="tight")
 
 
 def roc_min_dist_box(eval_df, output_path):
@@ -1285,7 +1285,7 @@ def roc_min_dist_box(eval_df, output_path):
     # g.legend([phantom], ["r={:f}, p={:f}".format(r, p)], **annot_kws)
     g.set_title("r={:f}, p={:f}".format(r, p))
 
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches="tight")
 
 
 def roc_avg_dist_corr(eval_df, output_path):
@@ -1298,7 +1298,7 @@ def roc_avg_dist_corr(eval_df, output_path):
     (phantom,) = g.ax_joint.plot([], [], linestyle="", alpha=0)
     g.ax_joint.legend([phantom], ["r={:f}, p={:f}".format(r, p)], **annot_kws)
     # g.ax_joint.legend(spearman)
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches="tight")
 
 
 def roc_min_dist_corr(eval_df, output_path):
@@ -1306,7 +1306,7 @@ def roc_min_dist_corr(eval_df, output_path):
     g.ax_joint.set_xlabel("Minimum edit distance")
     g.ax_joint.set_ylabel("AUROC")
     g.fig.set_dpi(200)
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches="tight")
 
 
 def roc_median_dist_corr(eval_df, output_path):
@@ -1314,7 +1314,7 @@ def roc_median_dist_corr(eval_df, output_path):
     g.ax_joint.set_xlabel("Median edit distance")
     g.ax_joint.set_ylabel("AUROC")
     g.fig.set_dpi(200)
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches="tight")
 
 
 def get_palette(df, value):
@@ -1409,6 +1409,6 @@ def plot_cv_folds(df, output_path):
     plt.tight_layout()
     fig.subplots_adjust(right=0.7)
 
-    plt.savefig(output_path)
+    plt.savefig(output_path, bbox_inches="tight")
 
     plt.close("all")
