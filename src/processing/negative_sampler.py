@@ -15,7 +15,7 @@ def add_negatives(df: pd.DataFrame, full_dataset_path: str):
     df : DataFrame
         A DataFrame containing CDR3 and epitope sequence pairs, derived from a relevant Stream object. Should only contain positives, as a "y" column with 1s.
     full_dataset_path : str
-        Path to the entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling. Should only contain positive values.
+        Path to the entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling. Should only contain positive values. Will be merged with current train/val dataframe.
 
         Length trimming = OK
         CV folds =  not OK, in the grouped-kfold setting it does not matter, because when a certain CDR3 is paired with two different epitopes, and they end up in different folds, it's impossible for the CDR3 to be accidentally matched up to the other epitope again, because it's not available for selection. In the normal CV setting it could matter though.
@@ -43,8 +43,13 @@ def add_negatives(df: pd.DataFrame, full_dataset_path: str):
         return df
 
     # read in full dataset and remove duplicates to avoid generating false negatives
+    full_df = pd.read_csv(
+        full_dataset_path, sep=";", usecols=["cdr3", "antigen.epitope"]
+    )
+    # merge the train/validation set with the full dataset and use this to check for false negatives
+    # merging is important when the validation set is not contained in the full dataset (e.g. when using an external test set)
     full_df = (
-        pd.read_csv(full_dataset_path, sep=";", usecols=["cdr3", "antigen.epitope"])
+        pd.concat([full_df, df[["cdr3", "antigen.epitope"]]])
         .drop_duplicates()
         .reset_index(drop=True)
     )
