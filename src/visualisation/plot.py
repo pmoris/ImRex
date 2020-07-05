@@ -976,6 +976,12 @@ def plot_roc_boxplot(directory):
         p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])  # [1]
         ax.legend(title=f"MWU test {p}")
 
+        sns_plot.legend(
+            title=f"MWU test P-value = {round(p,4)}",
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.15),
+        )
+
     sns_plot.get_figure().savefig(
         get_output_path(
             directory,
