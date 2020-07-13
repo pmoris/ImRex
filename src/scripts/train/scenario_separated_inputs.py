@@ -1,7 +1,6 @@
 """ Scenario for neural network with dual sequence input. """
 import argparse
 import logging
-from pathlib import Path
 
 from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
@@ -51,6 +50,20 @@ def create_parser():
         type=float,
         help="Proportion of positive to negative samples.",
         default=0.5,
+    )
+    parser.add_argument(
+        "--validation_data",
+        dest="validation_data",
+        type=str,
+        help="External validation set to use.",
+        default=None,
+    )
+    parser.add_argument(
+        "--no_validation",
+        dest="no_validation",
+        action="store_true",
+        help="Train a model on the entire dataset without performing (cross-)validation.",
+        default=False,
     )
     parser.add_argument(
         "--val_split",
@@ -324,7 +337,7 @@ if __name__ == "__main__":
 
     # if negative reference dataset is provided, draw negatives from it
     if args.neg_ref:
-        logger.info(f"Generating negative examples from negative reference CDR3 set.")
+        logger.info("Generating negative examples from negative reference CDR3 set.")
         negative_source = ControlCDR3Source(
             filepath=args.neg_ref,
             min_length=args.min_length_cdr3,
@@ -338,7 +351,7 @@ if __name__ == "__main__":
         # if neg_gen_full is True, generate negatives once on the entire dataset
         if args.neg_gen_full:
             logger.info(
-                f"Generating negative examples through shuffling on the entire dataset prior to train/test fold creation."
+                "Generating negative examples through shuffling on the entire dataset prior to train/test fold creation."
             )
             data_source.generate_negatives(args.full_dataset_path)
             neg_shuffle = False
@@ -346,42 +359,19 @@ if __name__ == "__main__":
         # otherwise, generate negatives within each train/test set during tf dataset creation
         else:
             logger.info(
-                f"Generating negative examples through shuffling within each train/test fold."
+                "Generating negative examples through shuffling within each train/test fold."
             )
             neg_shuffle = True
 
-    # if a fixed train-test split ratio is provided...
-    if args.val_split is not None:
-        train, val = splitter(data_source, test_size=args.val_split)
-        iterations = [(train, val)]
-
-    # ...otherwise use the specified cross validation scheme
-    else:
-        iterations = cv_splitter(
-            data_source=data_source,
-            cv_type=args.cross_validation,
-            n_folds=args.n_folds,
+    if args.no_validation:
+        logger.info(
+            "Not performing (cross-)validation; training model on all supplied data."
         )
 
-    for iteration, (train, val) in enumerate(iterations):
+        train = data_source
 
-        logger.info(f"Iteration: {iteration}")
-        logger.info(f"Batch size: {args.batch_size}")
-        logger.info(f"Train set: {len(train)}")
-        logger.info(f"Test set: {len(val)}")
-
-        # retrieve model output directory and create data directory to store generated datasets with positive and negative examples
-        train_fold_output, test_fold_output = (
-            get_output_path(
-                base_name=run_name,
-                file_name=f"train_fold_{iteration}.csv",
-                iteration=iteration,
-            ),
-            get_output_path(
-                base_name=run_name,
-                file_name=f"test_fold_{iteration}.csv",
-                iteration=iteration,
-            ),
+        train_output = get_output_path(
+            base_name=run_name, file_name="train.csv", iteration="no_validation",
         )
 
         train_data = separated_input_dataset_generator(
@@ -390,17 +380,7 @@ if __name__ == "__main__":
             epitope_range=epitope_range,
             neg_shuffle=neg_shuffle,
             full_dataset_path=args.full_dataset_path,
-            export_path=train_fold_output,
-            neg_augment=args.neg_augment,
-            augment_amount=args.augment_amount,
-        )
-        val_data = separated_input_dataset_generator(
-            data_stream=val,
-            cdr3_range=cdr3_range,
-            epitope_range=epitope_range,
-            neg_shuffle=neg_shuffle,
-            full_dataset_path=args.full_dataset_path,
-            export_path=test_fold_output,
+            export_path=train_output,
             neg_augment=args.neg_augment,
             augment_amount=args.augment_amount,
         )
@@ -417,9 +397,114 @@ if __name__ == "__main__":
             reshuffle_each_iteration=True,
         ).batch(args.batch_size)
 
-        # batch validation data
-        val_data = val_data.batch(args.batch_size)
+        model_instance = trainer.train(
+            model=model,
+            train_data=train_data,
+            val_data=None,
+            iteration="no_validation",
+        )
 
-        model_instance = trainer.train(model, train_data, val_data, iteration=iteration)
+        model_instance.save(
+            filepath=get_output_path(model.base_name, model.base_name + ".h5")
+        )
 
         trainer.clear_session(model_instance)
+
+    else:
+
+        # if a fixed train-test split ratio is provided...
+        if args.val_split is not None:
+            train, val = splitter(data_source, test_size=args.val_split)
+            iterations = [(train, val)]
+
+        # else if external validation set is provided...
+        elif args.validation_data:
+            train = data_source
+            # read positive validation data
+            val_source = VdjdbSource(
+                filepath=args.validation_data,
+                headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
+            )
+            val_source.add_pos_labels()
+
+            # filter on size
+            val_source.length_filter(
+                args.min_length_cdr3,
+                args.max_length_cdr3,
+                args.min_length_epitope,
+                args.max_length_epitope,
+            )
+
+            val = val_source
+            iterations = [(train, val)]
+
+        # ...otherwise use the specified cross validation scheme
+        else:
+            iterations = cv_splitter(
+                data_source=data_source,
+                cv_type=args.cross_validation,
+                n_folds=args.n_folds,
+            )
+
+        for iteration, (train, val) in enumerate(iterations):
+
+            logger.info(f"Iteration: {iteration}")
+            logger.info(f"Batch size: {args.batch_size}")
+            logger.info(f"Train set: {len(train)}")
+            logger.info(f"Test set: {len(val)}")
+
+            # retrieve model output directory and create data directory to store generated datasets with positive and negative examples
+            train_fold_output, test_fold_output = (
+                get_output_path(
+                    base_name=run_name,
+                    file_name=f"train_fold_{iteration}.csv",
+                    iteration=iteration,
+                ),
+                get_output_path(
+                    base_name=run_name,
+                    file_name=f"test_fold_{iteration}.csv",
+                    iteration=iteration,
+                ),
+            )
+
+            train_data = separated_input_dataset_generator(
+                data_stream=train,
+                cdr3_range=cdr3_range,
+                epitope_range=epitope_range,
+                neg_shuffle=neg_shuffle,
+                full_dataset_path=args.full_dataset_path,
+                export_path=train_fold_output,
+                neg_augment=args.neg_augment,
+                augment_amount=args.augment_amount,
+            )
+            val_data = separated_input_dataset_generator(
+                data_stream=val,
+                cdr3_range=cdr3_range,
+                epitope_range=epitope_range,
+                neg_shuffle=neg_shuffle,
+                full_dataset_path=args.full_dataset_path,
+                export_path=test_fold_output,
+                neg_augment=args.neg_augment,
+                augment_amount=args.augment_amount,
+            )
+
+            # get length of train dataset
+            train_length = len(train) if not neg_shuffle else len(train) * 2
+
+            # shuffle and batch train data
+            train_data = train_data.shuffle(
+                # buffer equals size of dataset, because positives and negatives are grouped
+                buffer_size=train_length,
+                seed=42,
+                # reshuffle to make each epoch see a different order of examples
+                reshuffle_each_iteration=True,
+            ).batch(args.batch_size)
+
+            # batch validation data
+            val_data = val_data.batch(args.batch_size)
+
+            model_instance = trainer.train(
+                model, train_data, val_data, iteration=iteration
+            )
+
+            trainer.clear_session(model_instance)
