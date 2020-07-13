@@ -234,6 +234,10 @@ class VdjdbSource(DataSource):
                 )
                 logger.warning(to_do_df)
                 break
+            elif n == 50:
+                logger.warning(
+                    f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3s will be sampled randomly from the positive set, leading them to be re-used and present in multiple negative pairs. Retrying this step 50 times before giving up. The CDR3s to be omitted are {to_do_df.cdr3}."
+                )
             elif n > 50:
                 shuffled_pairs = [
                     sample_pairs(
@@ -248,9 +252,6 @@ class VdjdbSource(DataSource):
                         self.data["y"] == 1, self.headers["cdr3_header"]
                     ].sample(n=len(to_do_df), random_state=42 + n)
                 ]
-                logger.warning(
-                    f"Could not create enough negative samples by matching every CDR3 sequence to another epitope exactly once. {len(to_do_df)} CDR3s will be sampled randomly from the positive set, leading them to be re-used and present in multiple negative pairs. The CDR3s to be omitted are {to_do_df}"
-                )
             else:
                 shuffled_pairs = [
                     sample_pairs(
