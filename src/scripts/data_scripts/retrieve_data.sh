@@ -9,7 +9,7 @@
 # or it will be invoked by the Makefile, which should pass a fully resolved path.
 # To be safe, the PROJECT_ROOT variable is assigned a second time as resolved path.
 # Note that "readlink -f/--canonicalize" or "realpath" are not used because it does not exist on all systems.
-PROJECT_ROOT=${PROJECT_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." >/dev/null 2>&1 && pwd )"}
+PROJECT_ROOT=${PROJECT_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../.." >/dev/null 2>&1 && pwd )"}
 # resolve path in case the passed variable contains a relative one
 PROJECT_ROOT="$(cd ${PROJECT_ROOT} >/dev/null 2>&1 && pwd )"
 

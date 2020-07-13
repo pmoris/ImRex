@@ -9,7 +9,7 @@
 # or it will be invoked by the Makefile, which should pass a fully resolved path.
 # To be safe, the PROJECT_ROOT variable is assigned a second time as resolved path.
 # Note that "readlink -f/--canonicalize" or "realpath" are not used because it does not exist on all systems.
-PROJECT_ROOT=${PROJECT_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." >/dev/null 2>&1 && pwd )"}
+PROJECT_ROOT=${PROJECT_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../.." >/dev/null 2>&1 && pwd )"}
 
 # set default input and output paths
 OUTPUT_FILE=${1:-${PROJECT_ROOT}/data/raw/vdjdb/vdjdb-2019-08-08-vdjdb-slim-summary.md}
