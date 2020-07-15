@@ -2,11 +2,13 @@ from functools import partial
 import math
 import os
 from pathlib import Path
-from textwrap import fill
+
+# from textwrap import fill
 
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Patch
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 import pandas as pd
@@ -547,8 +549,10 @@ def plot_roc_pr(directory):
 
     # define facet figure
     fig = plt.figure(
-        constrained_layout=True, dpi=200, figsize=(12, 6)  # (13, 6)  # (16, 9)
-    )  # (12, 6))#(16, 9))
+        constrained_layout=True,
+        dpi=200,
+        figsize=(12, 6),  # (12, 6),  # (14,8) is better for overlapping legends
+    )
     gs = GridSpec(1, 2, figure=fig)
     ax1 = fig.add_subplot(gs[0, 0])
     ax2 = fig.add_subplot(gs[0, 1])
@@ -900,7 +904,8 @@ def plot_confusion_matrix(directory, ax=None):
 
 
 def plot_roc_boxplot(directory):
-    fig, ax = plt.subplots(constrained_layout=False, dpi=200)  # , figsize=(12,16))
+    fig, ax = plt.subplots(
+        constrained_layout=False, dpi=200, figsize=(12, 6))  # figsize=(12, 6), figsize=(14, 8) for large comparisons
     df = pd.read_csv(os.path.join(directory, "auc_per_iteration.csv"))
 
     # labels = list()
@@ -973,8 +978,7 @@ def plot_roc_boxplot(directory):
 
         # MWU test
         auroc_lists = [df.loc[df["type"] == i, "auc"] for i in df["type"].unique()]
-        p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])  # [1]
-        ax.legend(title=f"MWU test {p}")
+        p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])[1]
 
         sns_plot.legend(
             title=f"MWU test P-value = {round(p,4)}",
@@ -1050,6 +1054,10 @@ def roc_per_epitope(
     grouped: bool = False,
     decoy: bool = False,
 ):
+
+    # avoid settingwithcopy warnings
+    eval_df = eval_df.copy()
+
     # when comparing different model types
     if comparison:
         # only include epitopes that occurred in at least m iterations (= folds within a model)
@@ -1098,6 +1106,18 @@ def roc_per_epitope(
 
             eval_df = pd.concat([eval_df_decoy, eval_df_normal])
 
+        # # temp: only use top k roc_aucs. If a given epitope is selected because it's in the top k, also select it in the other model, regardless of its auroc
+        # eval_df["max_roc_auc"] = eval_df.groupby(["epitope"])["roc_auc"].transform(
+        #     "max"
+        # )
+        # top = 40
+        # eval_df = (
+        #     eval_df.sort_values(["max_roc_auc", "roc_auc"], ascending=False)
+        #     .drop("max_roc_auc", axis=1)
+        #     .reset_index(drop=True)
+        #     .iloc[: 2 * top]
+        # )
+
     # when evaluating a single model, only include epitopes that occurred in at least m iterations (= folds within the model)
     else:
         eval_df = eval_df[
@@ -1105,7 +1125,9 @@ def roc_per_epitope(
         ]
         hue = None
 
-    fig, ax = plt.subplots(constrained_layout=True, dpi=200, figsize=(16, 8))
+    fig, ax = plt.subplots(
+        constrained_layout=True, dpi=200, figsize=(14, 6)
+    )  # (16, 8))
 
     plotter = sns.barplot if grouped else sns.boxplot
 
@@ -1235,15 +1257,66 @@ def roc_per_epitope(
         # sort the values
         eval_df = eval_df.sort_values(["epitope", "type"])
         # and calculate the difference in auroc between the model types
-        eval_df["diff"] = eval_df.groupby("epitope")["roc_auc"].transform(
-            lambda x: x.diff()
-        )
-        # compute wilcoxon test and add p-value to legend
-        p = scipy.stats.wilcoxon(eval_df["diff"].dropna(), correction=True)[1]
+        if grouped:
+            eval_df["diff"] = eval_df.groupby("epitope")["roc_auc"].transform(
+                lambda x: x.diff()
+            )
+            # compute wilcoxon test and add p-value to legend
+            p = scipy.stats.wilcoxon(
+                eval_df["diff"].dropna(), correction=True  # , mode="exact"
+            )[1]
+
+            # print("Skew of differences")
+            # print(eval_df["diff"].dropna())
+
+            # print(
+            #     [
+            #         eval_df[eval_df["type"] == i].groupby("epitope")["roc_auc"].mean()
+            #         for i in eval_df["type"].unique()
+            #     ]
+            # )
+            print(scipy.stats.wilcoxon(eval_df["diff"].dropna(), correction=True))
+            print(scipy.stats.normaltest(eval_df["diff"].dropna()))
+            print(scipy.stats.shapiro(eval_df["diff"].dropna()))
+            mean_roc_auc_lists = [
+                eval_df[eval_df["type"] == i].groupby("epitope")["roc_auc"].mean()
+                for i in eval_df["type"].unique()
+            ]
+            print(scipy.stats.ttest_rel(*mean_roc_auc_lists))
+
+            # # sign test
+            # x = (eval_df["diff"].dropna() > 0).sum()
+            # n = len(eval_df["diff"].dropna())
+            # p = scipy.stats.binom_test(x, n, 0.5, alternative="two-sided")  # [1]
+            # ax.legend(title=f"Sign test {p}")
+
+        else:
+            mean_roc_auc_lists = [
+                eval_df[eval_df["type"] == i].groupby("epitope")["roc_auc"].mean()
+                for i in eval_df["type"].unique()
+            ]
+            p = scipy.stats.wilcoxon(
+                *mean_roc_auc_lists, correction=True  # , mode="exact"
+            )[1]
         ax.legend(title=r"Wilcoxon signed-rank test $P-value =$ " + str(round(p, 4)),)
 
         # count number of epitopes for which one model is higher than the other, requires sort
         # eval_df.loc[eval_df["diff"] > 0,["epitope","type","roc_auc","diff"]].count()
+    elif decoy and eval_df["type"].nunique() == 2:
+        auroc_lists = [
+            eval_df.loc[eval_df["type"] == i, "roc_auc"]
+            for i in eval_df["type"].unique()
+        ]
+        p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])[1]
+        ax.legend(title=r"MWU test $P-value =$ " + str(round(p, 4)),)
+
+    # format tick marks
+    if grouped:
+        plt.yticks(np.arange(0, 1.1, 0.1))
+    else:
+        start, end = ax.get_ylim()
+        ax.yaxis.set_ticks(np.arange(start, end + 0.1, 0.1))
+    ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%0.1f"))
 
     plt.savefig(output_path, bbox_inches="tight")
 
