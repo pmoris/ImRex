@@ -574,6 +574,16 @@ def evaluate_self_plots(
         ),
     )
 
+    roc_avg_dist_corr(
+        eval_df=per_epitope_df,
+        output_path=os.path.join(
+            input_directory,
+            "roc_mean_dist_correlation-"
+            + str(Path(root_dir).absolute().name).replace(" ", "-")
+            + ".pdf",
+        ),
+    )
+
     plt.close("all")
 
     roc_min_dist_corr(
