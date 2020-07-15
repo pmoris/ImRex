@@ -60,6 +60,13 @@ def create_parser():
         help="Generate negatives through shuffling the positive pairs in the supplied dataset.",
         default=False,
     )
+    parser.add_argument(
+        "--full_dataset_path",
+        dest="full_dataset_path",
+        type=str,
+        help="The entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling.",
+        default=None,
+    )
     # parser.add_argument(
     #     "--neg_augment",
     #     dest="neg_augment",
@@ -215,7 +222,7 @@ if __name__ == "__main__":
                     "Dataset already contains negative class labels. Do not use --neg_shuffle argument."
                 )
         data_source.add_pos_labels()
-        data_source.generate_negatives()
+        data_source.generate_negatives(args.full_dataset_path)
 
     # otherwise negatives should be present in dataset already
     else:
