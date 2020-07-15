@@ -248,6 +248,11 @@ if __name__ == "__main__":
         )
 
         predictions_df = evaluation.predictions_model(model=model, dataset=dataset)
+        # add cdr3 and epitope info back to predictions
+        predictions_df["cdr3"] = data_source.data[data_source.headers["cdr3_header"]]
+        predictions_df["antigen.epitope"] = data_source.data[
+            data_source.headers["epitope_header"]
+        ]
         predictions_filepath = output_dir / f"predictions_{iteration_dir.name}.csv"
         predictions_df.to_csv(predictions_filepath, index=False)
         logger.info(
