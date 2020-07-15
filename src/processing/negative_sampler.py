@@ -62,7 +62,8 @@ def add_negatives(df: pd.DataFrame, full_dataset_path: str):
             full_df=full_df,
             cdr3_column="cdr3",
             epitope_column="antigen.epitope",
-            seed=seed,
+            seed=seed
+            # seed=seed + 3458,
         )
         for seed, cdr3 in enumerate(df["cdr3"])
     ]

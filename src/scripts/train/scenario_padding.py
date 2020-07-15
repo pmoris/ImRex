@@ -173,20 +173,20 @@ def create_parser():
         help="Can be any of: prod, diff, absdiff, layer or best.",
         default="absdiff",
     )
-    parser.add_argument(
-        "--early_stop",
-        dest="early_stop",
-        action="store_true",
-        help="Terminate model training when the performance metric stops improving (uses tf.keras.callbacks.EarlyStopping).",
-        default=False,
-    )
-    parser.add_argument(
-        "--include_learning_rate_reduction",
-        dest="include_learning_rate_reduction",
-        action="store_true",
-        help="Reduce the learning rate when the performance metric has stopped improving (tf.keras.callbacks.ReduceLROnPlateau).",
-        default=False,
-    )
+    # parser.add_argument(
+    #     "--early_stop",
+    #     dest="early_stop",
+    #     action="store_true",
+    #     help="Terminate model training when the performance metric stops improving (uses tf.keras.callbacks.EarlyStopping).",
+    #     default=False,
+    # )
+    # parser.add_argument(
+    #     "--include_learning_rate_reduction",
+    #     dest="include_learning_rate_reduction",
+    #     action="store_true",
+    #     help="Reduce the learning rate when the performance metric has stopped improving (tf.keras.callbacks.ReduceLROnPlateau).",
+    #     default=False,
+    # )
     parser.add_argument(
         "--optimizer",
         dest="optimizer",
@@ -379,8 +379,8 @@ if __name__ == "__main__":
 
     trainer = Trainer(
         args.epochs,
-        include_learning_rate_reduction=args.include_learning_rate_reduction,
-        include_early_stop=args.early_stop,
+        # include_learning_rate_reduction=args.include_learning_rate_reduction,
+        # include_early_stop=args.early_stop,
         lookup=inverse_map,
         verbose=args.disable_file_log,
     )

@@ -154,7 +154,7 @@ if __name__ == "__main__":
         data_path = list(iteration_dir.glob("test_fold_*.csv"))
         assert (
             len(data_path) == 1
-        ), f"Found multiple files named 'test_fold_#.csv' inside {iteration_dir.name}..."
+        ), f"Found no or multiple files named 'test_fold_#.csv' inside {iteration_dir.name}..."
 
         # read test dataset
         data_source = VdjdbSource(

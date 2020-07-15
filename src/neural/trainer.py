@@ -37,6 +37,7 @@ def get_output_path(base_name, file_name, iteration=None):
 def create_checkpointer(base_name, iteration):
     output_path = get_output_path(
         base_name=base_name,
+        # file_name=base_name + "-epoch{epoch:02d}.h5",
         file_name=base_name + "-epoch{epoch:02d}-valacc{val_accuracy:.2f}.h5",
         iteration=iteration,
     )
@@ -213,7 +214,7 @@ class PredictionCallBack(callbacks.Callback):
         y_true = np.array(list(self.val_data.unbatch().as_numpy_iterator()))[:, 1]
 
         output_path = get_output_path(
-            self.base_name, f"predictions.csv", iteration=self.iteration
+            self.base_name, "predictions.csv", iteration=self.iteration
         )
 
         # if self.lookup:
@@ -256,8 +257,8 @@ class Trainer(object):
     def __init__(
         self,
         epochs: int,
-        include_learning_rate_reduction: bool = False,
-        include_early_stop: bool = False,
+        # include_learning_rate_reduction: bool = False,
+        # include_early_stop: bool = False,
         lookup: Optional[InverseMap] = None,
         verbose: bool = True,
     ):
@@ -277,8 +278,8 @@ class Trainer(object):
             True for verbose training output, False otherwise, by default True.
         """
         self.epochs = epochs
-        self.include_learning_rate_reduction = include_learning_rate_reduction
-        self.include_early_stop = include_early_stop
+        # self.include_learning_rate_reduction = include_learning_rate_reduction
+        # self.include_early_stop = include_early_stop
         self.histories = dict()
         self.base_name = None
         self.lookup = lookup  # Lookup map from feature to input (for traceability)
@@ -313,9 +314,9 @@ class Trainer(object):
 
         callbacks_list = [
             create_checkpointer(model.base_name, iteration),
+            # PredictionCallBack(val_data, model.base_name, iteration, self.lookup),
             create_csv_logger(model.base_name, iteration),
             # create_tensorboard_callback(model.base_name, iteration),
-            PredictionCallBack(val_data, model.base_name, iteration, self.lookup)
             # RocCallback(val_stream, model.base_name, iteration),
             # PrecisionRecallCallback(val_stream, model.base_name, iteration),
             # PredictionCallback(
@@ -323,32 +324,37 @@ class Trainer(object):
             # ),
         ]
 
-        if self.include_early_stop:
+        if val_data:
             callbacks_list.append(
-                callbacks.EarlyStopping(  # Stop training when `val_loss` is no longer improving
-                    monitor="val_loss",
-                    # "no longer improving" being defined as "no better than 1e-2 less"
-                    min_delta=1e-2,
-                    # "no longer improving" being further defined as "for at least 2 epochs"
-                    patience=10,
-                    verbose=1,
-                    restore_best_weights=True,
-                )
+                PredictionCallBack(val_data, model.base_name, iteration, self.lookup)
             )
 
-        if self.include_learning_rate_reduction:
-            callbacks_list.append(
-                callbacks.ReduceLROnPlateau(
-                    monitor="val_loss",
-                    factor=0.2,  # factor by which the learning rate will be reduced. new_lr = lr * factor
-                    patience=3,  # number of epochs with no improvement after which learning rate will be reduced
-                    verbose=1,
-                    mode="auto",
-                    min_delta=0.0001,  # threshold for measuring the new optimum, to only focus on significant changes
-                    cooldown=0,  # number of epochs to wait before resuming normal operation after lr has been reduced
-                    min_lr=0,  # lower bound on the learning rate
-                )
-            )
+        # if self.include_early_stop:
+        #     callbacks_list.append(
+        #         callbacks.EarlyStopping(  # Stop training when `val_loss` is no longer improving
+        #             monitor="val_loss",
+        #             # "no longer improving" being defined as "no better than 1e-2 less"
+        #             min_delta=1e-2,
+        #             # "no longer improving" being further defined as "for at least 2 epochs"
+        #             patience=10,
+        #             verbose=1,
+        #             restore_best_weights=True,
+        #         )
+        #     )
+
+        # if self.include_learning_rate_reduction:
+        #     callbacks_list.append(
+        #         callbacks.ReduceLROnPlateau(
+        #             monitor="val_loss",
+        #             factor=0.2,  # factor by which the learning rate will be reduced. new_lr = lr * factor
+        #             patience=3,  # number of epochs with no improvement after which learning rate will be reduced
+        #             verbose=1,
+        #             mode="auto",
+        #             min_delta=0.0001,  # threshold for measuring the new optimum, to only focus on significant changes
+        #             cooldown=0,  # number of epochs to wait before resuming normal operation after lr has been reduced
+        #             min_lr=0,  # lower bound on the learning rate
+        #         )
+        #     )
 
         # save model with weight initialization before training
         initial_model_path = get_output_path(

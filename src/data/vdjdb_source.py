@@ -61,7 +61,7 @@ class VdjdbSource(DataSource):
 
         negative_cdr3_series = (
             negative_source.data[negative_source.headers["cdr3_header"]]
-            .sample(n=amount, random_state=42)
+            .sample(n=amount, random_state=42)  # + 3458)
             .reset_index(drop=True)
             .rename(self.headers["cdr3_header"])
         )
@@ -174,6 +174,7 @@ class VdjdbSource(DataSource):
                 cdr3_column=self.headers["cdr3_header"],
                 epitope_column=self.headers["epitope_header"],
                 seed=seed,
+                # seed=seed + 3458,
             )
             for seed, cdr3 in enumerate(self.data[self.headers["cdr3_header"]])
         ]
