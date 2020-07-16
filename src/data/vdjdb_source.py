@@ -164,6 +164,11 @@ class VdjdbSource(DataSource):
             .drop_duplicates()
             .reset_index(drop=True)
         )
+        # merge the train/validation set with the full dataset and use this to check for false negatives
+        # merging is important when the validation set is not contained in the full dataset (e.g. when using an external test set)
+        full_df = (
+            pd.concat([full_df, self.data]).drop_duplicates().reset_index(drop=True)
+        )
 
         # generate negative pairs from list of all cdr3s in positive pairs
         shuffled_pairs = [
