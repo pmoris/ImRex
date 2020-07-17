@@ -61,6 +61,13 @@ def create_parser():
         default=False,
     )
     parser.add_argument(
+        "--epitope_ratio",
+        dest="epitope_ratio",
+        action="store_true",
+        help="Generate negatives through shuffling by sampling CDR3 sequences instead of epitopes (preserves pos/neg ratio per epitope).",
+        default=False,
+    )
+    parser.add_argument(
         "--full_dataset_path",
         dest="full_dataset_path",
         type=str,
@@ -222,7 +229,9 @@ if __name__ == "__main__":
                     "Dataset already contains negative class labels. Do not use --neg_shuffle argument."
                 )
         data_source.add_pos_labels()
-        data_source.generate_negatives(args.full_dataset_path)
+        data_source.generate_negatives_via_shuffling(
+            full_dataset_path=args.full_dataset_path, epitope_ratio=args.epitope_ratio
+        )
 
     # otherwise negatives should be present in dataset already
     else:

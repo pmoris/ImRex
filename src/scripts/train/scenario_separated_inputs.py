@@ -45,6 +45,13 @@ def create_parser():
         default=None,
     )
     parser.add_argument(
+        "--epitope_ratio",
+        dest="epitope_ratio",
+        action="store_true",
+        help="When negatives are generated through shuffling, sample CDR3 sequences instead of epitopes (preserves pos/neg ratio per epitope).",
+        default=False,
+    )
+    parser.add_argument(
         "--neg_ratio",
         dest="neg_ratio",
         type=float,
@@ -353,7 +360,10 @@ if __name__ == "__main__":
             logger.info(
                 "Generating negative examples through shuffling on the entire dataset prior to train/test fold creation."
             )
-            data_source.generate_negatives(args.full_dataset_path)
+            data_source.generate_negatives_via_shuffling(
+                full_dataset_path=args.full_dataset_path,
+                epitope_ratio=args.epitope_ratio,
+            )
             neg_shuffle = False
 
         # otherwise, generate negatives within each train/test set during tf dataset creation

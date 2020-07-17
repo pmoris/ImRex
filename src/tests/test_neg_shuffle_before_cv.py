@@ -4,7 +4,7 @@ from src.config import PROJECT_ROOT
 from src.data.control_cdr3_source import ControlCDR3Source
 from src.data.vdjdb_source import VdjdbSource
 from src.processing.cv_folds import cv_splitter
-from src.processing.negative_sampler import sample_pairs
+from src.processing.negative_sampler import sample_epitope_per_cdr3
 from src.processing.splitter import splitter
 
 
@@ -15,7 +15,7 @@ def test_generate_negatives():
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
     )
     data_source.add_pos_labels()
-    data_source.generate_negatives(
+    data_source.generate_negatives_via_shuffling(
         full_dataset_path=PROJECT_ROOT / "src/tests/test_vdjdb.csv"
     )
     assert (
@@ -50,7 +50,7 @@ def test_sample_pairs_nan():
     data_source.data = data_source.data.append(universal_binder_df)
 
     # generate negatives through shuffling
-    data_source.generate_negatives(
+    data_source.generate_negatives_via_shuffling(
         full_dataset_path=PROJECT_ROOT / "src/tests/test_vdjdb.csv"
     )
 
@@ -90,7 +90,7 @@ def test_sample_pairs_to_do_neg():
     )
 
     shuffled_pairs = [
-        sample_pairs(
+        sample_epitope_per_cdr3(
             cdr3=cdr3,
             df=data_source.data,
             full_df=full_df,
@@ -145,7 +145,7 @@ def test_cv():
     )
     data_source.add_pos_labels()
 
-    data_source.generate_negatives(
+    data_source.generate_negatives_via_shuffling(
         full_dataset_path=PROJECT_ROOT / "src/tests/test_vdjdb.csv"
     )
 
