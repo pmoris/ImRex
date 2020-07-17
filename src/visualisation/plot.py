@@ -788,7 +788,6 @@ def plot_predictions(directory):
         predictions.y_pred[predictions.y_true == 1], bins=bins, kde=False
     )
     sns_plot.set_xlim(0, 1)
-    sns_plot.set_ylim(0, len(predictions))
     title = os.path.basename(os.path.normpath(os.path.abspath(directory)))
     # title = "Predictions"
     sns_plot.set_title(title)
