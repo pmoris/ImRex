@@ -272,6 +272,8 @@ def sample_cdr3s_per_epitope(
     pd.DataFrame
         A dataframe with negative cdr3 and epitope sequence pairs, of the same size as the input.
     """
+    logger = logging.getLogger(__name__)
+
     # full_df should only contain positive pairs, and consequently no y column should be present yet
     assert "y" not in full_df.columns
 
@@ -361,6 +363,7 @@ def sample_epitope_per_cdr3(
     Tuple
         A tuple of a negative cdr3 and epitope sequence pair.
     """
+    logger = logging.getLogger(__name__)
 
     # full_df should only contain positive pairs, and consequently no y column should be present yet
     assert "y" not in full_df.columns
@@ -396,7 +399,6 @@ def sample_epitope_per_cdr3(
 
     # check if list is empty => cdr3 binds to every epitope present
     if possible_epitopes.empty:
-        logger = logging.getLogger(__name__)
         logger.warning(
             f"CDR3 sequence {cdr3} is associated with every epitope in the dataset and will be discarded from the negatives."
         )

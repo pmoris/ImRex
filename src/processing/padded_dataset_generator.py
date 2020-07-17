@@ -23,6 +23,7 @@ def padded_dataset_generator(
     inverse_map: Optional[InverseMap] = NoOp(),
     neg_shuffle: bool = True,
     full_dataset_path: Optional[Path] = None,
+    epitope_ratio: bool = False,
     export_path: Optional[str] = None,
     neg_augment: Optional[str] = None,
     augment_amount: Optional[int] = None,
@@ -51,6 +52,15 @@ def padded_dataset_generator(
     full_dataset_path : Path
         The entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid
         generating false negatives. Should only contain positive values.
+    epitope_ratio : boolean
+        When false, samples an epitope for each CDR3 sequence in the
+        proportionally to its occurrence in the other epitope pairs. Does not
+        preserve the ratio of positives and negatives within each epitope,
+        but does result in every CDR3 sequence having exactly 1 positive and negative.
+        When true, samples a set of CDR3 sequences with from the unique list of CDR3s
+        for each epitope observation (per epitope), i.e. preserves exact ratio of positives and
+        negatives for each epitope, at the expense of some CDR3s appearing more than once
+        among the negatives and others only in positives pairs.
     export_path: Optional[str], optional
         If supplied, the train/test datasets will be saved to the data/processed directory under this name as a csv file with both positive and negative sequences, by default None.
     neg_augment: Optional[str], optional
@@ -80,7 +90,9 @@ def padded_dataset_generator(
         assert (
             full_dataset_path
         ), "The path to the full dataset should be supplied when generating negatives through shuffling."
-        df = add_negatives(df, full_dataset_path)
+        df = add_negatives(
+            df=df, full_dataset_path=full_dataset_path, epitope_ratio=epitope_ratio
+        )
 
     # optionally augment with additional negative reference pairs
     if neg_augment and augment_amount:
