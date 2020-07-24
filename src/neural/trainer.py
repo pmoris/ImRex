@@ -37,8 +37,8 @@ def get_output_path(base_name, file_name, iteration=None):
 def create_checkpointer(base_name, iteration):
     output_path = get_output_path(
         base_name=base_name,
-        # file_name=base_name + "-epoch{epoch:02d}.h5",
-        file_name=base_name + "-epoch{epoch:02d}-valacc{val_accuracy:.2f}.h5",
+        file_name=base_name + "-epoch{epoch:02d}.h5",
+        # file_name=base_name + "-epoch{epoch:02d}-valacc{val_accuracy:.2f}.h5",
         iteration=iteration,
     )
 
