@@ -904,7 +904,8 @@ def plot_confusion_matrix(directory, ax=None):
 
 def plot_roc_boxplot(directory):
     fig, ax = plt.subplots(
-        constrained_layout=False, dpi=200, figsize=(12, 6))  # figsize=(12, 6), figsize=(14, 8) for large comparisons
+        constrained_layout=False, dpi=200, figsize=(12, 6)
+    )  # figsize=(12, 6), figsize=(14, 8) for large comparisons
     df = pd.read_csv(os.path.join(directory, "auc_per_iteration.csv"))
 
     # labels = list()
@@ -926,6 +927,8 @@ def plot_roc_boxplot(directory):
     sns_plot = sns.boxplot(
         x="type-mean-std",
         y="auc",
+        # data=df,  # .sort_values(by=["auc"], ascending=False),
+        # order=df.sort_values(by=["auc"], ascending=False),
         data=df.sort_values(by=["type-mean-std"]),
         order=sorted(df["type-mean-std"].unique()),
         palette=get_palette(df, "type-mean-std"),
@@ -1145,27 +1148,46 @@ def roc_per_epitope(
         # colour_palette = palette_single[4]
         # colour_palette = get_palette(eval_df, "type")
 
-        import matplotlib as mpl
+        if "min_dist" in eval_df.columns:
+            import matplotlib as mpl
 
-        dist = "min_dist"
-        my_cmap = plt.cm.get_cmap("Greens")
-        data_color = eval_df[dist]
+            dist = "min_dist"
+            # my_cmap = plt.cm.get_cmap("Greens")
+            # data_color = eval_df[dist]
 
-        # NOTE: colors are simply passed in their direct order to seaborn, i.e. the order argument is not utilised.
-        # consequently the colors should be sorted manually
-        eval_df["epitope"] = pd.Categorical(eval_df["epitope"], order)
-        colors = mpl.cm.ScalarMappable(cmap="Greens").to_rgba(
-            eval_df.sort_values("epitope")[dist]
-        )
-        sm = mpl.cm.ScalarMappable(
-            cmap=my_cmap, norm=plt.Normalize(min(data_color), max(data_color))
-        )
-        sm.set_array([])
+            # # NOTE: colors are simply passed in their direct order to seaborn, i.e. the order argument is not utilised.
+            # # consequently the colors should be sorted manually
+            eval_df["epitope"] = pd.Categorical(eval_df["epitope"], order)
+            colors = mpl.cm.ScalarMappable(cmap="Greens").to_rgba(
+                eval_df.sort_values("epitope")[dist]
+            )
+            # sm = mpl.cm.ScalarMappable(
+            #     cmap=my_cmap, norm=plt.Normalize(min(data_color), max(data_color))
+            # )
+            # sm.set_array([])
 
-        cbar = plt.colorbar(sm)
-        cbar.set_label(
-            "Median edit distance to training epitopes", rotation=270, labelpad=25
-        )
+            # cbar = plt.colorbar(sm)
+            # cbar.set_label(
+            #     "Minimum edit distance to training epitopes", rotation=270, labelpad=25
+            # )
+
+            cmap = plt.cm.get_cmap("Greens")
+            norm = mpl.colors.BoundaryNorm(
+                np.arange(eval_df[dist].min() - 0.5, eval_df[dist].max() + 1.5), cmap.N
+            )
+            sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+
+            cbar = plt.colorbar(
+                sm, ticks=np.arange(eval_df[dist].min(), eval_df[dist].max() + 1)
+            )
+            cbar.set_label(
+                "Minimum edit distance to training epitopes", rotation=270, labelpad=25
+            )
+
+        else:
+            # colors = get_palette(eval_df, "type")
+            colors = None
 
         plotter(
             x="epitope",
@@ -1321,6 +1343,14 @@ def roc_per_epitope(
 
 
 def roc_train_corr(eval_df, output_path):
+
+    # # omit all epitopes for which the highest auroc is lower than 0.5
+    # eval_df = eval_df[
+    #     eval_df.groupby("epitope")["roc_auc"].transform(lambda x: max(x) > 0.5)
+    # ]
+    # # when evaluating a single model, only include epitopes that occurred in at least m iterations (= folds within the model)
+    # eval_df = eval_df[eval_df.groupby("epitope")["epitope"].transform("count") >= 25]
+
     fig, ax = plt.subplots(constrained_layout=True, dpi=200, figsize=(16, 8))
     g = sns.jointplot(y="roc_auc", x="train_size", data=eval_df)
     # g.fig.subplots_adjust(top=0.93, wspace=0.3)
@@ -1339,10 +1369,11 @@ def roc_train_corr(eval_df, output_path):
     #     [eval_df["train_size"].min() - 100, eval_df["train_size"].max() + 100]
     # )
 
-    r, p = scipy.stats.spearmanr(eval_df["roc_auc"], eval_df["train_size"])
-    annot_kws = {"prop": {"family": "monospace", "weight": "bold", "size": 15}}
-    phantom = g.ax_joint.plot([], [], linestyle="", alpha=0)
-    g.ax_joint.legend([phantom], ["r={:f}, p={:f}".format(r, p)], **annot_kws)
+    # r, p = scipy.stats.spearmanr(eval_df["roc_auc"], eval_df["train_size"])
+    # annot_kws = {"prop": {"family": "monospace", "weight": "bold", "size": 15}}
+    # phantom = g.ax_joint.plot([], [], linestyle="", alpha=0)
+    # g.ax_joint.legend([phantom], ["r={:f}, p={:f}".format(r, p)], **annot_kws)
+    # g.ax_joint.legend(["r={:f}, p={:f}".format(r, p)])
 
     g.fig.set_dpi(200)
 
