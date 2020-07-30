@@ -158,6 +158,8 @@ preprocess-vdjdb-aug-2019:
 	# 5289 GILGFVFTL
 	# 6452 NLVPMVATV
 
+	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-mhci-no10x-size-down400.csv --species human --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --downsample NLVPMVATV 400 GILGFVFTL 400 ELAGIGILTV 400 GLCTLVAML 400 LLWNGPMAV 400 LLLGIGILV 400
+
 	# ### MHCII
 	# # 2019-08-08 release: human TRB MHCII without spurious sequences and without any 10xgenomics entries and length restrictions
 	# $(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhcii-no10x-size-down.csv --species human --tcr-chain TRB --mhc MHCII --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --downsample NLVPMVATV 0.84 GILGFVFTL 0.80
