@@ -1,7 +1,10 @@
 """ Scenario for neural network with interaction map input. """
 import argparse
 import logging
+from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import tensorflow as tf
 
 from src.bio.feature_builder import CombinedPeptideFeatureBuilder
@@ -16,6 +19,7 @@ from src.processing.padded_dataset_generator import padded_dataset_generator
 from src.processing.separated_input_dataset_generator import (
     separated_input_dataset_generator,
 )
+from src.scripts.evaluate.distance import calculate_distance
 
 
 def create_parser():
@@ -72,6 +76,13 @@ def create_parser():
         dest="full_dataset_path",
         type=str,
         help="The entire cdr3-epitope dataset, before splitting into folds, restricting length or downsampling. Used to avoid generating false negatives during shuffling.",
+        default=None,
+    )
+    parser.add_argument(
+        "--train_dataset",
+        dest="train_dataset",
+        type=str,
+        help="Path to the dataset used for training. If provided, will be used to determine the distance of the epitopes to the training dataset.",
         default=None,
     )
     # parser.add_argument(
@@ -164,6 +175,10 @@ if __name__ == "__main__":
     io_helper.create_logger(run_name, evaluate_dir=output_dir)
     logger = logging.getLogger(__name__)
 
+    if args.train_dataset:
+        train_path = Path(args.train_dataset)
+        assert train_path.exists()
+
     # log arguments that were used
     for arg, value in sorted(vars(args).items()):
         logging.info("CLI argument %s: %r", arg, value)
@@ -203,7 +218,7 @@ if __name__ == "__main__":
 
     # if negative reference dataset is provided, draw negatives from it
     if args.neg_ref:
-        logger.info(f"Generating negative examples from negative reference CDR3 set.")
+        logger.info("Generating negative examples from negative reference CDR3 set.")
         if "y" in data_source.data.columns:
             if data_source.data.loc[data_source.data["y"] == 0].shape[0] > 0:
                 raise RuntimeError(
@@ -221,7 +236,7 @@ if __name__ == "__main__":
     # or generate negatives through shuffling
     elif args.neg_shuffle:
         logger.info(
-            f"Generating negative examples through shuffling the positive dataset."
+            "Generating negative examples through shuffling the positive dataset."
         )
         if "y" in data_source.data.columns:
             if data_source.data.loc[data_source.data["y"] == 0].shape[0] > 0:
@@ -272,7 +287,12 @@ if __name__ == "__main__":
     model = tf.keras.models.load_model(args.model)
 
     # evaluate
-    metrics_df = evaluation.evaluate_model(model=model, dataset=val_data)
+    try:
+        metrics_df = evaluation.evaluate_model(model=model, dataset=val_data)
+    except ValueError as e:
+        raise ValueError(
+            "Make sure the correct model type and padding lengths are specified."
+        ) from e
     metrics_filepath = output_dir / "metrics.csv"
     metrics_df.to_csv(metrics_filepath, index=False)
     logger.info(f"Saved metrics in {metrics_filepath.absolute()}.")
@@ -282,16 +302,34 @@ if __name__ == "__main__":
     predictions_df.to_csv(predictions_filepath, index=False)
     logger.info(f"Saved predictions in {predictions_filepath.absolute()}.")
 
-    if args.per_epitope:
-        per_epitope_df = evaluation.evaluate_per_epitope(
-            model=model,
-            data_source=data_source,
-            batch_size=args.batch_size,
-            model_type=args.model_type,
-            feature_builder=feature_builder,
-            cdr3_range=cdr3_range,
-            epitope_range=epitope_range,
+    try:
+        if args.per_epitope:
+            per_epitope_df = evaluation.evaluate_per_epitope(
+                model=model,
+                data_source=data_source,
+                batch_size=args.batch_size,
+                model_type=args.model_type,
+                feature_builder=feature_builder,
+                cdr3_range=cdr3_range,
+                epitope_range=epitope_range,
+            )
+    except ValueError as e:
+        raise ValueError(
+            "Make sure the correct model type and padding lengths are specified. The latter can be omitted if every fold contains an example of the shortest and longest length, otherwise they should be provided as input arguments."
+        ) from e
+
+    # add training dataset size per epitope
+    if train_path:
+        train_df = pd.read_csv(train_path, sep=";")
+        per_epitope_df["train_size"] = per_epitope_df.apply(
+            lambda x: np.sum(train_df["antigen.epitope"] == x["epitope"]), axis=1
         )
-        per_epitope_filepath = output_dir / "metrics_per_epitope.csv"
-        per_epitope_df.to_csv(per_epitope_filepath, index=False)
-        logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
+
+    # calculate edit distances to training examples
+    per_epitope_df = calculate_distance(per_epitope_df, train_df)
+
+    # save output
+    per_epitope_filepath = output_dir / "metrics_per_epitope.csv"
+    per_epitope_df.to_csv(per_epitope_filepath, index=False)
+    logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
+

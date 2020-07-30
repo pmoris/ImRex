@@ -18,6 +18,7 @@ from src.processing.padded_dataset_generator import padded_dataset_generator
 from src.processing.separated_input_dataset_generator import (
     separated_input_dataset_generator,
 )
+from src.scripts.evaluate.distance import calculate_distance
 
 
 def create_parser():
@@ -293,36 +294,7 @@ if __name__ == "__main__":
         )
 
         # calculate edit distances to training examples
-        epitope_dist_dict = {}
-
-        for epitope in iteration_metrics_df["epitope"].unique():
-            epitopes_to_check = train_df.loc[
-                train_df["antigen.epitope"] != epitope, "antigen.epitope"
-            ]
-            distances_dict = {
-                i: Levenshtein.distance(epitope, i) for i in epitopes_to_check.unique()
-            }
-            all_distances = epitopes_to_check.map(lambda x: distances_dict.get(x))
-
-            epitope_dist_dict[epitope] = {
-                "min_dist": min(distances_dict.values()),
-                "median_dist": np.median(all_distances),
-                "25th_quantile": np.percentile(all_distances, 25),
-                "mean_dist": np.mean(all_distances),
-            }
-
-        iteration_metrics_df["min_dist"] = iteration_metrics_df["epitope"].map(
-            lambda x: epitope_dist_dict.get(x).get("min_dist")
-        )
-        iteration_metrics_df["median_dist"] = iteration_metrics_df["epitope"].map(
-            lambda x: epitope_dist_dict.get(x).get("median_dist")
-        )
-        iteration_metrics_df["25th_quantile"] = iteration_metrics_df["epitope"].map(
-            lambda x: epitope_dist_dict.get(x).get("25th_quantile")
-        )
-        iteration_metrics_df["mean_dist"] = iteration_metrics_df["epitope"].map(
-            lambda x: epitope_dist_dict.get(x).get("mean_dist")
-        )
+        iteration_metrics_df = calculate_distance(iteration_metrics_df, train_df)
 
         # combine df for current iteration with list of all iterations
         per_epitope_df = per_epitope_df.append(iteration_metrics_df)
