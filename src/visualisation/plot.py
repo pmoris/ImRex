@@ -1336,7 +1336,8 @@ def roc_per_epitope(
         plt.yticks(np.arange(0, 1.1, 0.1))
     else:
         start, end = ax.get_ylim()
-        ax.yaxis.set_ticks(np.arange(start, end + 0.1, 0.1))
+        ax.yaxis.set_ticks(np.arange(round(start, 1), 1 + 0.1, 0.1))
+        # ax.yaxis.set_ticks(np.arange(start, end+.1, 0.1)) # DONT DO THIS, AXIS WILL BE WRONG
     ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%0.1f"))
 
     plt.savefig(output_path, bbox_inches="tight")
