@@ -199,7 +199,7 @@ def perturbe(variables, symbol, amount):
 
 
 @bacli.command
-def predict_variations(model_file: str, epitope, cdr3, aa="X", perturbations: int = 1):
+def predict_variations(model_file: str, epitope, cdr3, aa="G", perturbations: int = 1):
     from tensorflow.keras.models import load_model
 
     model = load_model(model_file)
@@ -247,6 +247,8 @@ def predict_variations(model_file: str, epitope, cdr3, aa="X", perturbations: in
     for sample, prediction in reversed(mostDifferent[-5:]):
         if prediction <= basePrediction:
             print("\t", sample[0], sample[1], prediction)
+
+    return samples, predictions
 
 
 @bacli.command
