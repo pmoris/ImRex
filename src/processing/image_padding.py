@@ -4,14 +4,21 @@ from src.processing.stream import TransformStream
 
 
 class ImagePadding(TransformStream):
-    def __init__(self, stream, width, height, pad_value=0):
+    def __init__(self, stream, width, height, pad_value=0, has_label=True):
         super().__init__(stream)
         self.width = width
         self.height = height
         self.pad_value = pad_value
+        self.has_label = has_label
 
     def transform(self, item, *args, **kwargs):
-        image, label = item
+        if self.has_label:
+            image, label = item
+            return self._padding(image), label
+        else:
+            return self._padding(item)
+
+    def _padding(self, image):
         hor_padding = self.width - image.shape[0]
         ver_padding = self.height - image.shape[1]
 
@@ -26,9 +33,7 @@ class ImagePadding(TransformStream):
             (ver_padding_before, ver_padding_after),
             (0, 0),
         )
-        # print(image)
-        # print(image.shape)
-        # print(padding)
+
         padded = np.pad(image, padding, mode="constant", constant_values=self.pad_value)
-        # print("Padded an image")
-        return padded, label
+
+        return padded

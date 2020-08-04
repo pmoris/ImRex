@@ -127,11 +127,12 @@ def separated_input_dataset_generator(
 
 
 class BlosumImageGenerator(TransformStream):
-    def __init__(self, stream):
+    def __init__(self, stream, has_label=True):
         super().__init__(stream)
         self.features = dict()
         for aa in AMINO_ACIDS:
             self.features[aa] = [self._get_matrix_entry(aa, x) for x in AMINO_ACIDS]
+        self.has_label = has_label
 
     def _get_matrix_entry(self, aa1, aa2):
         i = MatrixInfo.blosum50.get((aa1, aa2))
@@ -141,9 +142,13 @@ class BlosumImageGenerator(TransformStream):
             return MatrixInfo.blosum50.get((aa2, aa1))
 
     def transform(self, item, *args, **kwargs):
-        x, y = item
-        X = tuple(self.convert(xx) for xx in x)
-        return X, y
+        if self.has_label:
+            x, y = item
+            X = tuple(self.convert(xx) for xx in x)
+            return X, y
+        else:
+            X = tuple(self.convert(xx) for xx in item)
+            return X
 
     def convert(self, sequence):
         array = np.array([self.features[aa] for aa in sequence])
@@ -151,14 +156,21 @@ class BlosumImageGenerator(TransformStream):
 
 
 class BlosumPadding(TransformStream):
-    def __init__(self, stream, max_length_cdr3, max_length_epitope, pad_value=0):
+    def __init__(
+        self, stream, max_length_cdr3, max_length_epitope, pad_value=0, has_label=True
+    ):
         super().__init__(stream)
         self.max_length_cdr3 = max_length_cdr3
         self.max_length_epitope = max_length_epitope
         self.pad_value = pad_value
+        self.has_label = has_label
 
     def transform(self, item, *args, **kwargs):
-        sequence_tuple, label = item
+        if self.has_label:
+            sequence_tuple, label = item
+        else:
+            sequence_tuple = item
+
         cdr3_array, epitope_array = sequence_tuple
 
         cdr3_padding = ((0, self.max_length_cdr3 - cdr3_array.shape[0]), (0, 0))
@@ -177,4 +189,8 @@ class BlosumPadding(TransformStream):
             constant_values=self.pad_value,
         )
 
-        return (padded_cdr3_array, padded_epitope_array), label
+        if self.has_label:
+            return (padded_cdr3_array, padded_epitope_array), label
+        else:
+            return (padded_cdr3_array, padded_epitope_array)
+

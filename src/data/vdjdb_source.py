@@ -24,10 +24,11 @@ class VdjdbSource(DataSource):
         self,
         filepath=VDJDB_PATH,
         headers={"cdr3_header": "cdr3", "epitope_header": "antigen.epitope"},
+        sep=";",
     ):
         super().__init__()
         self.filepath = filepath
-        self.data = pd.read_csv(self.filepath, sep=";")
+        self.data = pd.read_csv(self.filepath, sep=sep)
         self.headers = headers
 
     def __len__(self):
