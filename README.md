@@ -3,56 +3,98 @@ deepTCR
 
 ## TCR-epitope recognition prediction using CNN approach
 
-This project is an extension of original work done by [Joey De Pauw](https://github.com/JoeyDP) during his master thesis at the University of Antwerp under supervision of Pieter Meysman and Pieter Moris. A fork of the original project is made available at [https://github.com/pmoris/Master-Thesis](https://github.com/pmoris/Master-Thesis).
-
 Project Organization
 ------------
 
-    ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
+    ├── LICENSE                     <- MIT license.
+    ├── Makefile                    <- Makefile with commands like `make data`.
+    ├── README.md                   <- The top-level README for developers using this project.
     ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
+    │   ├── interim                 <- Intermediate data that has been transformed.
+    │   └── raw                     <- The original, immutable data dump. See README for more info.
     │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+    ├── models                      <- Directory wheret rained models, model predictions, summaries and
+    │   │                              evaluation figures will be stored.
+    │   └── models-pretrained       <- Contains a small number of pre-trained models.
     │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    ├── notebooks                   <- Jupyter notebooks. Used for generation of additional figures and
+    │                                  data exploration.
     │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
+    ├── reports
+    │   └── figures                 <- Generated graphics and figures to be used in reporting.
     │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
+    ├── environment.yml             <- The conda requirements file for reproducing the analysis environment, e.g.
+    │                                  generated with `conda env export > environment.yml`
+    │                                  Usage: `conda env create -f environment.yml`.
+    ├── requirements.txt            <- The requirements file for reproducing the analysis environment, e.g.
+    │                                  generated with `pip freeze > requirements.txt`.
+    │                                  Usage: `pip install -r requirements.txt`.
     │
-    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
+    ├── setup.py                    <- makes project pip installable (pip install -e .) so src can be imported.
+    ├── src                         <- Source code for use in this project.
+    │   └── scripts                 <- Scripts to process data and train or evaluate models.
+    │       │
+    │       ├── data_scripts        <- Bash scripts to download VDJdb data. Used by `Makefile`.
+    │       │
+    │       ├── preprocessing       <- Python scripts to preprocess raw data. Used by `Makefile`.
+    │       │                          Can also be run from the CLI with the `--help` flag for info.
+    │       ├── hpc_scripts         <- Bash scripts to train models on HPC (or via bash on local machine).
+    │       │
+    │       ├── evaluate            <- Interactive Python scripts to visualize and evaluate trained models.
+    │       │                          Can be run from the CLI with the `--help` flag for info.
+    │       └── visualization       <- Scripts to create exploratory and results oriented visualizations
+    │           └── visualize.sh    <- Contains Bash functions to utilise the different Python scripts.
     │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.testrun.org
+    └── tox.ini                     <- tox file with settings for running pytest.
 
+## Usage
+
+### Training
+
+The `Makefile` contains the majority of steps required to reproduce our results, but some steps will need to be performed manually to avoid accidentally starting computationally-heavy operations.
+
+- `make requirements`: creates a conda or virtualenv environment (can be done manually).
+- `make test`: test if environment and source code passes all tests.
+- `make data-vdjdb-aug-2019`: download data to correct directories.
+- `preprocess-vdjdb-aug-2019`: filter the data and preprocess it into the correct format.
+- For training models, choose a `.pbs` (bash) file from the `./src/scripts/pbs_scripts` or modify its contents to the desired architecture/data combination. Must be run from within this directory in order for the output to be stored in the correct location.
+- `make metrics`: computes metrics and visualisations for all models that are found in the `models` directory.
+- `metrics-compare`: shows a one-liner that can be utilised to compare two (or more) model directories, after they've been placed inside the same parent directory.
+- `evaluate_self`: shows a one-liner that can be utilised to perform a per-epitope evaluation on a model directory.
+
+Further evaluation and visualisation scripts are described in `./src/scripts/evaluate/visualization.sh`. There is also `./notebooks/figures.ipybn` which can be used to create more advanced combined figures.
+
+### Predictions using the pre-built model
+
+We included a final model that was trained using our methodology in the `models` directory. This model was trained on the VDJdb dataset ([August 2019 release](https://github.com/antigenomics/vdjdb-db/releases/tag/2019-08-08)) that was filtered on human TRB data, no 10x data and restricted to 10-20 (CDR3) or 8-11 (epitope) amino acid residues, with negatives that were generated by shuffling (i.e. sampling an negative epitope for each positive CDR3 sequence), and downsampling the most abundant epitopes down to 400 pairs each (`./models/pretrained/2020-07-24_19-18-39_trbmhcidown-shuffle-padded-b32-lre4-reg001/2020-07-24_19-18-39_trbmhcidown-shuffle-padded-b32-lre4-reg001.h5`).
+
+To use the model, use the `predict.py` Python script. It has two required inputs, namely an input dataset (.csv format), an output file. The model file can be changed from the default by using the `--model` flag. The other options can be shown via the `--help` flag.
+
+```
+python ./src/scripts/predict/predict.py --model ./models/models-pretrained/2020-07-24_19-18-39_trbmhcidown-shuffle-padded-b32-lre4-reg001/2020-07-24_19-18-39_trbmhcidown-shuffle-padded-b32-lre4-reg001.h5 --input input-sequences.csv --output output-predictions.csv
+```
+
+## Citation
+
+For the preprint, please cite [https://doi.org/10.1101/2019.12.18.880146](https://doi.org/10.1101/2019.12.18.880146):
+
+>Moris, Pieter, Joey De Pauw, Anna Postovskaya, Benson Ogunjimi, Kris Laukens, and Pieter Meysman. 2019. "Treating Biomolecular Interaction As An Image Classification Problem – A Case Study On T-Cell Receptor-Epitope Recognition Prediction". doi:10.1101/2019.12.18.880146.
+
+## Authors
+
+>Pieter Moris,
+>Joey De Pauw,
+>Wout Bittremieux,
+>Anna Postovskaya,
+>Benson Ogunjimi
+>Kris Laukens,
+>Pieter Meysman
+
+## History
+
+A preprint of an earlier version of this work was submitted to bioRxiv: [https://doi.org/10.1101/2019.12.18.880146](https://doi.org/10.1101/2019.12.18.880146).
+
+This project is an extension of original work done by [Joey De Pauw](https://github.com/JoeyDP) during his master thesis at the University of Antwerp under supervision of Pieter Meysman and Pieter Moris. A fork of the original project is made available at [https://github.com/pmoris/Master-Thesis](https://github.com/pmoris/Master-Thesis).
 
 --------
 
