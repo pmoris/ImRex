@@ -68,6 +68,7 @@ data-vdjdb-aug-2019:
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser-slim.sh data/raw/vdjdb/vdjdb-2019-08-08-vdjdb-slim-summary.md data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.slim.txt
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-browser-summary.md data/raw/vdjdb/vdjdb-browser.tsv
 
+## Filter the data and preprocess it into the correct format.
 preprocess-vdjdb-aug-2019:
 	mkdir -p data/interim/vdjdb-2019-08-08/
 
@@ -209,6 +210,11 @@ preprocess-vdjdb-aug-2019:
 	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-middle-only.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --middle_only
 	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-middle-only-down.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11 --downsample NLVPMVATV 1000 GILGFVFTL 1000 --middle_only
 
+	# 10x only validation
+	# do not use quotes around epitopes
+	# epitopes taken from set of unique epitopes compared to non10x data
+	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-10x-size.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --keep-specific-reference 10xgenomics --length-restriction 10 20 8 11 --keep-specific-epitopes AYAQKIFKI CLLGTYTQDV CLLWSFQTSA CYTWNQMNL FLASKIGRLV FLYALALLL IMDQVPFSV KLGGALQAK KLQCVDLHV KTWGQYWQV KVAELVHFL KVLEYVIKV LLDFVRFMGV MLDLQPETT QPRAPIRPI RIAAWMATY RLRAEAQVK RTLNAWVKV SLFNTVATL SLFNTVATLY SLYNTVATLY YLLEMLWRL YLNDHLEPWI
+
 ## Download dataset
 data-vdjdb-jan-2020:
 	@echo ">>> Downloading raw data."
@@ -237,4 +243,4 @@ evaluate_self:
 
 ## Create interaction-map example
 example-figure:
-	$(PYTHON_INTERPRETER) ./src/model_scripts/visualize.py peptide --epitope ELAGIGILTV --cdr3 CASSPGEGLYEQYF --operator absdiff --cmyk True
+	$(PYTHON_INTERPRETER) ./src/scripts/evaluate/visualize.py peptide --epitope ELAGIGILTV --cdr3 CASSPGEGLYEQYF --operator absdiff --cmyk True
