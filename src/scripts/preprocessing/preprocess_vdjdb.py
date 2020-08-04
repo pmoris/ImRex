@@ -20,7 +20,7 @@ import seaborn as sns
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Script to extract CDR3-epitope sequence pairs from VDJdb files.",
+        description="Script to extract CDR3-epitope sequence pairs from VDJdb files and apply various filters and preprocessing steps.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(

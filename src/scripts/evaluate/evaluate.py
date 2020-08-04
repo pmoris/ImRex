@@ -24,14 +24,14 @@ from src.scripts.evaluate.distance import calculate_distance
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Script to extract CDR3-epitope sequence pairs from VDJdb files.",
+        description="Script to evaluate a trained model directory on provided test data (optionally on a per-epitope basis).",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--data_path",
         dest="data_path",
         type=str,
-        help="Input csv dataset, as supplied by preprocess_vdjdb script.",
+        help="Input test dataset (csv), as supplied by preprocess_vdjdb script.",
         default=PROJECT_ROOT
         / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
     )

@@ -23,7 +23,7 @@ from src.scripts.evaluate.distance import calculate_distance
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Script to extract CDR3-epitope sequence pairs from VDJdb files.",
+        description="Script to evaluate a trained model directory (containg validation data) on a per-epitope basis.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(

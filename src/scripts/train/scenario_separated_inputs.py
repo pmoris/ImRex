@@ -16,7 +16,7 @@ from src.processing.splitter import splitter
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Script to train a separated inputs cdr3-epitpe prediction model.",
+        description="Script to train a dual input CDR3-epitpe prediction model.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(

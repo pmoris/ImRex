@@ -11,7 +11,7 @@ from src.definitions.amino_acid_properties import AMINO_ACIDS
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Script to extract CDR3-epitope sequence pairs from VDJdb files.",
+        description="Script to convert an already preprocessed CDR3-epitope sequence dataset (via preprocess_vdjdb.py) into a decoy dataset.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
