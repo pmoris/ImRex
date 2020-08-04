@@ -983,7 +983,7 @@ def plot_roc_boxplot(directory):
         p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])[1]
 
         sns_plot.legend(
-            title=f"MWU test P-value = {round(p,4)}",
+            title=f"MWU test P-value = " + "{:0.2e}".format(p),  # {round(p,4)}",
             loc="upper center",
             bbox_to_anchor=(0.5, -0.15),
         )
@@ -1319,7 +1319,9 @@ def roc_per_epitope(
             p = scipy.stats.wilcoxon(
                 *mean_roc_auc_lists, correction=True  # , mode="exact"
             )[1]
-        ax.legend(title=r"Wilcoxon signed-rank test $P-value =$ " + str(round(p, 4)),)
+        ax.legend(
+            title=r"Wilcoxon signed-rank test $P-value =$ " + "{:0.2e}".format(p)
+        )  # str(round(p, 4)),)
 
         # count number of epitopes for which one model is higher than the other, requires sort
         # eval_df.loc[eval_df["diff"] > 0,["epitope","type","roc_auc","diff"]].count()
@@ -1329,7 +1331,7 @@ def roc_per_epitope(
             for i in eval_df["type"].unique()
         ]
         p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])[1]
-        ax.legend(title=r"MWU test $P-value =$ " + str(round(p, 4)),)
+        ax.legend(title=r"MWU test $P-value =$ " + "{:0.2e}".format(p)) #str(round(p, 4)),)
 
     # format tick marks
     if grouped:
