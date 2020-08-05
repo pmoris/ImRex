@@ -223,6 +223,13 @@ data-vdjdb-jan-2020:
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser-slim.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-slim-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.slim.txt
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-browser-summary.md data/raw/vdjdb/vdjdb-browser.tsv
+## Download Adaptive ImmuneCODE sars-covid dataset
+data-adaptive:
+	bash ./src/scripts/data_scripts/retrieve_data_adaptive.sh
+
+## Preprocess Adaptive ImmuneCODE data
+preprocess-adaptive:
+	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_immunecode.py -i data/raw/immunecode-adaptive/ImmuneCODE-Release001.1/peptide-detail.csv -o data/interim/immunecode-adaptive/adaptive-sars-cov.csv --length-restriction 10 20 8 11
 
 ## Calculate metrics across train/test folds and create figures
 metrics:
