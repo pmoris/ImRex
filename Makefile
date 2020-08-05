@@ -59,16 +59,16 @@ clean:
 # ANALYSIS                                                                      #
 #################################################################################
 
-## Download data to correct directories
+## Download VDJdb data to correct directories
 data-vdjdb-aug-2019:
-	@echo ">>> Downloading raw data."
-	bash ./src/scripts/data_scripts/retrieve_data.sh
+	@echo ">>> Downloading raw VDJdb data."
+	bash ./src/scripts/data_scripts/retrieve_data_vdjdb.sh
 	@echo ">>> Creating summary statistics."
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-2019-08-08-vdjdb-summary.md data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser-slim.sh data/raw/vdjdb/vdjdb-2019-08-08-vdjdb-slim-summary.md data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.slim.txt
 	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-browser-summary.md data/raw/vdjdb/vdjdb-browser.tsv
 
-## Filter the data and preprocess it into the correct format.
+## Filter the VDJdb data and preprocess it into the correct format.
 preprocess-vdjdb-aug-2019:
 	mkdir -p data/interim/vdjdb-2019-08-08/
 
@@ -101,7 +101,7 @@ preprocess-vdjdb-aug-2019:
 	# $(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-no10x-size.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11
 
 	# 	# 2019-08-08 release: human TRB without spurious sequences and without any 10xgenomics entries and length restrictions
-	# $(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-no10x-size-preprint.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 13
+	# $(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-no10x-size-preprint.csv --species human --tcr-chain TRB --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11
 
 	# # 2019-08-08 release: human TRA without spurious sequences and without any 10xgenomics entries and length restrictions
 	# $(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-tra-no10x-size.csv --species human --tcr-chain TRA --drop-spurious --remove-specific-reference 10xgenomics --length-restriction 10 20 8 11
@@ -215,14 +215,15 @@ preprocess-vdjdb-aug-2019:
 	# epitopes taken from set of unique epitopes compared to non10x data
 	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_vdjdb.py -i data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt -o data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-10x-size.csv --species human --tcr-chain TRB --mhc MHCI --drop-spurious --keep-specific-reference 10xgenomics --length-restriction 10 20 8 11 --keep-specific-epitopes AYAQKIFKI CLLGTYTQDV CLLWSFQTSA CYTWNQMNL FLASKIGRLV FLYALALLL IMDQVPFSV KLGGALQAK KLQCVDLHV KTWGQYWQV KVAELVHFL KVLEYVIKV LLDFVRFMGV MLDLQPETT QPRAPIRPI RIAAWMATY RLRAEAQVK RTLNAWVKV SLFNTVATL SLFNTVATLY SLYNTVATLY YLLEMLWRL YLNDHLEPWI
 
-## Download dataset
-data-vdjdb-jan-2020:
-	@echo ">>> Downloading raw data."
-	bash ./src/scripts/data_scripts/retrieve_data-2020-01-20.sh
-	@echo ">>> Creating summary statistics."
-	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt
-	bash ./src/scripts/data_scripts/vdjdb-content-analyser-slim.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-slim-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.slim.txt
-	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-browser-summary.md data/raw/vdjdb/vdjdb-browser.tsv
+# ## Download 2020 VDJdb dataset (not used)
+# data-vdjdb-jan-2020:
+# 	@echo ">>> Downloading raw data."
+# 	bash ./src/scripts/data_scripts/retrieve_data_vdjdb-2020-01-20.sh
+# 	@echo ">>> Creating summary statistics."
+# 	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.txt
+# 	bash ./src/scripts/data_scripts/vdjdb-content-analyser-slim.sh data/raw/vdjdb/vdjdb-2020-01-20-vdjdb-slim-summary.md data/raw/vdjdb/vdjdb-2020-01-20/vdjdb.slim.txt
+# 	bash ./src/scripts/data_scripts/vdjdb-content-analyser.sh data/raw/vdjdb/vdjdb-browser-summary.md data/raw/vdjdb/vdjdb-browser.tsv
+
 ## Download Adaptive ImmuneCODE sars-covid dataset
 data-adaptive:
 	bash ./src/scripts/data_scripts/retrieve_data_adaptive.sh

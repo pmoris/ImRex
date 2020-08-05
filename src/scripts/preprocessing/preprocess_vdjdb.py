@@ -114,7 +114,7 @@ def create_parser():
         nargs="+",
         type=str,
         default=None,
-        help="Specify the sequence length restriction. Format: cdr3-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 13'. Do not use quotes.",
+        help="Specify the sequence length restriction. Format: cdr3-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 11'. Do not use quotes around this argument.",
     )
     parser.add_argument(
         "--downsample",
@@ -122,7 +122,7 @@ def create_parser():
         nargs="+",
         type=str,
         default=None,
-        help="Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 0.84 GILGFVFTL 0.80'. Do not use quotes.",
+        help="Specify which epitopes should be downsampled. Format: epitope-seq fraction-to-drop. E.g. 'NLVPMVATV 1000 GILGFVFTL 1000'. Do not use quotes around this argument.",
     )
     parser.add_argument(
         "--terminal_only",
