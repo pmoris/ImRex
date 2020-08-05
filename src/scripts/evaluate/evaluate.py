@@ -319,7 +319,7 @@ if __name__ == "__main__":
         ) from e
 
     # add training dataset size per epitope
-    if train_path:
+    if args.train_dataset:
         train_df = pd.read_csv(train_path, sep=";")
         per_epitope_df["train_size"] = per_epitope_df.apply(
             lambda x: np.sum(train_df["antigen.epitope"] == x["epitope"]), axis=1
@@ -332,4 +332,3 @@ if __name__ == "__main__":
     per_epitope_filepath = output_dir / "metrics_per_epitope.csv"
     per_epitope_df.to_csv(per_epitope_filepath, index=False)
     logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
-
