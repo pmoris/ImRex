@@ -1,25 +1,20 @@
 """ CNN model for recognizing generated peptides. """
+from typing import Optional
+
 # from keras import Model
 # from keras.layers import LeakyReLU
 # from keras.layers import Activation
 # from keras.regularizers import l2
-import keras
-from keras.layers import (
+import tensorflow
+from tensorflow.keras.layers import (
+    BatchNormalization,
+    Conv1D,
     Dense,
     Dropout,
-    # Flatten,
-    # Conv2D,
-    # MaxPool2D,
-    Input,
-    Conv1D,
-)
-from keras.layers.normalization import BatchNormalization
-from keras.layers import (
-    # GlobalAveragePooling2D,
-    # GlobalMaxPooling2D,
     GlobalMaxPooling1D,
+    Input,
 )
-import keras.initializers
+from tensorflow.keras.regularizers import l2
 
 from src.models.model import Model
 
@@ -28,18 +23,30 @@ LENGTH = 10
 
 
 class ModelSeparatedInputs(Model):
-    def __init__(self, optimizer, include_lr, *args, **kwargs):
+    def __init__(
+        self,
+        optimizer: str,
+        learning_rate: Optional[float] = None,
+        regularization: Optional[float] = None,
+        dropout_conv: Optional[float] = None,
+        dropout_dense: Optional[float] = None,
+        *args,
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.optimizer = optimizer
-        self.include_lr = include_lr
+        self.learning_rate = learning_rate
+        self.regularization = l2(regularization) if regularization else None
+        self.dropout_conv = dropout_conv
+        self.dropout_dense = dropout_dense
 
     def _build_model(self):
-        KERNEL_INIT = keras.initializers.he_normal
+        KERNEL_INIT = tensorflow.keras.initializers.he_normal
 
         input1 = Input(shape=(None, 20))
         input2 = Input(shape=(None, 20))
 
-        def feature_extraction(input):
+        def feature_extraction(input):  # noqa: A002
             convolutions = list()
             convolutions.append(
                 Conv1D(
@@ -47,7 +54,8 @@ class ModelSeparatedInputs(Model):
                     (1,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -56,7 +64,8 @@ class ModelSeparatedInputs(Model):
                     (3,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -65,7 +74,8 @@ class ModelSeparatedInputs(Model):
                     (5,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -74,7 +84,8 @@ class ModelSeparatedInputs(Model):
                     (7,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
             convolutions.append(
@@ -83,22 +94,25 @@ class ModelSeparatedInputs(Model):
                     (9,),
                     padding="same",
                     kernel_initializer=KERNEL_INIT(),
-                    activation="relu",
+                    activation="selu",
+                    kernel_regularizer=self.regularization,
                 )(input)
             )
 
             # Place them after each other (depth axis = channels = layer 2)
-            merged = keras.layers.concatenate(convolutions, axis=-1)
+            merged = tensorflow.keras.layers.concatenate(convolutions, axis=-1)
 
             # Add dropout and batch norm (not in paper)
-            merged = Dropout(0.25)(merged)
+            if self.dropout_conv:
+                merged = Dropout(self.dropout_conv)(merged)
             merged = BatchNormalization()(merged)
             conv = Conv1D(
                 100,
                 (1,),
                 padding="valid",
                 kernel_initializer=KERNEL_INIT(),
-                activation="relu",
+                activation="selu",
+                kernel_regularizer=self.regularization,
             )(merged)
             return conv
 
@@ -106,46 +120,57 @@ class ModelSeparatedInputs(Model):
         part2 = feature_extraction(input2)
 
         # axis 1 = length = sequence concat
-        concatenated = keras.layers.concatenate([part1, part2], axis=1)
+        concatenated = tensorflow.keras.layers.concatenate([part1, part2], axis=1)
 
         max_pool = GlobalMaxPooling1D()(concatenated)
-        drop_out = Dropout(0.5)(max_pool)
-        batch_norm = BatchNormalization()(drop_out)
+        if self.dropout_dense:
+            drop_out = Dropout(self.dropout_dense)(max_pool)
+            batch_norm = BatchNormalization()(drop_out)
+        else:
+            batch_norm = BatchNormalization()(max_pool)
 
-        dense = Dense(10, activation="relu")(batch_norm)
-        predictions = Dense(1, activation="sigmoid")(dense)
+        dense = Dense(10, activation="selu", kernel_regularizer=self.regularization,)(
+            batch_norm
+        )
+        if self.dropout_dense:
+            drop_out = Dropout(0.4)(dense)
+            predictions = Dense(1, activation="sigmoid")(drop_out)
+        else:
+            predictions = Dense(1, activation="sigmoid")(dense)
 
-        model = keras.Model(inputs=[input1, input2], outputs=predictions)
+        model = tensorflow.keras.Model(inputs=[input1, input2], outputs=predictions)
+
         return model
 
     def get_loss(self):
-        from keras.metrics import binary_crossentropy
+        from tensorflow.keras.losses import BinaryCrossentropy
 
-        return binary_crossentropy
+        return BinaryCrossentropy()
 
     def get_optimizer(self):
         if self.optimizer == "rmsprop":
 
-            from keras.optimizers import rmsprop
+            from tensorflow.keras.optimizers import RMSprop
 
-            return rmsprop()
+            if self.learning_rate:
+                return RMSprop(learning_rate=self.learning_rate)
+            else:
+                return RMSprop()
 
         elif self.optimizer == "adam":
 
-            from keras.optimizers import Adam
+            from tensorflow.keras.optimizers import Adam
 
-            if self.include_lr:
-                return Adam(lr=self.include_lr)
+            if self.learning_rate:
+                return Adam(learning_rate=self.learning_rate)
             else:
                 return Adam()
 
         elif self.optimizer == "SGD":
 
-            from keras.optimizers import SGD
+            from tensorflow.keras.optimizers import SGD
 
-            if self.include_lr:
-                return SGD(lr=self.include_lr)
+            if self.learning_rate:
+                return SGD(llearning_rate=self.learning_rate)
             else:
                 return SGD()
-
-        return rmsprop()

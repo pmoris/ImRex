@@ -26,11 +26,13 @@ class ForwardStream(Stream):
 
 
 class InverseMap(object):
+    """Lookup map from feature to input (for traceability)."""
+
     def __init__(self):
         self.map = dict()
         self.ins = list()
 
-    def input(self, stream, has_label=True):
+    def input(self, stream, has_label=True):  # noqa: A003
         def hook(item):
             self.ins.append(item)
 
@@ -50,7 +52,7 @@ class InverseMap(object):
 
 
 class NoOp(object):
-    def input(self, stream, **kwargs):
+    def input(self, stream, **kwargs):  # noqa: A003
         return stream
 
     def output(self, stream, **kwargs):

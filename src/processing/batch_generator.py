@@ -1,5 +1,5 @@
-from keras.utils import Sequence
 import numpy as np
+from tensorflow.keras.utils import Sequence
 
 from src.processing.stream import BatchStream
 
@@ -29,7 +29,7 @@ class BatchGenerator(Sequence, BatchStream):
             return np.array(X), np.array(y)
 
     def __getitem__(self, index):
-        """Gets batch at position `index`.
+        """Get batch at position `index`.
 
         # Arguments
             index: position of the batch in the Sequence.
@@ -46,6 +46,5 @@ class BatchGenerator(Sequence, BatchStream):
         return len(self.batch_stream) // self.batch_size
 
     def on_epoch_end(self):
-        """Method called at the end of every epoch.
-        """
+        """Method called at the end of every epoch."""  # noqa: D401
         self.send_event("epoch_end")

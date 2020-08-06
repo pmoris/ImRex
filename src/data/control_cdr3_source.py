@@ -1,6 +1,7 @@
 import logging
-import pandas as pd
 from typing import Optional
+
+import pandas as pd
 
 from src.config import PROJECT_ROOT
 from src.data.data_source import DataSource
@@ -23,9 +24,11 @@ class ControlCDR3Source(DataSource):
         filepath=CONTROL_CDR3_PATH,
         min_length: Optional[int] = None,
         max_length: Optional[int] = None,
+        headers={"cdr3_header": CONTROL_CDR3_SEQ_COLUMN},
     ):
         super().__init__()
         self.filepath = filepath
+        self.headers = headers
 
         logger = logging.getLogger(__name__)
 
@@ -43,7 +46,7 @@ class ControlCDR3Source(DataSource):
         self.data = (
             pd.read_csv(self.filepath, sep="\t")
             .pipe(restrict_length, min_length=min_length, max_length=max_length)
-            .drop_duplicates(subset="CDR3_beta")
+            .drop_duplicates(subset=CONTROL_CDR3_SEQ_COLUMN)
         )
 
         logger.info(

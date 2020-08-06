@@ -21,5 +21,34 @@ class Zipper(Stream):
         return items
 
 
-def unzipper(stream):
+def unzipper(stream: Stream):
+    """ Split Stream object into separate DataStreams for each element making up a single obervation.
+
+    Input can be a DataStream, TransformStream, etc.
+
+    E.g.
+
+         [
+            ('CASGSGAEAFF', 'GILGFVFTL'),
+            ('CASSPRDRPLEQYF', 'ELAGIGILTV'),
+            ...
+         ]  # noqa: RST203
+
+    =>
+
+        (
+            ['CASGSGAEAFF','CASSPRDRPLEQYF',...],
+            ['GILGFVFTL', 'ELAGIGILTV',...]
+        )   # noqa: RST203
+
+    Parameters
+    ----------
+    stream : Stream
+        The Stream to unzip.
+
+    Returns
+    -------
+    Tuple
+        A tuple of DataStreams.
+    """
     return tuple(DataStream(l) for l in zip(*stream))

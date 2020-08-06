@@ -1,4 +1,5 @@
 from functools import lru_cache
+
 import numpy as np
 
 from src.bio.util import scale_matrix
@@ -17,7 +18,8 @@ class Operator(object):
         raise NotImplementedError()
 
     def matrix(self, v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-        """Combines two vectors of amino acid properties in a pairwise fashion, based on the operator.
+        """Combine two vectors of amino acid properties in a pairwise fashion, based on the operator.
+
         Implemented by the specific child classes for each operator.
 
         Parameters
@@ -36,8 +38,7 @@ class Operator(object):
     def image_matrix(
         self, v1: np.ndarray, v2: np.ndarray, peptide_feature,
     ) -> np.ndarray:
-        """Returns a scaled pairwise combined amino acid property matrix for
-        the given sequences and amino acid property.
+        """Return a scaled pairwise combined amino acid property matrix for the given sequences and amino acid property.
 
         Elements are scaled between 0 and 255, where the minimum and maximum value
         are defined by the smallest and largest value that the pairwise combination
@@ -70,8 +71,7 @@ class Operator(object):
     def norm_matrix(
         self, v1: np.ndarray, v2: np.ndarray, peptide_feature,
     ) -> np.ndarray:
-        """Returns a normalized pairwise combined amino acid property matrix for
-        the given sequences and amino acid property.
+        """Return a normalized pairwise combined amino acid property matrix for the given sequences and amino acid property.
 
         Elements are normalized between 0 and 1, where the minimum and maximum value
         are defined by the smallest and largest value that the pairwise combination
@@ -109,7 +109,7 @@ class Operator(object):
 class ProductOperator(Operator):
     @lru_cache()
     def min_op(self, peptide_feature):
-        """ The minimum if two values are multiplied """
+        """ Find the minimum if two values are multiplied. """
         if (
             peptide_feature.min < 0 and peptide_feature.max > 0
         ):  # if result can be negative, minimum product is lowest * highest
@@ -123,14 +123,14 @@ class ProductOperator(Operator):
 
     @lru_cache()
     def max_op(self, peptide_feature):
-        """ The maximum if two values are multiplied """
+        """ Find the maximum if two values are multiplied. """
         return max(
             peptide_feature.max * peptide_feature.max,
             peptide_feature.min * peptide_feature.min,
         )
 
     def matrix(self, v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-        """Performs outer product (or matrix multiplication on column and row vector).
+        """ Perform outer product (or matrix multiplication on column and row vector).
 
         np.outer(v1, v2) is the standard approach, but for small vectors,
         broadcasting should be faster.
@@ -153,7 +153,6 @@ class ProductOperator(Operator):
             E.g.
             [1,2] x [3,4] = [[3,4], [6,8]]
         """
-
         m = v1[:, np.newaxis] * v2[np.newaxis, :]
         return m
 
@@ -231,7 +230,6 @@ class AbsDifferenceOperator(Operator):
             E.g.
             [1,2] - [3,4] = [[2,3], [1,2]]
         """
-
         aa = v1[..., np.newaxis] - v2[np.newaxis, ...]
         aa = np.abs(aa)
 
@@ -249,6 +247,6 @@ class DifferenceOperator(Operator):
         return peptide_feature.max - peptide_feature.min
 
     def matrix(self, v1, v2):
-        """ Use subtract rather than product """
+        """ Use subtract rather than product. """
         aa = v1[..., np.newaxis] - v2[np.newaxis, ...]
         return aa

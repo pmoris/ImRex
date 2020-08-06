@@ -12,7 +12,7 @@
 # import tempfile
 
 from src.config import PROJECT_ROOT
-import src.preprocessing.preprocess_vdjdb
+from src.scripts.preprocessing import preprocess_vdjdb
 
 # enable file logger because preprocessing function expects it...
 # log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -75,17 +75,17 @@ def test_filter_vdjdb():
     ########################
 
     # human TRB with spurious - vdjdb
-    df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
+    df = preprocess_vdjdb.filter_vdjdb(
         input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRB",
         species="human",
         mhc="all",
         hla="all",
     )
-    assert df.shape == (32639, 2)
+    assert df.shape == (32639, 54)
 
     # human TRB without spurious - vdjdb
-    df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
+    df = preprocess_vdjdb.filter_vdjdb(
         input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRB",
         species="human",
@@ -93,10 +93,10 @@ def test_filter_vdjdb():
         hla="all",
         drop_spurious=False,
     )
-    assert df.shape == (33028, 2)
+    assert df.shape == (33028, 54)
 
     # human TRB without spurious without 10x - vdjdb
-    df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
+    df = preprocess_vdjdb.filter_vdjdb(
         input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRB",
         species="human",
@@ -104,10 +104,10 @@ def test_filter_vdjdb():
         hla="all",
         specific_removal_epitope_reference=["KLGGALQAK", "10xgenomics"],
     )
-    assert df.shape == (20024, 2)
+    assert df.shape == (20024, 54)
 
     # human TRA - vdjdb
-    df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
+    df = preprocess_vdjdb.filter_vdjdb(
         input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="TRA",
         species="human",
@@ -115,10 +115,10 @@ def test_filter_vdjdb():
         hla="all",
         drop_spurious=False,
     )
-    assert df.shape == (23564, 2)
+    assert df.shape == (23564, 54)
 
     # all species all chains with spurious - vdjdb
-    df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
+    df = preprocess_vdjdb.filter_vdjdb(
         input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="all",
         species="all",
@@ -126,20 +126,20 @@ def test_filter_vdjdb():
         hla="all",
         drop_spurious=False,
     )
-    assert df.shape == (61047, 2)
+    assert df.shape == (61047, 54)
 
     # all species all chains - vdjdb
-    df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
+    df = preprocess_vdjdb.filter_vdjdb(
         input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="all",
         species="all",
         mhc="all",
         hla="all",
     )
-    assert df.shape == (59072, 2)
+    assert df.shape == (59072, 54)
 
     # human TRB length 10-20cdr3 10-13epitope - vdjdb - no10x - no spurious
-    df = src.preprocessing.preprocess_vdjdb.filter_vdjdb(
+    df = preprocess_vdjdb.filter_vdjdb(
         input=PROJECT_ROOT / "data/raw/vdjdb/vdjdb-2019-08-08/vdjdb.txt",
         tcr_chain="all",
         species="human",
@@ -151,4 +151,4 @@ def test_filter_vdjdb():
         keep_specific_references=None,
         length_restriction=["10", "20", "8", "13"],
     )
-    assert df.shape == (20646, 2)
+    assert df.shape == (20646, 54)

@@ -1,17 +1,17 @@
 from functools import lru_cache
 import random
 
-from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from Bio.SeqUtils import molecular_weight
 from Bio.SeqUtils import ProtParamData
+from Bio.SeqUtils.ProtParam import ProteinAnalysis
 import numpy as np
 from pyteomics import electrochem
 
 from src.bio.operator import (
-    ProductOperator,
-    LayeredOperator,
     AbsDifferenceOperator,
     DifferenceOperator,
+    LayeredOperator,
+    ProductOperator,
 )
 from src.definitions.amino_acid_properties import (
     AMINO_ACIDS,
@@ -20,11 +20,21 @@ from src.definitions.amino_acid_properties import (
     ATCHLEY_FACTOR_3,
     ATCHLEY_FACTOR_4,
     ATCHLEY_FACTOR_5,
-    TCREX_BASICITY,
-    TCREX_HYDROPHOBICITY,
-    TCREX_HELICITY,
-    TCREX_MUTATION_STABILITY,
     PH,
+    TCREX_BASICITY,
+    TCREX_HELICITY,
+    TCREX_HYDROPHOBICITY,
+    TCREX_MUTATION_STABILITY,
+    KIDERA_FACTOR_1,
+    KIDERA_FACTOR_2,
+    KIDERA_FACTOR_3,
+    KIDERA_FACTOR_4,
+    KIDERA_FACTOR_5,
+    KIDERA_FACTOR_6,
+    KIDERA_FACTOR_7,
+    KIDERA_FACTOR_8,
+    KIDERA_FACTOR_9,
+    KIDERA_FACTOR_10,
 )
 
 
@@ -82,19 +92,18 @@ class PeptideFeature(object):
         """
         return {aa: self._calculate(aa) for aa in AMINO_ACIDS}
 
-    @property
+    @property  # noqa: A003
     @lru_cache()
     def max(self):
         return max(self.values.values())
 
-    @property
+    @property  # noqa: A003
     @lru_cache()
     def min(self):
         return min(self.values.values())
 
     def calculate(self, peptide: str) -> np.ndarray:
-        """Return the associated value of the property for all amino acids in a given peptide sequence,
-        and 0 when the amino acid is not found or invalid.
+        """Return the associated value of the property for all amino acids in a given peptide sequence, and 0 when the amino acid is not found or invalid.
 
         Is never overriden by a feature subclass.
 
@@ -113,8 +122,7 @@ class PeptideFeature(object):
         return np.asanyarray(values)
 
     def matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
-        """Computes the pairwise amino acid matrix of two amino acid sequences
-        using the given operator, for this amino acid property/feature.
+        """Compute the pairwise amino acid matrix of two amino acid sequences using the given operator, for this amino acid property/feature.
 
         Parameters
         ----------
@@ -136,8 +144,7 @@ class PeptideFeature(object):
         return m
 
     def image_matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
-        """Computes the scaled pairwise amino acid matrix of two amino acid sequences
-        using the given operator, for this amino acid property/feature.
+        """Compute the scaled pairwise amino acid matrix of two amino acid sequences using the given operator, for this amino acid property/feature.
 
         Elements are scaled between 0 and 1, where the minimum and maximum value
         are defined by the smallest and largest value that the pairwise combination
@@ -165,8 +172,7 @@ class PeptideFeature(object):
         ).astype(np.uint8)
 
     def norm_matrix(self, pep1: str, pep2: str, operator="best") -> np.ndarray:
-        """Computes the normalized pairwise amino acid matrix of two amino acid sequences
-        using the given operator, for this amino acid property/feature.
+        """Compute the normalized pairwise amino acid matrix of two amino acid sequences using the given operator, for this amino acid property/feature.
 
         Elements are normalized between 0 and 1, where the minimum and maximum value
         are defined by the smallest and largest value that the pairwise combination
@@ -204,7 +210,7 @@ class Charge(PeptideFeature):
         return electrochem.charge(aa, self.ph)
 
     def generate_match(self, amino):
-        """ This method matches pos to neg, neg to pos and neutral to neutral. """
+        """ Match pos to neg, neg to pos and neutral to neutral. """
         CUTOFF = 0.5
 
         pos = [aa for aa, charge in self.values.items() if charge >= CUTOFF]
@@ -239,7 +245,7 @@ class Hydrophobicity(PeptideFeature):
         return ProtParamData.kd[aa]
 
     def generate_match(self, amino):
-        """ This method selects a value close to the value of the aa. """
+        """ Select a value close to the value of the aa. """
         acids, weights = zip(
             *[
                 (aa, abs(pow(v - self._calculate(amino), 2)))
@@ -261,7 +267,7 @@ class IsoelectricPoint(PeptideFeature):
         return ProteinAnalysis(aa).isoelectric_point()
 
     def generate_match(self, amino):
-        """ This method selects a value close to the value of the aa. """
+        """ Select a value close to the value of the aa. """
         acids, weights = zip(
             *[
                 (aa, abs(pow(v - self._calculate(amino), 2)))
@@ -285,7 +291,7 @@ class Mass(PeptideFeature):
         )  # circular to not include water
 
     def generate_match(self, amino):
-        """ This method selects a value close to the value of the aa. """
+        """ Select a value close to the value of the aa. """
         acids, weights = zip(
             *[
                 (aa, abs(pow(v - self._calculate(amino), 2)))
@@ -550,6 +556,136 @@ class AtchleyFactor5(PeptideFeature):
         return ATCHLEY_FACTOR_5[aa]
 
 
+@lru_cache()
+class KideraFactor1(PeptideFeature):
+    name = "Kidera_factor_1"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_1
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_1[aa]
+
+
+@lru_cache()
+class KideraFactor2(PeptideFeature):
+    name = "Kidera_factor_2"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_2
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_2[aa]
+
+
+@lru_cache()
+class KideraFactor3(PeptideFeature):
+    name = "Kidera_factor_3"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_3
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_3[aa]
+
+
+@lru_cache()
+class KideraFactor4(PeptideFeature):
+    name = "Kidera_factor_4"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_4
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_4[aa]
+
+
+@lru_cache()
+class KideraFactor5(PeptideFeature):
+    name = "Kidera_factor_5"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_5
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_5[aa]
+
+
+@lru_cache()
+class KideraFactor6(PeptideFeature):
+    name = "Kidera_factor_6"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_6
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_6[aa]
+
+
+@lru_cache()
+class KideraFactor7(PeptideFeature):
+    name = "Kidera_factor_7"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_7
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_7[aa]
+
+
+@lru_cache()
+class KideraFactor8(PeptideFeature):
+    name = "Kidera_factor_8"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_8
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_8[aa]
+
+
+@lru_cache()
+class KideraFactor9(PeptideFeature):
+    name = "Kidera_factor_9"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_9
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_9[aa]
+
+
+@lru_cache()
+class KideraFactor10(PeptideFeature):
+    name = "Kidera_factor_10"
+
+    @property
+    @lru_cache()
+    def values(self) -> dict:
+        return KIDERA_FACTOR_10
+
+    def _calculate(self, aa: str) -> float:
+        return KIDERA_FACTOR_10[aa]
+
+
 features_map = {
     "charge": Charge(),
     "hydrophob": Hydrophobicity(),
@@ -569,6 +705,16 @@ features_map = {
     "atchley3": AtchleyFactor3(),
     "atchley4": AtchleyFactor4(),
     "atchley5": AtchleyFactor5(),
+    "kidera1": KideraFactor1(),
+    "kidera2": KideraFactor2(),
+    "kidera3": KideraFactor3(),
+    "kidera4": KideraFactor4(),
+    "kidera5": KideraFactor5(),
+    "kidera6": KideraFactor6(),
+    "kidera7": KideraFactor7(),
+    "kidera8": KideraFactor8(),
+    "kidera9": KideraFactor9(),
+    "kidera10": KideraFactor10(),
 }
 
 operators_map = {
@@ -581,8 +727,7 @@ operators_map = {
 
 
 def parse_features(string):
-    """Return a list of peptide feature objects based on a string
-    of feature names.
+    """Return a list of peptide feature objects based on a string of feature names.
 
     Parameters
     ----------
@@ -599,7 +744,7 @@ def parse_features(string):
     e
         Raises a value error if an unknown feature is encountered.
     """
-    names = [name.strip() for name in string.split(",")]
+    names = [name.lower().strip() for name in string.split(",")]
     try:
         return [features_map[name] for name in names]
     except ValueError as e:
@@ -608,7 +753,7 @@ def parse_features(string):
 
 
 def parse_operator(string):
-    """Returns an operator object based on the input name.
+    """Return an operator object based on the input name.
 
     Parameters
     ----------

@@ -53,7 +53,7 @@ class GroupedAmountFilter(GroupedStream):
         self.min_amount = min_amount
 
     def __len__(self):
-        return sum([len(bin) for bin in self.get_groups().values()])
+        return sum([len(binned) for binned in self.get_groups().values()])
 
     @lru_cache()
     def get_groups(self):

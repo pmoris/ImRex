@@ -89,7 +89,10 @@ target/
 # Mypy cache
 .mypy_cache/
 
-!src/models
-/models/*
+# !src/models
+# /models/*
+# !/models/pretrained
 
 *.fuse*
+
+src/scripts/hpc_scripts/old/
