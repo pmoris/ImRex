@@ -1,3 +1,0 @@
-2020-06-13 20:34:13,938 - __main__ - INFO - Command line call: Namespace(input='data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv', output='data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-decoy.csv', weighted=False)
-2020-06-13 20:34:13,963 - __main__ - INFO - Creating decoys by sampling uniformly from the amino acid alphabet.
-2020-06-13 20:34:14,014 - __main__ - INFO - Saved dataset with decoy epitopes to /media/pieter/DATA/Wetenschap/Doctoraat/projects/deepTCR/deepTCR/data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size-decoy.csv.

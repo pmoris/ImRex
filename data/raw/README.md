@@ -9,3 +9,7 @@ by Dean et al. ([https://doi.org/10.1186/s13073-015-0238-z](https://doi.org/10.1
 ## Adaptive ImmuneCODE
 
 - `./immunecode-adaptive` contains the SARS-CoV-2 data (June 25 2020) released by Adaptive (source: [https://immunerace.adaptivebiotech.com/more-data-and-whats-coming-next/](https://immunerace.adaptivebiotech.com/more-data-and-whats-coming-next/)). This data can be retrieved and unpacked using `Make data-adaptive`.
+
+## McPAS
+
+- `mcpas.csv` contains human CDR3-epitope sequence pairs, taken from McPAS ([http://friedmanlab.weizmann.ac.il/McPAS-TCR/](http://friedmanlab.weizmann.ac.il/McPAS-TCR/)) and filtered on a number of quality checks.

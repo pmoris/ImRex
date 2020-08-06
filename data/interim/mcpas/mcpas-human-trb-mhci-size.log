@@ -1,0 +1,19 @@
+2020-08-06 19:52:40,322 - __main__ - INFO - Command line call: Namespace(input='./data/raw/mcpas.csv', length_restriction=['10', '20', '8', '11'], output='./data/interim/mcpas/mcpas-human-trb-mhci-size.csv', vdjdb_dataset='./data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv')
+2020-08-06 19:52:40,323 - __main__ - INFO - Filtering McPAS data found at /media/pieter/DATA/Wetenschap/Doctoraat/projects/deepTCR/deepTCR/data/raw/mcpas.csv
+2020-08-06 19:52:40,340 - __main__ - INFO - McPAS dataset size is (6902, 7)
+2020-08-06 19:52:40,363 - __main__ - INFO - Filtered on provided length restrictions (10<=CDR3<=20, 8<=epitope<=11), resulting in 6650 remaining entries...
+2020-08-06 19:52:40,368 - __main__ - INFO - Removing 326 duplicate CDR3-epitope pairs.
+2020-08-06 19:52:40,368 - __main__ - INFO - Filtered dataset contains 6324 entries.
+2020-08-06 19:52:41,901 - matplotlib.backends.backend_pdf - WARNING - 'SourceSansPro-Bold.otf' can not be subsetted into a Type 3 font. The entire font will be embedded in the output.
+2020-08-06 19:52:41,919 - matplotlib.backends.backend_pdf - WARNING - 'SourceSansPro-Regular.otf' can not be subsetted into a Type 3 font. The entire font will be embedded in the output.
+2020-08-06 19:52:42,740 - __main__ - INFO - Saved processed McPAS dataset to /media/pieter/DATA/Wetenschap/Doctoraat/projects/deepTCR/deepTCR/data/interim/mcpas/mcpas-human-trb-mhci-size.csv.
+2020-08-06 19:52:42,755 - __main__ - INFO - VDJdb dataset size is (14188, 2)
+2020-08-06 19:52:42,759 - __main__ - INFO - Filtered dataset contains 64 entries.
+2020-08-06 19:52:43,515 - matplotlib.backends.backend_pdf - WARNING - 'SourceSansPro-Bold.otf' can not be subsetted into a Type 3 font. The entire font will be embedded in the output.
+2020-08-06 19:52:43,534 - matplotlib.backends.backend_pdf - WARNING - 'SourceSansPro-Regular.otf' can not be subsetted into a Type 3 font. The entire font will be embedded in the output.
+2020-08-06 19:52:44,242 - __main__ - INFO - Saved processed unique epitope McPAS dataset to /media/pieter/DATA/Wetenschap/Doctoraat/projects/deepTCR/deepTCR/data/interim/mcpas/mcpas-human-trb-mhci-size-unique.csv.
+2020-08-06 19:52:44,245 - __main__ - INFO - McPAS shares 42 epitopes with VDJdb dataset, resulting in 6260 entries.
+2020-08-06 19:52:44,265 - __main__ - INFO - Filtered dataset contains 3746 unique entries.
+2020-08-06 19:52:45,337 - matplotlib.backends.backend_pdf - WARNING - 'SourceSansPro-Bold.otf' can not be subsetted into a Type 3 font. The entire font will be embedded in the output.
+2020-08-06 19:52:45,355 - matplotlib.backends.backend_pdf - WARNING - 'SourceSansPro-Regular.otf' can not be subsetted into a Type 3 font. The entire font will be embedded in the output.
+2020-08-06 19:52:46,041 - __main__ - INFO - Saved processed shared epitope McPAS dataset to /media/pieter/DATA/Wetenschap/Doctoraat/projects/deepTCR/deepTCR/data/interim/mcpas/mcpas-human-trb-mhci-size-shared.csv.

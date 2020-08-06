@@ -19,3 +19,7 @@
 
 # and adaptive data
 !adaptive-sars-cov*.csv
+!/immunecode-adaptive/
+!/immunecode-adaptive/*
+!/mcpas
+!/mcpas/*

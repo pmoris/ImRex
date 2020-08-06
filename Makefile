@@ -230,7 +230,11 @@ data-adaptive:
 
 ## Preprocess Adaptive ImmuneCODE data
 preprocess-adaptive:
-	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_immunecode.py -i data/raw/immunecode-adaptive/ImmuneCODE-Release001.1/peptide-detail.csv -o data/interim/immunecode-adaptive/adaptive-sars-cov.csv --length-restriction 10 20 8 11
+	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_immunecode.py -i ./data/raw/immunecode-adaptive/ImmuneCODE-Release001.1/peptide-detail.csv -o ./data/interim/immunecode-adaptive/adaptive-sars-cov.csv --length-restriction 10 20 8 11
+
+## Preprocess McPAS data
+preprocess-mcpas:
+	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_mcpas.py -i ./data/raw/mcpas.csv -o ./data/interim/mcpas/mcpas-human-trb-mhci-size.csv --length-restriction 10 20 8 11 --vdjdb_dataset ./data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv
 
 ## Calculate metrics across train/test folds and create figures
 metrics:
