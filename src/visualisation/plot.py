@@ -1125,22 +1125,19 @@ def roc_per_epitope(
             .sort_values(ascending=False)
             .index
         )
-
-        # single color per hue
-        # colour_palette = sns.color_palette("Dark2")[0]
+        # sort dataframe according to order to simplify next steps
+        # sorting must also happen on type in order to make colours match with legend
+        eval_df["epitope"] = pd.Categorical(eval_df["epitope"], order)
+        eval_df = eval_df.sort_values(["epitope"]).reset_index(drop=True)
 
         # if distance to training epitopes is provided
-        if "min_dist" in eval_df.columns:
+        # distance color bar is not used for kfold box plots because different iterations can have different distances
+        if "min_dist" in eval_df.columns and grouped:
 
             dist = "min_dist"
 
             # # NOTE: colors are simply passed in their direct order to seaborn, i.e. the order argument is not utilised.
-            # # consequently the colors should be sorted manually
-            eval_df["epitope"] = pd.Categorical(eval_df["epitope"], order)
-
-            # sort dataframe according to order to simplify next steps
-            # sorting must also happen on type in order to make colours match with legend
-            eval_df = eval_df.sort_values(["epitope", "type"])
+            # # consequently the colors should be sorted
 
             colors = mpl.cm.ScalarMappable(
                 cmap=sns.light_palette(
@@ -1156,7 +1153,7 @@ def roc_per_epitope(
                 # n_colors=eval_df[dist].nunique(),
             )
             norm = mpl.colors.BoundaryNorm(
-                np.arange(eval_df[dist].min() - 0.5, eval_df[dist].max() + 1.5), cmap.N
+                np.arange(eval_df[dist].min() - 0.5, eval_df[dist].max() + 1.5), cmap.N,
             )
             sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
             sm.set_array([])
@@ -1165,39 +1162,49 @@ def roc_per_epitope(
                 sm, ticks=np.arange(eval_df[dist].min(), eval_df[dist].max() + 1)
             )
             cbar.set_label(
-                "Minimum edit distance to training epitopes", rotation=270, labelpad=25
+                "Minimum edit distance to training epitopes", rotation=270, labelpad=25,
             )
 
+            g = plotter(
+                x="epitope",
+                y="roc_auc",
+                # hue=hue,
+                data=eval_df,
+                # color=colour_palette,
+                # palette=mpl.cm.ScalarMappable(cmap="magma").to_rgba(eval_df["mean_dist"]),
+                palette=colors,
+                order=order,
+                # alpha=0.7,
+            )
+
+            # optionally overlap individual data points
+            # sns.swarmplot(x="epitope", y="roc_auc", data=eval_df, color=".25")
+
+            # create colours for distance in box plot manually
+            # if not grouped and "min_dist" in eval_df.columns:
+            #     eval_df = eval_df.sort_values("epitope")
+            #     eval_df["color"] = (
+            #         mpl.cm.ScalarMappable(cmap=cmap).to_rgba(eval_df[dist]).tolist()
+            #     )
+
+            #     for box, color in zip(
+            #         g.artists, eval_df.drop_duplicates("epitope")["color"]
+            #     ):
+            #         box.set_facecolor(color)
+
+        # if no distance is provided, or if non-grouped models are used:
         else:
-            # colors = get_palette(eval_df, "type")
-            colors = None
-
-        g = plotter(
-            x="epitope",
-            y="roc_auc",
-            # hue=hue,
-            data=eval_df.sort_values("type"),
-            # color=colour_palette,
-            # palette=mpl.cm.ScalarMappable(cmap="magma").to_rgba(eval_df["mean_dist"]),
-            palette=colors,
-            order=order,
-            # alpha=0.7,
-        )
-
-        # optionally overlap individual data points
-        # sns.swarmplot(x="epitope", y="roc_auc", data=eval_df, color=".25")
-
-        # create colours for distance in box plot manually
-        if not grouped and "min_dist" in eval_df.columns:
-            eval_df = eval_df.sort_values("epitope")
-            eval_df["color"] = (
-                mpl.cm.ScalarMappable(cmap=cmap).to_rgba(eval_df[dist]).tolist()
+            g = plotter(
+                x="epitope",
+                y="roc_auc",
+                # hue=hue,
+                data=eval_df,
+                # color=colour_palette,
+                # palette=mpl.cm.ScalarMappable(cmap="magma").to_rgba(eval_df["mean_dist"]),
+                color=sns.color_palette("Dark2")[0],
+                order=order,
+                # alpha=0.7,
             )
-
-            for box, color in zip(
-                g.artists, eval_df.drop_duplicates("epitope")["color"]
-            ):
-                box.set_facecolor(color)
 
     # comparison of multiple models
     else:
@@ -1217,16 +1224,22 @@ def roc_per_epitope(
         # sort by max/mean auroc
         # order = eval_df.groupby(["epitope"])["roc_auc"].max()
 
-        # single hue colors
-        # colour_palette = get_palette(eval_df, "type")
+        # sort dataframe according to order to simplify next steps
+        # sorting must also happen on type in order to make colours match with legend
+        eval_df["epitope"] = pd.Categorical(eval_df["epitope"], order)
+        eval_df = eval_df.sort_values(["epitope", "type"]).reset_index(drop=True)
+
+        # single hue colors - in case no distance is provided
+        colour_palette = get_palette(eval_df, "type")
 
         g = plotter(
             x="epitope",
             y="roc_auc",
             hue=hue,
-            data=eval_df.sort_values("type"),
-            # palette=colour_palette,
+            data=eval_df,
+            palette=colour_palette,
             order=order,
+            hue_order=eval_df.sort_values("type")["type"].unique()
             # edgecolor="black"
             # alpha=0.7
             # boxprops=dict(alpha=0.7),
@@ -1256,11 +1269,10 @@ def roc_per_epitope(
         #     for lh in plt.legend().legendHandles:
         #         lh.set_alpha(0.7)
 
-        # add wilcox test for grouped plots if there are exactly two model types, skip for decoy vs normal comparisons
+        # add wilcox test for non-decoy plots if there are exactly two model types, skip for decoy vs normal comparisons
+        # for grouped => wilcox per epitope, for not-grouped (kfold) => wilcox per epitope mean
         if eval_df["type"].nunique() == 2 and not decoy:
-            # sort the values
-            eval_df = eval_df.sort_values(["epitope", "type"])
-            # and calculate the difference in auroc between the model types
+            # calculate the difference in auroc between the model types, values must be sorted!
             if grouped:
                 eval_df["diff"] = eval_df.groupby("epitope")["roc_auc"].transform(
                     lambda x: x.diff()
@@ -1318,27 +1330,45 @@ def roc_per_epitope(
             ]
             p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])[1]
             ax.legend(
-                title=r"MWU test $P-value =$ " + "{:0.2e}".format(p)
+                title=r"MWU test $P-value =$ " + "{:0.4g}".format(p)
             )  # str(round(p, 4)),)
 
+        # color by training dist, must be positioned after legend creation to maintain main color instead of random first color gradient
+
         # set color bars if distance to training epitopes is provided
-        if "min_dist" in eval_df.columns:
-            dist = "min_dist"
+        # distance color bar is not used for kfold box plots because different iterations can have different distances
+        # comparisons with decoy models are also skipped because it is difficult to keep track of which bar corresponds to which epitope/type
+        dist = "min_dist"
 
-            eval_df["epitope"] = pd.Categorical(eval_df["epitope"], order)
+        # if types differ in their distance range, set color bar + tick marks for every type, otherwise share them
+        if (
+            eval_df.groupby("type")[dist]
+            .unique()
+            .apply(lambda x: min(x))
+            .unique()
+            .shape[0]
+            == 1
+            and eval_df.groupby("type")[dist]
+            .unique()
+            .apply(lambda x: max(x))
+            .unique()
+            .shape[0]
+            == 1
+        ):
+            shared_bar = True
+            x_shift = 0.02
+        else:
+            shared_bar = False
+            x_shift = 0.04
 
-            # sort dataframe according to order to simplify next steps
-            # sorting must also happen on type in order to make colours match with legend
-            eval_df = eval_df.sort_values(["epitope", "type"])
-
+        if dist in eval_df.columns and grouped:
             # create color mappings per datapoint and color bar per type
             x_pos = 1.01
-            n = eval_df["type"].nunique()
-            for i, t in enumerate(eval_df["type"].unique()):
+            n_types = eval_df["type"].nunique()
+            n_epitopes = len(order)
 
-                # skip for decoy models since distance does not matter
-                if "decoy" in t:
-                    continue
+            # must iterate through types in sorted order = same order as given to plot/legend
+            for i, t in enumerate(eval_df.sort_values("type")["type"].unique()):
 
                 # create color mapping
                 eval_df.at[eval_df["type"] == t, "color"] = pd.Series(
@@ -1352,31 +1382,67 @@ def roc_per_epitope(
                     index=eval_df.loc[eval_df["type"] == t, dist].index,
                 )
 
-                # color boxes / bars
-                if grouped:
-                    # patches are created first for the first hue, then for the second
-                    for p, color in zip(
-                        ax.patches[
-                            i * len(ax.patches) // n : (i + 1) * len(ax.patches) // n
-                        ],
-                        eval_df.loc[eval_df["type"] == t, "color"],
+                # for bar plots patches are created first for the first hue, then for the second, etc.
+                # NOTE: The number of patches is equal for every type, i.e. even "absent" bars have an associated type.
+                assert (
+                    len(order) == len(ax.patches) // n_types
+                ), "Mismatch between number of drawn bars and number of epitopes * directories."
+                for j, epitope_bar in enumerate(order):
+
+                    # sequentially retrieve the next patch, requires the plotting function to use sorted data
+                    # e.g. both the legend, and the order of creating different bars, needs to use the same order of "type"
+                    # otherwise this will not work for decoy models, because not every epitope will have the same types,
+                    # so the order of the patches is difficult to predict (depends on order of occurrence in dataframe sorted by
+                    # both colums simultaneously)
+                    p = ax.patches[j + (i * n_epitopes)]
+                    if (
+                        epitope_bar
+                        in eval_df.loc[eval_df["type"] == t, "epitope"].values
                     ):
+                        # some epitopes might have multiple distances across iterations depending on train/test splits - test only required for non-grouped
+                        # assert eval_df.loc[ (eval_df["type"] == t) & (eval_df["epitope"] == epitope_bar), dist].nunique() == 1, "Found multiple epitope distances for the same epitope across iterations."
+                        color = eval_df.loc[
+                            (eval_df["type"] == t)
+                            & (eval_df["epitope"] == epitope_bar),
+                            "color",
+                        ].values[0]
                         p.set_color(color)
                         p.set_edgecolor("black")
-                else:
-                    # boxes are created alternating for hues per epitope
-                    for box, color in zip(
-                        g.artists[i::n],
-                        eval_df.drop_duplicates(["epitope", "type"]).loc[
-                            eval_df["type"] == t, "color"
-                        ],
-                    ):
-                        box.set_facecolor(color)
+
+                # OLD METHOD: fails when there is an inequal amount of rows in the dataframe per type (e.g. TRA evaluation)
+                # yet the zip operation assumes that each patch has a corresponding row per type.
+                # # color boxes / bars
+                # if grouped:
+                #     # patches are created first for the first hue, then for the second
+                #     for p, color in zip(
+                #         ax.patches[
+                #             i
+                #             * len(ax.patches)
+                #             // n_types : (i + 1)
+                #             * len(ax.patches)
+                #             // n_types
+                #         ],
+                #         eval_df.loc[eval_df["type"] == t, "color"],
+                #     ):
+                #         p.set_color(color)
+                #         p.set_edgecolor("black")
+                # # else:
+                #     # boxes are created alternating for hues per epitope
+                #     for box, color in zip(
+                #         g.artists[i::n],
+                #         eval_df.drop_duplicates(["epitope", "type"]).loc[
+                #             eval_df["type"] == t, "color"
+                #         ],
+                #     ):
+                #         box.set_facecolor(color)
 
                 # create color bar
                 cmap = sns.light_palette(sns.color_palette("Dark2")[i], as_cmap=True)
                 norm = mpl.colors.BoundaryNorm(
-                    np.arange(eval_df[dist].min() - 0.5, eval_df[dist].max() + 1.5),
+                    np.arange(
+                        eval_df.loc[eval_df["type"] == t, dist].min() - 0.5,
+                        eval_df.loc[eval_df["type"] == t, dist].max() + 1.5,
+                    ),
                     cmap.N,
                 )
                 sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -1391,40 +1457,34 @@ def roc_per_epitope(
                     [x_pos, bbox_ax.y0 + 0.07, 0.02, bbox_ax.y1 - bbox_ax.y0]
                 )
 
-                # only set tick marks on final color bar
-                cbar_im1a = plt.colorbar(sm, ticks=[], cax=cbar_im1a_ax)
+                # only set tick marks on final color bar, unless the ranges differ
+                if shared_bar:
+                    cbar_im1a = plt.colorbar(sm, ticks=[], cax=cbar_im1a_ax)
+                else:
+                    cbar_im1a = plt.colorbar(
+                        sm,
+                        ticks=np.arange(
+                            eval_df.loc[eval_df["type"] == t, dist].min(),
+                            eval_df.loc[eval_df["type"] == t, dist].max() + 1,
+                        ),
+                        cax=cbar_im1a_ax,
+                    )
 
                 # increment color bar position for next one
-                x_pos += 0.02
+                x_pos += x_shift
 
             # set tick marks for final color bar (overwrites the last empty one)
-            cbar_im1a = plt.colorbar(
-                sm,
-                ticks=np.arange(eval_df[dist].min(), eval_df[dist].max() + 1),
-                cax=cbar_im1a_ax,
-            )
+            if shared_bar:
+                cbar_im1a = plt.colorbar(
+                    sm,
+                    ticks=np.arange(eval_df[dist].min(), eval_df[dist].max() + 1),
+                    cax=cbar_im1a_ax,
+                )
 
             # add label to final color bar
             cbar_im1a.set_label(
                 "Minimum edit distance to training epitopes", rotation=270, labelpad=25
             )
-
-            # if grouped:
-            #     # color bars
-            #     # patches are created first for the first hue, then for the second
-
-            #     for p, color in zip(ax.patches[:len(ax.patches)//2], eval_df.sort_values(by=["epitope"]).loc[
-            #         eval_df["type"] == "Interaction map - TRB - epitope-grouped - shuffled negatives", "color"]):
-            #         p.set_color(color)
-            #         p.set_edgecolor("black")
-            #     for p, color in zip(ax.patches[len(ax.patches)//2:], eval_df.sort_values(by=["epitope"]).loc[
-            #         eval_df["type"] == "Dual input - TRB - epitope-grouped - shuffled negatives", "color"]):
-            #         p.set_color(color)
-            #         p.set_linewidth(1)
-            #         p.set_edgecolor("black")
-
-            # if not grouped:
-            #     # color boxes
 
     # rotate epitope labels
     plt.setp(
@@ -1451,8 +1511,6 @@ def roc_per_epitope(
         ax.yaxis.set_ticks(np.arange(round(start, 1), 1 + 0.1, 0.1))
         # ax.yaxis.set_ticks(np.arange(start, end+.1, 0.1)) # DONT DO THIS, AXIS WILL BE WRONG
     ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%0.1f"))
-
-    # color by training dist, must be positioned after legend creation to maintain main color instead of random first color gradient
 
     plt.savefig(output_path, bbox_inches="tight")
 
