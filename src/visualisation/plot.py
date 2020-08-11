@@ -1494,23 +1494,21 @@ def roc_per_epitope(
     #     ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor",
     # )
 
-    # set y-axis limit
-    # ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)   # causes bug where some epitopes are omitted from the plot
-    ax.set(ylim=(eval_df.roc_auc.min() * 0.9, 1))
-
     # set axis labels
-    # ax.set_title(f"AUROC per epitope")
     ax.set_ylabel("AUROC")
     ax.set_xlabel("Epitope")
 
-    # format tick marks
+    # set y-axis limit and format tick marks
     if grouped:
-        plt.yticks(np.arange(0, 1.1, 0.1))
+        ax.set(ylim=(0, 1))
+        # plt.yticks(np.arange(0, 1.1, 0.1)) # does not work?
+        ax.yaxis.set_ticks(np.arange(0, 1.1, 0.1))
     else:
+        # ax.set_ylim(eval_df.roc_auc.min() * 0.9, 1)
         start, end = ax.get_ylim()
         ax.yaxis.set_ticks(np.arange(round(start, 1), 1 + 0.1, 0.1))
-        # ax.yaxis.set_ticks(np.arange(start, end+.1, 0.1)) # DONT DO THIS, AXIS WILL BE WRONG
-    ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%0.1f"))
+    # ax.yaxis.set_ticks(np.arange(start, end+.1, 0.1)) # DONT DO THIS, AXIS WILL BE WRONG
+    # ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%0.1f"))
 
     plt.savefig(output_path, bbox_inches="tight")
 
