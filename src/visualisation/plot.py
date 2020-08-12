@@ -354,7 +354,7 @@ def plot_metrics(directory, y_lim_loss=None):
                 value = float(df.tail(1)[metric])
                 value_std = float(df.tail(1)[std_metric])
                 labels.append(
-                    "{}\n(final = {:.4g} ± {:.4g} ".format(tpe, value, value_std)
+                    "{}\n(final = {:.2f} ± {:.2f} ".format(tpe, value, value_std)
                     + r"$s$)"
                 )
 
@@ -375,7 +375,7 @@ def plot_metrics(directory, y_lim_loss=None):
             value = float(metrics.tail(1)[metric])
             value_std = float(metrics.tail(1)[std_metric])
             labels.append(
-                "{}\n(final = {:.4g} ± {:.4g} ".format(directory, value, value_std)
+                "{}\n(final = {:.2f} ± {:.2f} ".format(directory, value, value_std)
                 + r"$s$)"
             )
             sns_plot = sns.lineplot(x="epoch", y=metric, ci=None, data=metrics)
@@ -470,7 +470,7 @@ def plot_loss(directory, y_lim_loss=None):
             value = float(df.tail(1)["value"])
             value_std = float(df.tail(1)["std_value"])
             labels.append(
-                "{}\n(final = {:.4g} ± {:.4g} ".format(tpe, value, value_std) + r"$s$)"
+                "{}\n(final = {:.2f} ± {:.2f} ".format(tpe, value, value_std) + r"$s$)"
             )
 
         sns_plot = sns.lineplot(
@@ -491,7 +491,7 @@ def plot_loss(directory, y_lim_loss=None):
             value = float(df.loc[df.train_val == i].tail(1)["value"])
             value_std = float(df.tail(1)["std_value"])
             labels.append(
-                "{}\n(final = {:.4g} ± {:.4g} ".format(directory, value, value_std)
+                "{}\n(final = {:.2f} ± {:.2f} ".format(directory, value, value_std)
                 + r"$s$)"
             )
         sns_plot = sns.lineplot(
@@ -608,7 +608,7 @@ def plot_roc(directory, ax=None, legend=True):
             labels.append(
                 f"{tpe}\n"
                 + r"($\overline{AUC}$"
-                + " = {:.4g} ± {:.4g} ".format(auc_mean, auc_std)
+                + " = {:.2f} ± {:.2f} ".format(auc_mean, auc_std)
                 + r"$s$)"
             )
             # labels = [fill(l, 60) for l in labels]
@@ -625,7 +625,7 @@ def plot_roc(directory, ax=None, legend=True):
     else:
         auc_mean = float(auc.auc)
         labels.append(
-            "{}\n(AUC = {:.4g})".format(os.path.basename(directory), auc_mean)
+            "{}\n(AUC = {:.2f})".format(os.path.basename(directory), auc_mean)
         )
         # labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(x="fpr", y="tpr", ci=None, data=roc, ax=ax)
@@ -697,7 +697,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
             prec_mean = float(df.average_precision)
             prec_std = float(df.std_average_precision)
             labels.append(
-                "{}\n(Avg. Prec. = {:.4g} ± {:.4g} ".format(tpe, prec_mean, prec_std)
+                "{}\n(Avg. Prec. = {:.2f} ± {:.2f} ".format(tpe, prec_mean, prec_std)
                 + r"$s$)"
             )
             # labels = [fill(l, 60) for l in labels]
@@ -707,7 +707,7 @@ def plot_precision_recall(directory, ax=None, legend=True):
     else:
         prec_mean = float(average_precision.average_precision)
         labels.append(
-            "{}\n(Avg. Prec. = {:.4g})".format(os.path.basename(directory), prec_mean)
+            "{}\n(Avg. Prec. = {:.2f})".format(os.path.basename(directory), prec_mean)
         )
         # labels = [fill(l, 60) for l in labels]
         sns_plot = sns.lineplot(
@@ -859,7 +859,7 @@ def plot_confusion_matrix(directory, ax=None):
     #          rotation_mode="anchor")
 
     # Loop over data dimensions and create text annotations.
-    fmt = ".4g" if normalize else "d"
+    fmt = ".2f" if normalize else "d"
     thresh = cm.max() / 2.0
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
@@ -898,7 +898,7 @@ def plot_roc_boxplot(directory):
         model_name = (
             f"{tpe}\n"
             + r"($\overline{AUROC}$"
-            + " = {:.4g} ± {:.4g} ".format(auc_mean, auc_std)
+            + " = {:.2f} ± {:.2f} ".format(auc_mean, auc_std)
             + r"$s$)"
         )
         # labels.append(model_name)
@@ -964,7 +964,7 @@ def plot_roc_boxplot(directory):
         p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])[1]
 
         sns_plot.legend(
-            title="MWU test P-value = " + "{:0.4g}".format(p),  # {round(p,4)}",
+            title="MWU test P-value = " + "{:0.2g}".format(p),  # {round(p,4)}",
             loc="upper center",
             bbox_to_anchor=(0.5, -0.15),
         )
@@ -1330,7 +1330,7 @@ def roc_per_epitope(
             ]
             p = scipy.stats.mannwhitneyu(auroc_lists[0], auroc_lists[1])[1]
             ax.legend(
-                title=r"MWU test $P-value =$ " + "{:0.4g}".format(p)
+                title=r"MWU test $P-value =$ " + "{:0.2g}".format(p)
             )  # str(round(p, 4)),)
 
         # color by training dist, must be positioned after legend creation to maintain main color instead of random first color gradient
