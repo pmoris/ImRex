@@ -12,4 +12,4 @@ by Dean et al. ([https://doi.org/10.1186/s13073-015-0238-z](https://doi.org/10.1
 
 ## McPAS
 
-- `mcpas.csv` contains human CDR3-epitope sequence pairs, taken from McPAS ([http://friedmanlab.weizmann.ac.il/McPAS-TCR/](http://friedmanlab.weizmann.ac.il/McPAS-TCR/)) and filtered on a number of quality checks.
+- `McPAS-TCR.csv` contains human CDR3-epitope sequence pairs, taken from McPAS ([http://friedmanlab.weizmann.ac.il/McPAS-TCR/](http://friedmanlab.weizmann.ac.il/McPAS-TCR/)).

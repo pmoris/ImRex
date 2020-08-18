@@ -234,7 +234,7 @@ preprocess-adaptive:
 
 ## Preprocess McPAS data
 preprocess-mcpas:
-	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_mcpas.py -i ./data/raw/mcpas.csv -o ./data/interim/mcpas/mcpas-human-trb-mhci-size.csv --length-restriction 10 20 8 11 --vdjdb_dataset ./data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv
+	$(PYTHON_INTERPRETER) ./src/scripts/preprocessing/preprocess_mcpas.py -i ./data/raw/McPAS-TCR.csv -o ./data/interim/mcpas/mcpas-human-trb-mhci-size.csv --length-restriction 10 20 8 11 --vdjdb_dataset ./data/interim/vdjdb-2019-08-08/vdjdb-human-trb-mhci-no10x-size.csv
 
 ## Calculate metrics across train/test folds and create figures
 metrics:

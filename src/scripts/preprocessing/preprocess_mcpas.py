@@ -19,7 +19,7 @@ import seaborn as sns
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description="Script to extract CDR3-epitope sequence pairs from McPAS.",
+        description="Script to extract CDR3 (beta)-epitope sequence pairs from McPAS.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -36,6 +36,22 @@ def create_parser():
         type=str,
         required=True,
         help="Filepath to (preprocessed) VDJdb data used for comparing shared and unique epitopes.",
+    )
+    parser.add_argument(
+        "--species",
+        dest="species",
+        type=str,
+        choices=["all", "human", "mouse", "macaque"],
+        default="human",
+        help='Specify which TCR host species will be extracted: "human" (default), "mouse", "macaque" or "all"',
+    )
+    parser.add_argument(
+        "--mhc",
+        dest="mhc",
+        type=str,
+        choices=["all", "MHCI", "MHCII"],
+        default="MHCI",
+        help='Specify which MHC type will be extracted: "all", "MHCI" (default) or "MHCII"',
     )
     parser.add_argument(
         "--length-restriction",
@@ -59,14 +75,21 @@ def create_parser():
 
 
 def filter_mcpas(  # noqa: C901
-    input: str, length_restriction: list = None,  # noqa: A002
+    input: str,
+    species: str = "human",
+    mhc: str = "MHCI",
+    length_restriction: list = None,  # noqa: A002
 ):
     """Filter relevant CDR3-epitope pairs from McPAS peptide-details file and returns a dataframe.
 
     Parameters
     ----------
     input : str
-        Filepath to the McPAS data file, should be located in "./data/raw/mcpas.csv".
+        Filepath to the McPAS data file, should be located in "./data/raw/McPAS-TCR.csv".
+    species : str
+        Specify which TCR host species will be extracted: "human" (default), "mouse", "macaque" or "all".
+    mhc : str
+        Specify which MHC type will be extracted: "all" (default), "MHCI" or "MHCII".
     length_restriction: list
         Specify the sequence length restrictions. Format: cdr3-min cdr3-max epitope-min epitope-max. E.g. '10 20 8 11', by default None
     Returns
@@ -80,27 +103,83 @@ def filter_mcpas(  # noqa: C901
     logger.info(f"Filtering McPAS data found at {input.resolve()}")
 
     # read in the McPAS peptide-detail.csv (should be comma-separated)
-    df_mcpas = pd.read_csv(input, sep=",")
+    df_mcpas = pd.read_csv(input, sep=",", encoding="latin")
     logger.info(f"McPAS dataset size is {df_mcpas.shape}")
 
     # assert that the McPAS file has the expected headers
+    print(df_mcpas.columns.tolist())
     assert df_mcpas.columns.tolist() == [
-        "TRBV_gene",
-        "CDR3_beta",
-        "TRBJ_gene",
-        "HLA_peptide",
-        "Epitope species",
-        "Reference",
-        "Source",
+        "CDR3.alpha.aa",
+        "CDR3.beta.aa",
+        "Species",
+        "Category",
+        "Pathology",
+        "Pathology.Mesh.ID",
+        "Additional.study.details",
+        "Antigen.identification.method",
+        "Single.cell",
+        "NGS",
+        "Antigen.protein",
+        "Protein.ID",
+        "Epitope.peptide",
+        "Epitope.ID",
+        "MHC",
+        "Tissue",
+        "T.Cell.Type",
+        "T.cell.characteristics",
+        "CDR3.alpha.nt",
+        "TRAV",
+        "TRAJ",
+        "TRBV",
+        "TRBD",
+        "TRBJ",
+        "Reconstructed.J.annotation",
+        "CDR3.beta.nt",
+        "Mouse.strain",
+        "PubMed.ID",
+        "Remarks",
+        "CDR3.beta.clean",
     ], f"Column headers of {input.resolve()} do not match the expected header names."
-
-    # create merged column
-    df_mcpas["merged"] = df_mcpas["CDR3_beta"] + "-" + df_mcpas["HLA_peptide"]
 
     # rename columns
     df_mcpas = df_mcpas.rename(
-        columns={"CDR3_beta": "cdr3", "HLA_peptide": "antigen.epitope"}
+        columns={"CDR3.beta.clean": "cdr3", "Epitope.peptide": "antigen.epitope"}
     )
+
+    # create merged column
+    df_mcpas["merged"] = df_mcpas["cdr3"] + "-" + df_mcpas["antigen.epitope"]
+
+    # filter rows on host species
+    species_dict = {
+        "human": "Human",
+        "mouse": "Mouse",
+    }
+    if species == "all":
+        logger.info("Not filtering on TCR host species...")
+    else:
+        df_mcpas = df_mcpas.loc[df_mcpas["Species"] == species_dict[species]]
+        logger.info(f"Filtered down to {df_mcpas.shape[0]} {species} entries...")
+
+    # filter rows on MHC type
+    mhc_dict = {
+        "MHCI": "CD8",
+        "MHCII": "CD4",
+    }
+    if mhc == "all":
+        logger.info("Not filtering on MHC class / T-cell type...")
+    else:
+        df_mcpas = df_mcpas.loc[df_mcpas["T.Cell.Type"] == mhc_dict[mhc]]
+        logger.info(f"Filtered down to {df_mcpas.shape[0]} {mhc} entries...")
+
+    # filter on tetramers binding and/or T cell stimulation to avoid bystander effects
+    df_mcpas[df_mcpas["Antigen.identification.method"].isin([1.0, 2.1])]
+    logger.info(
+        f"Filtered down to {df_mcpas.shape[0]} entries determined by tetramer assay or stimulation with a peptide..."
+    )
+
+    # remove entries with remarks
+    df_mcpas = df_mcpas[pd.isnull(df_mcpas["Remarks"])]
+    logger.info(f"Filtered down to {df_mcpas.shape[0]} entries without remarks...")
 
     # Filter on sequence length
     if length_restriction:
@@ -121,13 +200,20 @@ def filter_mcpas(  # noqa: C901
         logger.info("Not filtering on sequence length...")
 
     # remove duplicates CDR3-epitope sequence pairs
-
     unique_columns = ["cdr3", "antigen.epitope"]
     pre_duplicate_count = df_mcpas.shape[0]
     df_mcpas = df_mcpas.drop_duplicates(unique_columns)
     logger.info(
         f"Removing {pre_duplicate_count-df_mcpas.shape[0]} duplicate CDR3-epitope pairs."
     )
+
+    # remove missing data
+    pre_missing_count = df_mcpas.shape[0]
+    df_mcpas = df_mcpas.dropna(subset=unique_columns)
+    logger.info(
+        f"Removing {pre_missing_count-df_mcpas.shape[0]} CDR3-epitope pairs with missing values."
+    )
+
     logger.info(f"Filtered dataset contains {df_mcpas.shape[0]} entries.")
 
     return df_mcpas
@@ -148,11 +234,17 @@ def filter_unique_epitopes(df_mcpas: pd.DataFrame, df_vdjdb: pd.DataFrame):
         The filtered McPAS DataFrame.
     """
 
+    logger.info(
+        f"Extracting epitopes that are NOT present in the supplied VDJdb dataset {Path(args.vdjdb_dataset)} entries."
+    )
+
     unique = set(df_mcpas["antigen.epitope"].unique()) - set(
         df_vdjdb["antigen.epitope"].unique()
     )
     df_mcpas_unique = df_mcpas[df_mcpas["antigen.epitope"].isin(unique)]
-    logger.info(f"Filtered dataset contains {df_mcpas_unique.shape[0]} entries.")
+    logger.info(
+        f"Filtered unique epitopes dataset contains {df_mcpas_unique.shape[0]} entries."
+    )
 
     return df_mcpas_unique
 
@@ -171,6 +263,11 @@ def filter_shared_epitopes(df_mcpas: pd.DataFrame, df_vdjdb: pd.DataFrame):
     DataFrame
         The filtered McPAS DataFrame.
     """
+
+    logger.info(
+        f"Extracting epitopes that ARE present in the supplied VDJdb dataset {Path(args.vdjdb_dataset)} entries."
+    )
+
     shared = set(df_mcpas["antigen.epitope"].unique()).intersection(
         set(df_vdjdb["antigen.epitope"].unique())
     )
@@ -186,8 +283,13 @@ def filter_shared_epitopes(df_mcpas: pd.DataFrame, df_vdjdb: pd.DataFrame):
         .merge(df_vdjdb[["cdr3", "antigen.epitope"]], indicator=True, how="left")
         .loc[lambda x: x["_merge"] == "left_only"]
     )
+    logger.info(
+        f"Removing CDR3-epitope pairs that are identical to those in the supplied VDJdb dataset {Path(args.vdjdb_dataset)} entries."
+    )
 
-    logger.info(f"Filtered dataset contains {df_mcpas_shared.shape[0]} unique entries.")
+    logger.info(
+        f"Filtered shared epitopes dataset contains {df_mcpas_shared.shape[0]} unique entries."
+    )
 
     return df_mcpas_shared
 
@@ -363,7 +465,10 @@ if __name__ == "__main__":
 
     # preprocess vdjdb files based on passed arguments
     df_mcpas = filter_mcpas(
-        input=input_file, length_restriction=args.length_restriction,
+        input=input_file,
+        species=args.species,
+        mhc=args.mhc,
+        length_restriction=args.length_restriction,
     )
 
     # create visualisation of dataset
