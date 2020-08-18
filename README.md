@@ -57,7 +57,8 @@ The `Makefile` contains the majority of steps required to reproduce our results,
 - `make test`: test if environment and source code passes all tests.
 - `make data-vdjdb-aug-2019`: download data to correct directories.
 - `preprocess-vdjdb-aug-2019`: filter the data and preprocess it into the correct format.
-- For training models, choose a `.pbs` (bash) file from the `./src/scripts/pbs_scripts` or modify its contents to the desired architecture/data combination. Must be run from within this directory in order for the output to be stored in the correct location.
+- For training models, choose a `.pbs` (bash) file in `./src/scripts/pbs_scripts` or modify its contents to the desired architecture/data combination. Must be run from within this directory in order for the output to be stored in the correct location and the script's paths to be correct.
+- For evaluating models on external datasets, choose a `.sh` script in `./src/scripts/evaluate`. These files must be run from within this directory in order for the output to be stored in the correct location and the script's paths to be correct.
 - `make metrics`: computes metrics and visualisations for all models that are found in the `models` directory.
 - `metrics-compare`: shows a one-liner that can be utilised to compare two (or more) model directories, after they've been placed inside the same parent directory.
 - `evaluate_self`: shows a one-liner that can be utilised to perform a per-epitope evaluation on a model directory.

@@ -21,7 +21,7 @@ cd ${PROJECT_ROOT}
 
 echo "Project directory: ${PROJECT_ROOT}"
 echo "Running from $(pwd)"
-echo "Path used for raw vdjdb data directory: $(realpath ${RAW_DATA_PATH})"
+echo "Path used for raw Adaptive ImmuneCODE data directory: $(realpath ${RAW_DATA_PATH})"
 
 echo -e "\nPlease download the Adaptive ImmuneCODE dataset (June 25 2020) from the following URL: https://immunerace.adaptivebiotech.com/more-data-and-whats-coming-next/"
 echo -e "The download location should read https://enrollimmunerace.adaptivebiotech.com/restricted/ImmuneCODE-Release001.1.zip."
