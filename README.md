@@ -1,7 +1,7 @@
 ImRex (Interaction Map Recognition)
 ==============================
 
-## TCR-epitope recognition prediction using combined sequence input represention for convolutional neural networks
+# TCR-epitope recognition prediction using combined sequence input represention for convolutional neural networks
 
 Project Organization
 ------------
@@ -78,6 +78,10 @@ python ./src/scripts/predict/predict.py --model ./models/models-pretrained/2020-
 ## Results
 
 An overview of the different experiments we ran is provided in `.models/README.md`. Log files for these experiments can be found in `./src/scripts/hpc_scripts`. Please refer to the publication below for more information.
+
+## Data
+
+The following Zenodo repository holds all output data (raw/processed datasets, trained model files in .h5 format, CV train/test splits, etc.): [10.5281/zenodo.3973547](https://doi.org/10.5281/zenodo.3973547).
 
 ## Citation
 
