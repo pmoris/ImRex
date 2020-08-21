@@ -1,7 +1,7 @@
-deepTCR
+ImRex (Interaction Map Recognition)
 ==============================
 
-## TCR-epitope recognition prediction using CNN approach
+## TCR-epitope recognition prediction using combined sequence input represention for convolutional neural networks
 
 Project Organization
 ------------
