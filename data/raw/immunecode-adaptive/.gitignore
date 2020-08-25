@@ -16,5 +16,5 @@
 !*.sh
 !*.log
 
-# ... and all zip files
+# ... and zipped data files
 !*.zip

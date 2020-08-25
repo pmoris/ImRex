@@ -2,7 +2,7 @@
 
 ## TCR-epitope sequences
 
-- `./vdjdb`: contains a data dump of VDJdb TCR-epitope pairs ([https://vdjdb.cdr3.net](https://vdjdb.cdr3.net)), see [./VDJdb/README.md](./VDJdb/README.md) for additional information and statistics of this file. This data can be retrieved and unpacked using `Make data-vdjdb-aug-2019`.
+- `./vdjdb`: contains a data dump of the 2019-08-08 GitHub release of VDJdb TCR-epitope pairs ([https://vdjdb.cdr3.net](https://vdjdb.cdr3.net)), see [./VDJdb/README.md](./VDJdb/README.md) for additional information and statistics of this file. This data can be retrieved and unpacked using `Make data-vdjdb-aug-2019`.
 - `CDR3_control_sequences.tsv`: 500,000 TRB CDR3 sequences from a study
 by Dean et al. ([https://doi.org/10.1186/s13073-015-0238-z](https://doi.org/10.1186/s13073-015-0238-z)).
 
@@ -12,4 +12,4 @@ by Dean et al. ([https://doi.org/10.1186/s13073-015-0238-z](https://doi.org/10.1
 
 ## McPAS
 
-- `McPAS-TCR.csv` contains human CDR3-epitope sequence pairs, taken from McPAS ([http://friedmanlab.weizmann.ac.il/McPAS-TCR/](http://friedmanlab.weizmann.ac.il/McPAS-TCR/)).
+- `McPAS-TCR.csv` contains human CDR3-epitope sequence pairs, taken from McPAS ([http://friedmanlab.weizmann.ac.il/McPAS-TCR/](http://friedmanlab.weizmann.ac.il/McPAS-TCR/)). The database was last updated on: June 24, 2020.
