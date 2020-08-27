@@ -175,6 +175,9 @@ def consolidate_all(directory, force=False):
     # create auc per epitope csv for later box plot auroc comparisons
     consolidate_auc(directory)
 
+    # create ap per epitope csv for later box plot averageprecision comparisons
+    consolidate_ap(directory)
+
 
 def consolidate_auc(directory):
     dfs = list()
@@ -196,6 +199,33 @@ def consolidate_auc(directory):
         return
 
     output_path = os.path.join(directory, "auc_per_iteration.csv")
+    df_concat = pd.concat(dfs)
+    df_concat["type"] = os.path.basename(os.path.abspath(directory))
+    df_concat.to_csv(output_path, index=False)
+
+
+def consolidate_ap(directory):
+    dfs = list()
+    for subdir in filter(
+        lambda x: os.path.basename(x).startswith("iteration"), subdirs(directory)
+    ):
+        p = os.path.join(subdir, "average_precision.csv")
+
+        if not os.path.exists(p):
+            print(f"average_precision.csv not found in {subdir}, skipping...")
+            continue
+
+        df = pd.read_csv(p)
+        df["iteration"] = os.path.basename(subdir)
+        dfs.append(df)
+
+    if not dfs:
+        print(
+            f"No average_precision.csv found in any subdirectory of {directory}, skipping..."
+        )
+        return
+
+    output_path = os.path.join(directory, "ap_per_iteration.csv")
     df_concat = pd.concat(dfs)
     df_concat["type"] = os.path.basename(os.path.abspath(directory))
     df_concat.to_csv(output_path, index=False)
@@ -255,7 +285,7 @@ def consolidate(directory, file, col):
 
 
 def concatenate_all(directory, force=False):
-    for file, col in FILES + [("auc_per_iteration.csv", "index")]:
+    for file, col in FILES + [("auc_per_iteration.csv", "index"), ("ap_per_iteration.csv", "index")]:
         # Can't concatenate unagregated csv's
         if col is None:
             continue
@@ -980,6 +1010,104 @@ def plot_roc_boxplot(directory):
     )
 
 
+def plot_ap_boxplot(directory):
+    fig, ax = plt.subplots(
+        constrained_layout=False, dpi=200, figsize=(12, 6)
+    )  # figsize=(12, 6), figsize=(14, 8) for large comparisons
+    df = pd.read_csv(os.path.join(directory, "ap_per_iteration.csv"))
+
+    # labels = list()
+    for tpe in df.type.unique():
+        df_label = df[df.type == tpe]
+        ap_mean = df_label.average_precision.mean()
+        ap_std = df_label.average_precision.std()
+        model_name = (
+            f"{tpe}\n"
+            + r"($\overline{AP}$"
+            + " = {:.2f} ± {:.2f} ".format(ap_mean, ap_std)
+            + r"$s$)"
+        )
+        # labels.append(model_name)
+        # labels = [fill(l, 50) for l in labels]
+
+        df.loc[df.type == tpe, "type-mean-std"] = model_name
+
+    sns_plot = sns.boxplot(
+        x="type-mean-std",
+        y="average_precision",
+        # data=df,  # .sort_values(by=["auc"], ascending=False),
+        # order=df.sort_values(by=["auc"], ascending=False),
+        data=df.sort_values(by=["type-mean-std"]),
+        order=sorted(df["type-mean-std"].unique()),
+        palette=get_palette(df, "type-mean-std"),
+        hue="type-mean-std",
+    )
+    # hue="type-mean-std" for legend, optionally use custom labels
+
+    plt.setp(
+        ax.get_xticklabels(), rotation=45, va="top", rotation_mode="default",
+    )
+
+    plt.xlabel(None)
+    plt.ylabel("Average Precision")
+
+    # for patch in ax.artists:
+    #     r, g, b, a = patch.get_facecolor()
+    #     patch.set_facecolor((r, g, b, 0.7))
+    # plt/sns_plot.legend() overrides custom legend
+    # for lh in plt.legend().legendHandles:
+    #     lh.set_alpha(0.7)
+
+    # add legend and remove x labels
+    # must be called after setting alpha or it will override location again
+    ## ax.legend()
+
+    # legend below figure, requires hue to be set
+    sns_plot.legend(title=None, loc="upper center", bbox_to_anchor=(0.5, -0.15))
+    sns_plot.set(xticklabels=[])
+
+    # add wmu test
+
+    if df["type"].nunique() == 2:
+        # sort the values
+        df = df.sort_values(["iteration", "type"]).reset_index(drop=True)
+        # and calculate the difference in auroc between the model types per iteration
+        df["diff"] = df.groupby("iteration")["average_precision"].transform(
+            lambda x: x.diff()
+        )
+
+        # # wilcoxon signed rank test
+        # # compute wilcoxon test and add p-value to legend
+        # p = scipy.stats.wilcoxon(df["diff"].dropna(), correction=True, mode="exact")[1]
+        # ax.legend(title=r"Wilcoxon signed-rank test $P-value =$ " + str(round(p, 4)),)
+
+        # # sign test
+        # x = (df["diff"].dropna() > 0).sum()
+        # n = len(df["diff"].dropna())
+        # p = scipy.stats.binom_test(x, n, 0.5, alternative="two-sided")
+        # ax.legend(title=f"Sign test {p}")
+
+        # MWU test
+        ap_lists = [
+            df.loc[df["type"] == i, "average_precision"] for i in df["type"].unique()
+        ]
+        p = scipy.stats.mannwhitneyu(ap_lists[0], ap_lists[1])[1]
+
+        sns_plot.legend(
+            title="MWU test P-value = " + "{:0.2g}".format(p),  # {round(p,4)}",
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.15),
+        )
+
+    sns_plot.get_figure().savefig(
+        get_output_path(
+            directory,
+            "ap_boxplot" + "-" + str(Path(directory).absolute().name).replace(" ", "-"),
+        ),
+        bbox_inches="tight",
+    )
+
+
 def plot_all(directory, y_lim_loss=None):
     plot_metrics(directory, y_lim_loss=y_lim_loss)
     plt.close("all")
@@ -996,6 +1124,8 @@ def plot_all(directory, y_lim_loss=None):
     plot_confusion_matrix(directory)
     plt.close("all")
     plot_roc_boxplot(directory)
+    plt.close("all")
+    plot_ap_boxplot(directory)
     plt.close("all")
 
 
