@@ -8,6 +8,7 @@ from src.data.vdjdb_source import VdjdbSource
 from src.scripts import io_helper
 from src.neural.trainer import get_output_path, Trainer
 from src.processing.cv_folds import cv_splitter
+from src.processing.decoyer import Decoyer
 from src.processing.separated_input_dataset_generator import (
     separated_input_dataset_generator,
 )
@@ -28,7 +29,11 @@ def create_parser():
         / "data/interim/vdjdb-2019-08-08/vdjdb-human-tra-trb-no10x.csv",
     )
     parser.add_argument(
-        "--batch_size", dest="batch_size", type=int, help="Batch size.", default=128,
+        "--batch_size",
+        dest="batch_size",
+        type=int,
+        help="Batch size.",
+        default=128,
     )
     parser.add_argument(
         "--epochs",
@@ -51,12 +56,19 @@ def create_parser():
         help="When negatives are generated through shuffling, sample CDR3 sequences instead of epitopes (preserves pos/neg ratio per epitope).",
         default=False,
     )
+    # parser.add_argument(
+    #     "--neg_ratio",
+    #     dest="neg_ratio",
+    #     type=float,
+    #     help="Proportion of positive to negative samples.",
+    #     default=0.5,
+    # )
     parser.add_argument(
-        "--neg_ratio",
-        dest="neg_ratio",
-        type=float,
-        help="Proportion of positive to negative samples.",
-        default=0.5,
+        "--decoy_validation",
+        dest="decoy_validation",
+        action="store_true",
+        help="Evaluate the model on decoy data during cross-validation.",
+        default=False,
     )
     parser.add_argument(
         "--validation_data",
@@ -342,6 +354,13 @@ if __name__ == "__main__":
     logger.info(f"Built model {model.base_name}:")
     # model.summary() is logged inside trainer.py
 
+    # if decoys should be used during evaluation, generate the mapping of epitopes to decoys
+    if args.decoy_validation:
+        from src.scripts.preprocessing.decoy_epitopes import create_decoy_dict
+
+        epitope_list = data_source.data["antigen.epitope"].unique()
+        decoy_dict = create_decoy_dict(epitope_list, weighted=False, seed=42)
+
     # if negative reference dataset is provided, draw negatives from it
     if args.neg_ref:
         logger.info("Generating negative examples from negative reference CDR3 set.")
@@ -381,7 +400,9 @@ if __name__ == "__main__":
         train = data_source
 
         train_output = get_output_path(
-            base_name=run_name, file_name="train.csv", iteration="no_validation",
+            base_name=run_name,
+            file_name="train.csv",
+            iteration="no_validation",
         )
 
         train_data = separated_input_dataset_generator(
@@ -489,6 +510,11 @@ if __name__ == "__main__":
                 neg_augment=args.neg_augment,
                 augment_amount=args.augment_amount,
             )
+
+            # if decoys should be used for evaluation, transform the stream
+            if args.decoy_validation:
+                val = Decoyer(val, decoy_dict)
+
             val_data = separated_input_dataset_generator(
                 data_stream=val,
                 cdr3_range=cdr3_range,
