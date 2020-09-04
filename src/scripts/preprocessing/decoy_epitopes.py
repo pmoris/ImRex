@@ -42,19 +42,12 @@ def create_parser():
     return args
 
 
-def create_decoy_epitopes(input: str, weighted: bool = False):  # noqa: A002
+def create_decoy_dict(epitope_list: list, weighted: bool, seed: int = 42):
     logger = logging.getLogger(__name__)
 
     # set seed
-    random.seed(42)
+    random.seed(seed)
 
-    # read in data
-    df = pd.read_csv(input, sep=";")
-
-    # get unique list of epitopes
-    epitope_list = df["antigen.epitope"].unique()
-
-    # create a dictionary mapping each epitope to a decoy one
     if weighted:
         logger.info(
             "Creating decoys using the amino acid frequencies in the original unique epitope list."
@@ -80,6 +73,19 @@ def create_decoy_epitopes(input: str, weighted: bool = False):  # noqa: A002
 
         decoy = lambda epitope: "".join(random.sample(AMINO_ACIDS, len(epitope)))
         decoy_dict = {epitope: decoy(epitope) for epitope in epitope_list}
+
+    return decoy_dict
+
+
+def create_decoy_epitopes(input: str, weighted: bool = False):  # noqa: A002
+    # read in data
+    df = pd.read_csv(input, sep=";")
+
+    # get unique list of epitopes
+    epitope_list = df["antigen.epitope"].unique()
+
+    # create a dictionary mapping each epitope to a decoy one
+    decoy_dict = create_decoy_dict(epitope_list=epitope_list, weighted=weighted)
 
     # convert every epitope in the dataframe to its decoy
     df["antigen.epitope"] = df["antigen.epitope"].apply(

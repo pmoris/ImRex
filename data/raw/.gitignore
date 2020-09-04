@@ -15,3 +15,6 @@
 !*.markdown
 !*.sh
 !*.log
+
+# ... and all zip files
+!*.zip
