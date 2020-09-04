@@ -30,6 +30,7 @@ This directory contains trained and evaluated models as defined by the different
     - `down`: moderate downsampling of most abundant epitopes to 1000 pairs.
     - `down400`: strong downsampling of most abundant epitopes to 400 pairs.
     - `decoy`: decoy epitope data.
+    - `reg001`: regularization factor 0.001 (only for padded/interaction type models, fixed value)
 - Two different methods of generating negative TCR-epitope pairs were used: shuffling of positive pairs, i.e. sampling a single epitope from the positive pairs for each CDR3 sequence (`shuffle`), and sampling CDR3s from a reference repertoire (`negref`).
 - The batch size is labelled as `b32` = a batch size of 32.
 - The learning rate was always 0.0001 (`lre4`) or 0.001 (`lre3`).
