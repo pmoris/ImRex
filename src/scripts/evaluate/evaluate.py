@@ -150,7 +150,11 @@ def create_parser():
         default="absdiff",
     )
     parser.add_argument(
-        "--batch_size", dest="batch_size", type=int, help="Batch size.", default=128,
+        "--batch_size",
+        dest="batch_size",
+        type=int,
+        help="Batch size.",
+        default=128,
     )
     parser.add_argument(
         "--per_epitope",
@@ -302,8 +306,9 @@ if __name__ == "__main__":
     predictions_df.to_csv(predictions_filepath, index=False)
     logger.info(f"Saved predictions in {predictions_filepath.absolute()}.")
 
-    try:
-        if args.per_epitope:
+    if args.per_epitope:
+
+        try:
             per_epitope_df = evaluation.evaluate_per_epitope(
                 model=model,
                 data_source=data_source,
@@ -313,22 +318,22 @@ if __name__ == "__main__":
                 cdr3_range=cdr3_range,
                 epitope_range=epitope_range,
             )
-    except ValueError as e:
-        raise ValueError(
-            "Make sure the correct model type and padding lengths are specified. The latter can be omitted if every fold contains an example of the shortest and longest length, otherwise they should be provided as input arguments."
-        ) from e
+        except ValueError as e:
+            raise ValueError(
+                "Make sure the correct model type and padding lengths are specified. The latter can be omitted if every fold contains an example of the shortest and longest length, otherwise they should be provided as input arguments."
+            ) from e
 
-    # add training dataset size per epitope
-    if args.train_dataset:
-        train_df = pd.read_csv(train_path, sep=";")
-        per_epitope_df["train_size"] = per_epitope_df.apply(
-            lambda x: np.sum(train_df["antigen.epitope"] == x["epitope"]), axis=1
-        )
+        # add training dataset size per epitope
+        if args.train_dataset:
+            train_df = pd.read_csv(train_path, sep=";")
+            per_epitope_df["train_size"] = per_epitope_df.apply(
+                lambda x: np.sum(train_df["antigen.epitope"] == x["epitope"]), axis=1
+            )
 
-    # calculate edit distances to training examples
-    per_epitope_df = calculate_distance(per_epitope_df, train_df)
+        # calculate edit distances to training examples
+        per_epitope_df = calculate_distance(per_epitope_df, train_df)
 
-    # save output
-    per_epitope_filepath = output_dir / "metrics_per_epitope.csv"
-    per_epitope_df.to_csv(per_epitope_filepath, index=False)
-    logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
+        # save output
+        per_epitope_filepath = output_dir / "metrics_per_epitope.csv"
+        per_epitope_df.to_csv(per_epitope_filepath, index=False)
+        logger.info(f"Saved per-epitope metrics in {per_epitope_filepath.absolute()}.")
