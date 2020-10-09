@@ -50,7 +50,11 @@ plt.rcParams["font.sans-serif"] = "Source Sans Pro"  # ['Fira Sans', 'Source San
 plt.rcParams.update({"font.size": 16})
 plt.rcParams["patch.edgecolor"] = "black"
 
-sns.set_palette("Dark2")
+# pal = "Dark2"
+colors = ["#1E88E5", "#CCAD00", "#D81B60", "#004D40", "#EE7733", "#CC3311", "#BBBBBB", "#009988", "#AA4499"] # "#FFC107" instead of "#CCAD00" is brighter and prettier, but too pale for the gradient colouring
+# colors = ["#DDAA33", "#BB5566", "#004488"]
+pal = sns.color_palette(colors) 
+sns.set_palette(pal)
 sns.set_style("darkgrid")
 
 
@@ -1271,14 +1275,14 @@ def roc_per_epitope(
 
             colors = mpl.cm.ScalarMappable(
                 cmap=sns.light_palette(
-                    sns.color_palette("Dark2")[0],
+                    sns.color_palette(pal)[0],
                     as_cmap=True,
                     # n_colors=eval_df[dist].nunique(),
                 )
             ).to_rgba(eval_df[dist])
 
             cmap = sns.light_palette(
-                sns.color_palette("Dark2")[0],
+                sns.color_palette(pal)[0],
                 as_cmap=True,
                 # n_colors=eval_df[dist].nunique(),
             )
@@ -1331,7 +1335,7 @@ def roc_per_epitope(
                 data=eval_df,
                 # color=colour_palette,
                 # palette=mpl.cm.ScalarMappable(cmap="magma").to_rgba(eval_df["mean_dist"]),
-                color=sns.color_palette("Dark2")[0],
+                color=sns.color_palette(pal)[0],
                 order=order,
                 # alpha=0.7,
             )
@@ -1504,7 +1508,7 @@ def roc_per_epitope(
                 eval_df.at[eval_df["type"] == t, "color"] = pd.Series(
                     mpl.cm.ScalarMappable(
                         cmap=sns.light_palette(
-                            sns.color_palette("Dark2")[i], as_cmap=True
+                            sns.color_palette(pal)[i], as_cmap=True
                         )
                     )
                     .to_rgba(eval_df.loc[eval_df["type"] == t, dist])
@@ -1567,7 +1571,7 @@ def roc_per_epitope(
                 #         box.set_facecolor(color)
 
                 # create color bar
-                cmap = sns.light_palette(sns.color_palette("Dark2")[i], as_cmap=True)
+                cmap = sns.light_palette(sns.color_palette(pal)[i], as_cmap=True)
                 norm = mpl.colors.BoundaryNorm(
                     np.arange(
                         eval_df.loc[eval_df["type"] == t, dist].min() - 0.5,
@@ -1683,7 +1687,7 @@ def roc_train_corr(eval_df, output_path):
 
 def roc_min_dist_box(eval_df, output_path):
     g = sns.boxplot(
-        y="roc_auc", x="min_dist", data=eval_df, color=sns.color_palette("Dark2")[0],
+        y="roc_auc", x="min_dist", data=eval_df, color=sns.color_palette(pal)[0],
     )
     # sns.swarmplot(y="roc_auc", x="min_dist", data=eval_df, color=".25")
     g.set_xlabel("Minimum edit distance")
@@ -1735,9 +1739,9 @@ def get_palette(df, value):
     # else:
     #     pal = sns.color_palette("Set1", n_colors=len(unique_values))
 
-    pal = sns.color_palette("Dark2", n_colors=len(unique_values))
+    palette = sns.color_palette(pal, n_colors=len(unique_values))
 
-    palette_dict = dict(zip(unique_values, pal))
+    palette_dict = dict(zip(unique_values, palette))
     return palette_dict
 
 

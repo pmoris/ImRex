@@ -37,18 +37,19 @@ function evaluate_self_comparison_plots {
 export -f evaluate_self_comparison_plots
 
 # create metrics: requires a directory with subdirectories that contain "iteration_#" subdirectories
-find . -maxdepth 1 -mindepth 1 -type d -exec python ../../src/scripts/evaluate/visualize.py metrics --force True "{}" \;
+# find . -maxdepth 2 -mindepth 2 -type d -exec python ../../src/scripts/evaluate/visualize.py metrics --force True "{}" \;
 # should already be done
 
-# evaluate self: create predictions and per-epitope plots for test folds
+# evaluate self: create predictions for test folds
 # find . -maxdepth 1 -mindepth 1 -type d -name "*nettcr*" -exec python ../../src/scripts/evaluate/evaluate_self.py --input {} --model_type separated --min_length_cdr3 10 --max_length_cdr3 20 --min_length_epitope 8 --max_length_epitope 11 \;
 # find . -maxdepth 1 -mindepth 1 -type d -name "*padded*" -exec python ../../src/scripts/evaluate/evaluate_self.py --input {} --model_type padded --min_length_cdr3 10 --max_length_cdr3 20 --min_length_epitope 8 --max_length_epitope 11 --features 'hydrophob,isoelectric,mass,hydrophil' --operator absdiff \;
+# should already be done
 
 # create comparisons plots: requires a directory with subdirectories containing pre-computed iteration directories and their consolidated metrics
 find . -maxdepth 1 -mindepth 1 -type d -exec python ../../src/scripts/evaluate/visualize.py compare --force True "{}" \;
 
-# # create per-epitope comparisons for all subdirectories within their "evaluate_test_folds" directory
-# find . -maxdepth 2 -mindepth 2 -type d -name "*evaluate_test_folds" -exec /bin/bash -c 'evaluate_self_plots "$0"' {} \;
+# # create per-epitope plots for all "evaluate_test_folds" subdirectories
+find . -maxdepth 3 -mindepth 3 -type d -name "*evaluate_test_folds" -exec /bin/bash -c 'evaluate_self_plots "$0"' {} \;
 
 # create comparison plots for per-epitope comparisons: same requirements as above + subdirectories should contain an "evaluate_test_folds" directory with metrics_per_epitope.csv
 find . -maxdepth 1 -mindepth 1 -type d -exec /bin/bash -c 'evaluate_self_comparison_plots "$0"' {} \;
