@@ -120,7 +120,7 @@ The following Zenodo repository holds all output data (raw/processed datasets, t
 
 When using our results or modelling approach in a publication, please cite our preprint: [https://doi.org/10.1101/2019.12.18.880146](https://doi.org/10.1101/2019.12.18.880146):
 
->Moris, Pieter, Joey De Pauw, Anna Postovskaya, Benson Ogunjimi, Kris Laukens, and Pieter Meysman. 2019. "Treating Biomolecular Interaction As An Image Classification Problem – A Case Study On T-Cell Receptor-Epitope Recognition Prediction". doi:10.1101/2019.12.18.880146.
+>Moris, Pieter, Joey De Pauw, Anna Postovskaya, Benson Ogunjimi, Kris Laukens, and Pieter Meysman. 2019. "Current challenges for epitope-agnostic TCR interaction prediction and a new perspective derived from image classification". doi:10.1101/2019.12.18.880146.
 
 ## Authors
 
