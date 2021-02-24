@@ -24,7 +24,7 @@ TCR-epitope recognition prediction using combined sequence input represention fo
 
 ## Project Organization
 
-    ├── LICENSE                     <- MIT license.
+    ├── LICENSE                     <- Non-commercial license.
     ├── Makefile                    <- Makefile with commands like `make data`.
     ├── README.md                   <- The top-level README for developers using this project.
     ├── data
