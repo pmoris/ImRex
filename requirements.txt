@@ -2,7 +2,7 @@
 -e .
 
 # external packages
-tensorflow-gpu==2.1.0
+tensorflow-gpu==2.4.0
 tensorboard==2.1.0
 h5py==2.10.0
 biopython==1.76
