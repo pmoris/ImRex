@@ -118,21 +118,11 @@ The following Zenodo repository holds all output data (raw/processed datasets, t
 
 ## Citation
 
-When using our results or modelling approach in a publication, please cite our preprint: [https://doi.org/10.1101/2019.12.18.880146](https://doi.org/10.1101/2019.12.18.880146):
+When using our results or modelling approach in a publication, please cite our paper: [https://doi.org/10.1093/bib/bbaa318](https://doi.org/10.1093/bib/bbaa318):
 
->Moris, Pieter, Joey De Pauw, Anna Postovskaya, Benson Ogunjimi, Kris Laukens, and Pieter Meysman. 2019. "Current challenges for epitope-agnostic TCR interaction prediction and a new perspective derived from image classification". doi:10.1101/2019.12.18.880146.
+> Moris, Pieter, Joey De Pauw, Anna Postovskaya, Sofie Gielis, Nicolas De Neuter, Wout Bittremieux, Benson Ogunjimi, Kris Laukens, and Pieter Meysman. “Current Challenges for Unseen-Epitope TCR Interaction Prediction and a New Perspective Derived from Image Classification.” Briefings in Bioinformatics 22, no. 4 (2020). https://doi.org/10.1093/bib/bbaa318. 
 
-## Authors
-
->Pieter Moris,
->Joey De Pauw,
->Wout Bittremieux,
->Anna Postovskaya,
->Benson Ogunjimi
->Kris Laukens,
->Pieter Meysman
-
-## History of the project
+### History of the project
 
 A preprint of an earlier version of this work was submitted to bioRxiv: [https://doi.org/10.1101/2019.12.18.880146](https://doi.org/10.1101/2019.12.18.880146).
 
